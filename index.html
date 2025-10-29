@@ -1,0 +1,1839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <!-- Title changed to Bulb & Gulabi -->
+    <title>Bulb & Gulabi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Font switched to Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons added -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <!-- NEW: Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        :root {
+            /* --- BULB THEME (DEFAULT) --- */
+            --bg-primary-bulb: #FFFFFF;
+            --bg-secondary-bulb: #F8FAFC; /* cool-gray-50 */
+            --text-primary-bulb: #1F2937; /* cool-gray-800 */
+            --text-secondary-bulb: #4B5563; /* cool-gray-600 */
+            --border-bulb: #E5E7EB; /* cool-gray-200 */
+            --brand-primary-bulb: #EAB308; /* yellow-500 */
+            --brand-secondary-bulb: #FEF08A; /* yellow-200 */
+
+            /* --- GULABI THEME --- */
+            --bg-primary-gulabi: #FFF1F2; /* pink-50 */
+            --bg-secondary-gulabi: #FFFFFF;
+            --text-primary-gulabi: #1F2937;
+            --text-secondary-gulabi: #4B5563;
+            --border-gulabi: #FCE7F3; /* pink-100 */
+            --brand-primary-gulabi: #DB2777; /* pink-600 */
+            --brand-secondary-gulabi: #FBCFE8; /* pink-200 */
+
+            --app-height: 100vh;
+        }
+
+        /* --- Theme Application --- */
+        [data-theme="bulb"] {
+            --bg-primary: var(--bg-primary-bulb);
+            --bg-secondary: var(--bg-secondary-bulb);
+            --text-primary: var(--text-primary-bulb);
+            --text-secondary: var(--text-secondary-bulb);
+            --border-color: var(--border-bulb);
+            --brand-primary: var(--brand-primary-bulb);
+            --brand-secondary: var(--brand-secondary-bulb);
+        }
+        [data-theme="gulabi"] {
+            --bg-primary: var(--bg-primary-gulabi);
+            --bg-secondary: var(--bg-secondary-gulabi);
+            --text-primary: var(--text-primary-gulabi);
+            --text-secondary: var(--text-secondary-gulabi);
+            --border-color: var(--border-gulabi);
+            --brand-primary: var(--brand-primary-gulabi);
+            --brand-secondary: var(--brand-secondary-gulabi);
+        }
+
+        html, body { height: 100%; overflow: hidden; }
+        body {
+            font-family: 'Inter', sans-serif; /* Font switched */
+            background-color: #000000;
+            color: var(--text-primary);
+            -webkit-tap-highlight-color: transparent;
+            transition: background-color 0.5s ease;
+        }
+        .app-container { background-color: var(--bg-primary); transition: background-color 0.5s ease, filter 0.5s ease-in-out; height: var(--app-height); }
+        .text-primary { color: var(--text-primary); } .text-secondary { color: var(--text-secondary); }
+        .bg-primary { background-color: var(--bg-primary); } .bg-secondary { background-color: var(--bg-secondary); }
+        .border-custom { border-color: var(--border-color); } .brand-text { color: var(--brand-primary); }
+        .brand-bg { background-color: var(--brand-primary); color: var(--bg-primary); }
+        .brand-bg-secondary { background-color: var(--brand-secondary); color: var(--brand-primary); }
+        .brand-border { border-color: var(--brand-primary); }
+
+        .fade-in { animation: fadeIn 0.5s ease-in-out; } @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .fade-out { animation: fadeOut 0.5s ease-in-out forwards; } @keyframes fadeOut { from { opacity: 1; } to: { opacity: 0; } }
+
+        /* Toast positioning updated */
+        .toast {
+            animation: toast-in 0.5s ease, toast-out 0.5s ease forwards;
+            bottom: -100px;
+        }
+        @keyframes toast-in { from { bottom: -100px; opacity: 0; } to { bottom: 80px; opacity: 1; } }
+        @keyframes toast-out { from { bottom: 80px; opacity: 1; } to { bottom: -100px; opacity: 0; display: none; } }
+
+        .modal-overlay { animation: fadeIn 0.3s ease; }
+        .modal-content {
+            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* --- NEW: Splash Screen Animation --- */
+        #splash-screen {
+            background-color: #111; /* Start dark */
+            opacity: 1;
+            /* Animation: 2s flicker, 1s fade-out */
+            animation: page-flicker-on 3s ease-in-out forwards;
+        }
+        #splash-text {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--brand-secondary-bulb); /* Dim yellow */
+            opacity: 0.7;
+            text-shadow: 0 0 5px var(--brand-secondary-bulb);
+            animation: text-flicker 2s ease-in-out forwards;
+        }
+
+        @keyframes page-flicker-on {
+            0%, 20%, 40%, 60% { opacity: 1; background-color: #111; }
+            10%, 30%, 50% { opacity: 0.9; background-color: #000; }
+            70% { opacity: 1; background-color: #111; }
+            100% { opacity: 0; background-color: #000; }
+        }
+
+        @keyframes text-flicker {
+            0%, 20% { opacity: 0.7; text-shadow: 0 0 5px var(--brand-secondary-bulb); }
+            10%, 30% { opacity: 0.5; text-shadow: none; }
+            40%, 60% { opacity: 1; text-shadow: 0 0 10px var(--brand-primary-bulb); }
+            50% { opacity: 0.6; text-shadow: none; }
+            70%, 100% { opacity: 1; text-shadow: 0 0 10px var(--brand-primary-bulb); }
+        }
+        /* --- End Splash Screen --- */
+
+
+        .horizontal-scroll::-webkit-scrollbar { display: none; }
+        .horizontal-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Spinner (from original app) */
+        .spinner {
+            border: 2px solid var(--brand-secondary);
+            border-top: 2px solid var(--brand-primary);
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Add/Qty Buttons (Merged logic) */
+        .add-to-cart-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--brand-primary);
+            color: var(--bg-primary);
+            font-size: 24px;
+            font-weight: 600;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        .add-to-cart-btn:hover { transform: scale(1.1); }
+
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: var(--brand-primary);
+            color: var(--bg-primary);
+            border-radius: 9999px;
+            font-weight: 600;
+            overflow: hidden;
+            width: 100px;
+            height: 40px;
+            user-select: none;
+        }
+        .quantity-control button { width: 34px; height: 100%; font-size: 20px; line-height: 1; transition: background-color 0.2s ease; }
+        .quantity-control button:hover { background-color: rgba(0,0,0,0.1); }
+        .quantity-control span { font-size: 16px; }
+
+        /* Glitch text effect from original app */
+        @keyframes glitch-shift-1 {
+            0% { text-shadow: 1px 0 0 var(--brand-primary), -1px 0 0 var(--brand-secondary); }
+            25% { text-shadow: -1px 0 0 var(--brand-primary), 1px 0 0 var(--brand-secondary); }
+            50% { text-shadow: 2px 0 0 var(--brand-primary), -2px 0 0 var(--brand-secondary); }
+            100% { text-shadow: 1px 0 0 var(--brand-primary), -1px 0 0 var(--brand-secondary); }
+        }
+        .glitch-text {
+            animation: glitch-shift-1 1s infinite alternate;
+        }
+
+        /* --- NEW: Animated Bulb Styles --- */
+        @keyframes flicker-on {
+            0%, 100% {
+                opacity: 0.8;
+                text-shadow: 0 0 6px var(--brand-primary);
+            }
+            50% {
+                opacity: 1;
+                text-shadow: 0 0 12px var(--brand-primary), 0 0 20px var(--brand-primary);
+            }
+        }
+
+        /* NEW: Low voltage page effect */
+        #app.low-voltage {
+            filter: brightness(0.85) opacity(0.95);
+        }
+
+        .bulb-icon {
+            transition: all 0.3s ease;
+            opacity: 0.5; /* Base (off) state */
+        }
+
+        /* NEW: Icon lights up when page is dimmed */
+        #app.low-voltage .bulb-icon {
+            /* "On" state */
+            color: var(--brand-primary); /* Use brand color */
+            opacity: 1;
+            animation: flicker-on 2s infinite ease-in-out;
+        }
+        /* --- End of Animated Bulb Styles --- */
+
+
+        /* --- Quick Light Game Styles --- */
+        .game-bulb {
+            transition: background-color 0.1s;
+            background-color: var(--border-color);
+        }
+        .game-bulb.lit {
+            background-color: var(--brand-primary) !important;
+            box-shadow: 0 0 20px var(--brand-primary);
+        }
+    </style>
+</head>
+<body data-theme="bulb">
+
+    <!-- Splash Screen updated for Bulb & Gulabi -->
+    <div id="splash-screen" class="fixed inset-0 flex items-center justify-center z-[100]">
+        <h1 id="splash-text">Welcome to Bulb</h1>
+    </div>
+
+    <div id="app" class="app-container max-w-lg mx-auto shadow-2xl flex flex-col hidden">
+        <main class="flex-grow overflow-y-auto">
+            <div id="main-interface" class="hidden">
+                <!-- Header: Title and Profile Button -->
+                <header id="page-header" class="sticky top-0 bg-primary z-20 h-16 px-4 flex justify-between items-center border-b border-custom"></header>
+                <!-- Main Page Content -->
+                <div id="page-content"></div>
+            </div>
+            <!-- Spacer for bottom nav -->
+            <div class="h-20 flex-shrink-0"></div>
+        </main>
+        <!-- Bottom Navigation Bar -->
+        <nav id="bottom-nav" class="fixed bottom-0 left-1/2 -translate-x-1/2 max-w-lg w-full bg-primary border-t border-custom flex justify-around items-center h-16 z-30 hidden"></nav>
+    </div>
+
+    <!-- Modal Container -->
+    <div id="modal-container"></div>
+    <!-- Toast Notification -->
+    <div id="toast" class="hidden fixed right-4 brand-bg py-3 px-5 rounded-lg shadow-xl z-50">
+        <p id="toast-message"></p>
+    </div>
+
+<script>
+// --- Utility Selectors ---
+const $ = (selector) => document.querySelector(selector);
+const $$ = (selector) => document.querySelectorAll(selector);
+
+// --- Set VH variable for mobile browsers ---
+function setAppHeight() {
+  document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+}
+window.addEventListener('resize', setAppHeight);
+setAppHeight();
+
+// --- Define Page Structure ---
+const PAGES = ['home', 'order', 'cart', 'social', 'gulabi', 'more'];
+
+// --- UPDATED: Supabase Credentials ---
+const SUPABASE_URL = 'https://jdhdwzozhzdnyanrcfbw.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpkaGR3em96aHpkbnlhbnJjZmJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3MTgxNjksImV4cCI6MjA3NzI5NDE2OX0.BbshyXUGYu4Pf7tnSBqujat5gPpEjGxpYsrn5fnIjO4';
+
+
+// --- App Constants (Ported) ---
+const CONSTANTS = {
+    taxes: { gst_percent: 5 },
+    loyalty: {
+        min_order_for_points: 350,
+        percent_earn: 0.10,
+        review_bonus: 10,
+        redeem_cost: 50
+    },
+    review_url: 'https://g.page/r/CKw9tE4jDk13EAE/review',
+    bulb_video_url: 'https://qioxrynqzbomcasfevkk.supabase.co/storage/v1/object/public/assets/WhatsApp%20Video%202025-10-28%20at%2011.27.11_9bbce8d0.mp4', // Using old URL, update if needed
+    qr_code_url_base: 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://instagram.com/'
+};
+
+// --- Sound Engine (from new UI) ---
+const sound = {
+    audioContext: null,
+    init() {
+        if (this.audioContext) return;
+        try { this.audioContext = new (window.AudioContext || window.webkitAudioContext)(); }
+        catch (e) { console.error("Web Audio API is not supported."); }
+    },
+    play(type) {
+        if (!this.audioContext) return;
+        const o = this.audioContext.createOscillator(), g = this.audioContext.createGain();
+        o.connect(g); g.connect(this.audioContext.destination); g.gain.setValueAtTime(0, this.audioContext.currentTime);
+        const sounds = {
+            click: { type: 'sine', freq: 600, gain: 0.2, len: 0.1 },
+            add_to_cart: { type: 'triangle', freq: 440, gain: 0.3, len: 0.2 },
+            success: { type: 'sine', freq: 523.25, gain: 0.3, len: 0.3, secondFreq: 659.25 },
+            game_hit: { type: 'sine', freq: 800, gain: 0.2, len: 0.1 },
+            game_over: { type: 'sawtooth', freq: 300, gain: 0.3, len: 0.5, secondFreq: 200 },
+        };
+        const s = sounds[type]; if (!s) return;
+        o.type = s.type; o.frequency.setValueAtTime(s.freq, this.audioContext.currentTime);
+        g.gain.linearRampToValueAtTime(s.gain, this.audioContext.currentTime + 0.01);
+        if (s.secondFreq) { o.frequency.setValueAtTime(s.secondFreq, this.audioContext.currentTime + (s.len / 2)); }
+        g.gain.linearRampToValueAtTime(0, this.audioContext.currentTime + s.len);
+        o.start(this.audioContext.currentTime); o.stop(this.audioContext.currentTime + s.len);
+    }
+};
+
+// --- Main Application Object ---
+const app = {
+    supabase: null, // NEW: Supabase client instance
+    state: {
+        currentPage: 'home',
+        currentBrand: 'bulb', // 'bulb' or 'gulabi'
+        theme: 'bulb', // 'bulb' or 'gulabi'
+        cart: [], // Only 'bulb' cart is orderable
+        customerProfile: null, // NEW: Will be fetched from Supabase
+        menuData: [], // Will hold categories for current brand
+        allMenuItems: [], // Will hold flat list for current brand
+        currentMenuCategory: null,
+        searchQuery: '', // NEW: For search
+        games: [ // NEW: Mock games list
+            { id: 'quickLight', name: 'Quick Light', description: 'Test your reaction time.' },
+            { id: 'sequence', name: 'Sequence Test', description: 'Memory challenge. (Coming Soon)' },
+        ],
+        // NEW: Realtime subscriptions
+        menuSubscription: null,
+        profileSubscription: null // Optional for profile updates
+    },
+
+    // --- Initialization ---
+    async init() { // NEW: Made async
+        // Init sound on first click
+        document.body.addEventListener('click', () => sound.init(), { once: true });
+
+        // Handle browser back/forward
+        window.addEventListener('popstate', (e) => this.handleHardwareBack(e));
+
+        // NEW: Initialize Supabase
+        try {
+            // Use the global supabase variable if it exists (from the cdn)
+            if (!window.supabase || !window.supabase.createClient) {
+                 throw new Error("Supabase client library not loaded.");
+            }
+            this.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            console.log("Supabase client initialized.");
+        } catch (e) {
+            console.error("Failed to initialize Supabase", e);
+            document.getElementById('splash-text').innerText = "Connection Error";
+            // Attempt to hide splash even on error to show the message
+            setTimeout(() => {
+                const splash = $('#splash-screen');
+                if (splash) {
+                     splash.style.opacity = 0;
+                     setTimeout(() => splash.style.display = 'none', 1000);
+                }
+                // Show a minimal error message if app container exists
+                 const appContainer = $('#app');
+                 if(appContainer) {
+                     appContainer.innerHTML = `<div class="p-4 text-center text-red-600">Failed to connect. Please check console.</div>`;
+                     appContainer.classList.remove('hidden');
+                     appContainer.classList.add('flex');
+                 }
+            }, 500);
+            return; // Stop initialization
+        }
+
+
+        // Start app flow
+        await this.startAppFlow();
+    },
+
+    async startAppFlow() {
+        // 1. Load brand and cart from localStorage (profile comes from DB)
+        this.loadStateFromStorage();
+
+        // 2. Apply theme/brand
+        this.applyTheme();
+
+        // 3. NEW: Load customer profile (auth & DB)
+        await this.loadCustomerProfile();
+
+        // 4. NEW: Load menu data from Supabase
+        await this.loadMenuData();
+
+        // 5. NEW: Subscribe to Realtime changes
+        this.subscribeToMenuChanges();
+        // this.subscribeToProfileChanges(); // Optional: uncomment if needed
+
+        // 6. Hide splash, show app
+        setTimeout(() => {
+            // Hide splash screen
+            const splash = $('#splash-screen');
+            if (splash) {
+                splash.style.opacity = 0;
+                setTimeout(() => splash.style.display = 'none', 1000); // Wait for fade out
+            }
+
+            // Show app
+            $('#app').classList.remove('hidden');
+            $('#app').classList.add('flex');
+
+            // 7. Show main UI
+            this.showMainInterface();
+        }, 2800); // Match splash screen animation duration
+    },
+
+    loadStateFromStorage() {
+        try {
+            // Load brand (theme)
+            const brand = localStorage.getItem('bulb_gulabi_brand');
+            if (brand) {
+                this.state.currentBrand = brand;
+                this.state.theme = brand;
+            }
+            // Load cart
+            const cart = localStorage.getItem('bulb_gulabi_cart');
+            if (cart) {
+                this.state.cart = JSON.parse(cart);
+            }
+        } catch (e) {
+            console.error('Failed to parse state from localStorage:', e);
+            localStorage.removeItem('bulb_gulabi_brand');
+            localStorage.removeItem('bulb_gulabi_cart');
+        }
+    },
+
+    // NEW: Handles saving non-profile state
+    saveCartAndBrandToStorage() {
+        localStorage.setItem('bulb_gulabi_brand', this.state.currentBrand);
+        localStorage.setItem('bulb_gulabi_cart', JSON.stringify(this.state.cart));
+    },
+
+    // NEW: Load/create customer profile from Supabase
+    async loadCustomerProfile() {
+        if (!this.supabase) {
+            console.error("Supabase client not initialized in loadCustomerProfile.");
+            this.state.customerProfile = this.createFallbackProfile();
+            ui.showToast('Error loading profile. Using guest mode.', 4000);
+            return;
+        }
+        try {
+            let { data: { user } } = await this.supabase.auth.getUser();
+            if (!user) {
+                // Not logged in, sign in anonymously
+                console.log("No user session, signing in anonymously...");
+                const { data: signInData, error: signInError } = await this.supabase.auth.signInAnonymously();
+                if (signInError) throw signInError;
+                user = signInData.user;
+                console.log("Anonymous user signed in:", user.id);
+            } else {
+                 console.log("Existing user session found:", user.id);
+            }
+
+            // User is available, try to fetch their profile
+            console.log("Fetching customer profile for user:", user.id);
+            const { data, error, status } = await this.supabase
+                .from('customers')
+                .select('*')
+                .eq('id', user.id)
+                .single();
+
+             console.log("Profile fetch status:", status, "Data:", data, "Error:", error);
+
+
+            if (data) {
+                // Profile exists
+                console.log("Profile found:", data);
+                this.state.customerProfile = data;
+                // Ensure loyalty_points exists, default to 0 if null/undefined
+                 this.state.customerProfile.loyalty_points = this.state.customerProfile.loyalty_points ?? 0;
+            } else if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found, which is fine here
+                 console.error("Error fetching profile:", error);
+                 throw error; // Rethrow actual errors
+            } else {
+                 // No profile, create one
+                 console.log("No profile found, creating one for user:", user.id);
+                const { data: newProfile, error: insertError } = await this.supabase
+                    .from('customers')
+                    .insert({ id: user.id, name: 'Guest', loyalty_points: 0, has_claimed_review: false, is_claiming_review: false }) // Provide all required defaults explicitly
+                    .select()
+                    .single();
+
+                if (insertError) {
+                     console.error("Error inserting profile:", insertError);
+                     throw insertError;
+                }
+                console.log("New profile created:", newProfile);
+                this.state.customerProfile = newProfile;
+            }
+        } catch (e) {
+            console.error('Failed to load/create customer profile:', e);
+            // Create a fallback guest profile
+            this.state.customerProfile = this.createFallbackProfile();
+            ui.showToast(`Error loading profile (${e.message || e.code || 'Unknown'}). Using guest mode.`, 5000);
+        }
+    },
+
+    createFallbackProfile() {
+        return {
+            id: 'guest_user_fallback_' + Date.now(), // Unique guest ID
+            name: 'Guest',
+            loyalty_points: 0,
+            has_claimed_review: false,
+            is_claiming_review: false,
+        };
+    },
+
+    // NEW: Save profile updates to Supabase
+    async saveCustomerProfile() {
+        if (!this.supabase || !this.state.customerProfile || this.state.customerProfile.id.startsWith('guest_user_fallback')) {
+            console.warn("Cannot save fallback profile to DB or Supabase client not ready.");
+            return;
+        }
+
+        try {
+            console.log("Saving profile update for user:", this.state.customerProfile.id);
+            const { error } = await this.supabase
+                .from('customers')
+                .update({ // Only update fields that can change
+                    // name: this.state.customerProfile.name, // Assuming name doesn't change here
+                    loyalty_points: this.state.customerProfile.loyalty_points,
+                    has_claimed_review: this.state.customerProfile.has_claimed_review,
+                    is_claiming_review: this.state.customerProfile.is_claiming_review
+                 })
+                .eq('id', this.state.customerProfile.id); // Specify the user ID to update
+
+            if (error) throw error;
+            console.log("Profile saved successfully.");
+        } catch (e) {
+            console.error("Failed to save profile:", e);
+            ui.showToast(`Error saving profile (${e.message || 'Unknown'}).`, 3000);
+        }
+    },
+
+
+    async loadMenuData(showLoading = false) { // Added showLoading flag
+        if (!this.supabase) {
+             console.error("Supabase client not initialized in loadMenuData.");
+             ui.showToast("Connection error. Cannot load menu.", 3000);
+             return;
+        }
+        if (showLoading) ui.showLoadingSpinner(); // Optional: Show a spinner
+
+        try {
+            console.log(`Fetching menu for brand: ${this.state.currentBrand}`);
+            // Fetch products and their nested variants
+            const { data, error } = await this.supabase
+                .from('products')
+                .select('*, product_variants!inner(*)') // Use inner join to only get products WITH variants
+                .eq('brand', this.state.currentBrand)
+                .eq('is_available', true) // Filter unavailable products
+                .eq('product_variants.is_available', true); // Filter unavailable variants
+
+            if (error) throw error;
+            console.log("Menu data fetched:", data);
+
+
+            // Client-side sort if data is present
+            let sortedData = data || [];
+             if (sortedData.length > 0 && 'display_order' in sortedData[0]) {
+                 sortedData.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+             }
+
+
+            const validData = sortedData; // Already filtered by DB query
+
+            // Store all items for search
+            this.state.allMenuItems = validData;
+
+            // Group items by category for vertical list
+            const groupedMenu = validData.reduce((acc, item) => {
+                // Ensure variants are present before adding
+                 if (!item.product_variants || item.product_variants.length === 0) return acc;
+                let category = acc.find(c => c.category === item.category);
+                if (!category) {
+                    category = { category: item.category, items: [] };
+                    acc.push(category);
+                }
+                category.items.push(item);
+                return acc;
+            }, []);
+
+            // Categories should now be roughly in order due to client-side sort
+            this.state.menuData = groupedMenu;
+            console.log("Menu data processed:", this.state.menuData);
+
+        } catch (e) {
+            console.error("Failed to load menu data:", e);
+            ui.showToast(`Could not load menu (${e.message || 'Unknown'}).`, 3000);
+            this.state.allMenuItems = [];
+            this.state.menuData = [];
+        } finally {
+            if (showLoading) ui.hideLoadingSpinner(); // Hide spinner
+        }
+    },
+
+
+    // --- NEW: Realtime Subscriptions ---
+    subscribeToMenuChanges() {
+        if (!this.supabase) return;
+        // Unsubscribe from previous channel if exists
+        if (this.state.menuSubscription) {
+             this.supabase.removeChannel(this.state.menuSubscription);
+             this.state.menuSubscription = null;
+             console.log("Removed previous menu subscription.");
+        }
+
+        console.log("Subscribing to menu changes...");
+        this.state.menuSubscription = this.supabase
+            .channel('public:products_and_variants')
+            .on('postgres_changes',
+                { event: '*', schema: 'public', table: 'products' },
+                async (payload) => {
+                    console.log('Realtime change detected in products:', payload);
+                    await this.handleRealtimeUpdate();
+                }
+            )
+            .on('postgres_changes',
+                { event: '*', schema: 'public', table: 'product_variants' },
+                 async (payload) => {
+                    console.log('Realtime change detected in variants:', payload);
+                    await this.handleRealtimeUpdate();
+                 }
+            )
+            .subscribe((status, err) => {
+                 if (status === 'SUBSCRIBED') {
+                    console.log('Successfully subscribed to menu changes!');
+                 } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+                    console.error('Menu subscription failed:', status, err);
+                    ui.showToast('Realtime update failed. Try refreshing.', 4000);
+                 } else {
+                    console.log('Menu subscription status:', status);
+                 }
+            });
+    },
+
+    // Optional: Subscribe to profile changes
+    // subscribeToProfileChanges() { ... }
+
+    // NEW: Handler for realtime updates
+    async handleRealtimeUpdate() {
+        console.log("Handling realtime update, reloading menu...");
+        ui.showToast("Menu updated!", 2000);
+        await this.loadMenuData(false); // Reload menu data without showing spinner
+        // Refresh UI only if on the menu page
+        if (this.state.currentPage === 'order') {
+            await this.refreshPage();
+        }
+    },
+
+    unsubscribeAll() {
+        if (this.supabase && this.state.menuSubscription) {
+            this.supabase.removeChannel(this.state.menuSubscription);
+            this.state.menuSubscription = null;
+            console.log("Unsubscribed from menu changes.");
+        }
+        // Unsubscribe from profile if implemented
+    },
+
+    showMainInterface(){
+        $('#main-interface').classList.remove('hidden');
+        $('#bottom-nav').classList.remove('hidden');
+        ui.renderBottomNav();
+
+        // Set initial page from hash or default to 'home'
+        const initialHash = location.hash.substring(1);
+        if (PAGES.includes(initialHash)) {
+             this.state.currentPage = initialHash;
+        } else {
+             this.state.currentPage = 'home';
+             location.hash = 'home';
+        }
+        this.navigateTo(this.state.currentPage, false); // false = don't push history on init
+    },
+
+    // --- Navigation & Brand Switching ---
+
+    async navigateTo(page, pushToHistory = true){ // NEW: Made async
+         if (!PAGES.includes(page)) page = 'home';
+
+         // Reset search query when navigating away from 'order' page
+         if (page !== 'order') {
+             this.state.searchQuery = '';
+         }
+
+         sound.play('click');
+
+         if (pushToHistory && location.hash.substring(1) !== page) {
+            location.hash = page;
+         } else if (!pushToHistory && location.hash.substring(1) !== page) {
+            history.replaceState(null, '', '#' + page);
+         }
+
+         this.state.currentPage = page;
+
+         // NEW: Await rendering
+         await ui.renderHeader(page);
+         await ui.renderPageContent(page);
+         await ui.updateActiveNav(page);
+
+         // Ensure Lucide icons are rendered
+         if (window.lucide) {
+            window.lucide.createIcons();
+         }
+    },
+
+    handleHardwareBack(event) {
+         const currentHash = location.hash.substring(1);
+         const openModal = $('#modal-container').children[0];
+
+         if (openModal) {
+            // Stop game if closing game modal
+            if (openModal.id === 'quick-light-game-modal') {
+                GAMES.quickLight.stop();
+            }
+            ui.closeModal(openModal.id);
+            event.preventDefault();
+            history.pushState(null, '', '#' + this.state.currentPage);
+            return;
+         }
+
+         if (PAGES.includes(currentHash) && currentHash !== this.state.currentPage) {
+            this.navigateTo(currentHash, false); // Sync state to the hash
+         }
+         else if (this.state.currentPage !== 'home') {
+             event.preventDefault();
+             this.navigateTo('home');
+         }
+    },
+
+    applyTheme(){
+        document.body.dataset.theme = this.state.theme;
+    },
+
+    async switchBrand(brandName){ // NEW: Made async
+        if (!['bulb', 'gulabi'].includes(brandName)) return;
+
+        this.state.currentBrand = brandName;
+        this.state.theme = brandName;
+        this.saveCartAndBrandToStorage(); // Only saves brand
+        this.applyTheme();
+
+        // NEW: Reload menu data
+        await this.loadMenuData(true); // Show spinner when switching brand
+
+        // Re-render all UI elements to reflect new brand
+        await ui.renderBottomNav();
+        await this.navigateTo(this.state.currentPage, false); // Re-render current page
+    },
+
+    // --- NEW: Animated Bulb Toggle ---
+    toggleAnimatedBulb() {
+        sound.play('click');
+        const appContainer = $('#app');
+        if (appContainer) {
+            // This class will dim the page AND light up the icon
+            appContainer.classList.toggle('low-voltage');
+        }
+    },
+
+    // --- NEW: Search Function ---
+    performSearch(query) {
+        this.state.searchQuery = query.toLowerCase();
+
+        // Re-render menu page content to show results
+        ui.renderMenuPage();
+
+        // Keep focus on search bar
+        const searchInput = $('#menu-search-input');
+        if (searchInput) {
+            searchInput.focus();
+            // Move cursor to end
+            searchInput.selectionStart = searchInput.selectionEnd = searchInput.value.length;
+        }
+    },
+
+    // --- Cart & Order Logic (Simplified) ---
+
+    addOrUpdateCart(itemId, variantId, quantityChange) {
+        if (this.state.currentBrand !== 'bulb') {
+            return ui.showToast('Ordering only available for Bulb Cafe.');
+        }
+        sound.play('click');
+
+        // Find from state
+        const item = this.state.allMenuItems.find(i => i.id === itemId);
+        if (!item) return;
+
+        const variant = item.product_variants.find(v => v.id === variantId);
+        if (!variant) return;
+
+        let cartItem = this.state.cart.find(i => i.itemId === itemId && i.variantId === variantId);
+        let newQuantity = (cartItem ? cartItem.quantity : 0) + quantityChange;
+
+        if (newQuantity <= 0) {
+            this.state.cart = this.state.cart.filter(i => !(i.itemId === itemId && i.variantId === variantId));
+        } else {
+            if (cartItem) {
+                cartItem.quantity = newQuantity;
+            } else {
+                this.state.cart.push({
+                    cartId: Date.now(),
+                    itemId: item.id,
+                    variantId: variant.id,
+                    name: item.name,
+                    variantName: variant.name,
+                    price: variant.price,
+                    quantity: newQuantity
+                });
+            }
+            if (quantityChange > 0) sound.play('add_to_cart');
+        }
+
+        this.saveCartAndBrandToStorage(); // Saves cart to localstorage
+        this.refreshPage(); // Refresh current page (menu or cart)
+    },
+
+    // Wrapper for minimum click logic on menu
+    handleMenuAddClick(itemId, variantId) {
+        this.addOrUpdateCart(itemId, variantId, 1);
+    },
+
+    calculateCartTotal(){
+        const subtotal = this.state.cart.reduce((t, i) => t + (i.price * i.quantity), 0);
+        const gst = subtotal * (CONSTANTS.taxes.gst_percent / 100); // 5% GST
+        const finalTotal = subtotal + gst;
+
+        return { subtotal, gst, finalTotal: Math.max(0, finalTotal) };
+    },
+
+    async refreshPage(){ // NEW: Made async
+        await ui.refreshCartDependentUI();
+        if (PAGES.includes(this.state.currentPage)) {
+            await ui.renderPageContent(this.state.currentPage);
+        }
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
+    },
+
+    async placeOrder(paymentMethod, btnElement){ // NEW: Made async
+        if (this.state.cart.length === 0) return ui.showToast("Cart is empty.");
+        if (!this.state.customerProfile || this.state.customerProfile.id.startsWith('guest_user_fallback')) {
+             return ui.showToast("Cannot place order with guest profile. Please reload.", 3000);
+        }
+
+
+        btnElement.disabled = true;
+        const originalBtnHTML = btnElement.innerHTML;
+        btnElement.innerHTML = `<span class="flex items-center justify-center"><div class="spinner mr-2"></div> Processing...</span>`;
+
+        const { subtotal, finalTotal } = this.calculateCartTotal();
+        let pointsEarned = 0;
+
+        try {
+            // 1. Calculate loyalty points
+            if (finalTotal > CONSTANTS.loyalty.min_order_for_points) {
+                pointsEarned = Math.floor(finalTotal * CONSTANTS.loyalty.percent_earn);
+            }
+            const newTotalPoints = (this.state.customerProfile.loyalty_points || 0) + pointsEarned;
+
+            // 2. NEW: Create Order in Supabase
+            const orderPayload = {
+                customer_id: this.state.customerProfile.id,
+                total_amount: Math.round(finalTotal), // Ensure integer
+                points_earned: pointsEarned,
+                status: 'received' // Initial status
+            };
+            console.log("Creating order:", orderPayload);
+            const { data: order, error: orderError } = await this.supabase
+                .from('orders')
+                .insert(orderPayload)
+                .select()
+                .single();
+
+            if (orderError) throw orderError;
+            console.log("Order created:", order);
+
+            // 3. NEW: Create Order Items in Supabase
+            const orderItemsPayload = this.state.cart.map(item => ({
+                order_id: order.id,
+                product_variant_id: item.variantId,
+                quantity: item.quantity,
+                price_at_order: item.price
+            }));
+            console.log("Creating order items:", orderItemsPayload);
+            const { error: itemsError } = await this.supabase
+                .from('order_items')
+                .insert(orderItemsPayload);
+
+            if (itemsError) {
+                 console.error("Failed to insert order items, attempting to delete order header...");
+                 // Attempt cleanup
+                 await this.supabase.from('orders').delete().eq('id', order.id);
+                 throw itemsError;
+            }
+             console.log("Order items created.");
+
+            // 4. NEW: Update customer profile points in Supabase
+             if (pointsEarned > 0) {
+                 this.state.customerProfile.loyalty_points = newTotalPoints; // Update local state first for UI
+                 await this.saveCustomerProfile(); // Save the updated points
+                 console.log(`Awarded ${pointsEarned} points.`);
+             }
+
+
+            // 5. Clear local cart & save state
+            this.state.cart = [];
+            this.saveCartAndBrandToStorage();
+
+            // 6. Show success
+            ui.closeModal('payment-modal');
+            sound.play('success');
+            const toastMessage = pointsEarned > 0
+                ? `Order placed! You earned ${pointsEarned} points.`
+                : 'Takeaway order placed!';
+            ui.showToast(toastMessage, 4000);
+
+            // 7. Refresh UI
+            await this.refreshPage();
+
+        } catch (error) {
+            console.error("Place Order Failed:", error);
+            ui.showToast(`Order failed: ${error.message || 'Unknown error'}`, 5000);
+
+            // Rollback local points if DB save might have failed or order failed
+             this.state.customerProfile.loyalty_points -= pointsEarned; // Be cautious with rollback
+
+            btnElement.disabled = false;
+            btnElement.innerHTML = originalBtnHTML;
+        }
+    },
+
+
+    // --- Loyalty & Review Logic (Ported) ---
+
+    claimReviewBonus() {
+        if (!this.state.customerProfile || this.state.customerProfile.id.startsWith('guest_user_fallback')) {
+             return ui.showToast("Profile needed to claim bonus.", 3000);
+        }
+        if (this.state.customerProfile.has_claimed_review || this.state.customerProfile.is_claiming_review) return;
+        // Trigger the hidden file input click
+        $('#review-screenshot-input')?.click();
+        if (!$('#review-screenshot-input')) {
+            console.error("File input not found");
+            ui.showToast("Error: File input missing.", 3000);
+        }
+    },
+
+    async handleScreenshotUpload(event) { // NEW: Made async
+        const file = event.target.files[0];
+        if (!file) {
+            ui.showToast('No file selected.', 3000);
+            return;
+        }
+
+        this.state.customerProfile.is_claiming_review = true;
+        // NEW: Save pending state to DB immediately? Optional, but good for persistence if user leaves.
+        // await this.saveCustomerProfile(); // Consider if this is needed. For now, rely on local state.
+        await this.refreshPage(); // Re-render 'more' page to show pending status
+        ui.showToast('Screenshot received. Verification in progress...', 4000);
+
+        // Simulate verification
+        setTimeout(async () => { // NEW: Made async
+            if (file.size > 10000000 || !file.type.startsWith('image/')) { // > 10MB
+                ui.showToast('Verification failed: Invalid screenshot.', 4000);
+                this.state.customerProfile.is_claiming_review = false;
+                // NEW: Reset pending state in DB if it was saved
+                // await this.saveCustomerProfile();
+                await this.refreshPage();
+                return;
+            }
+
+            // Success
+            this.state.customerProfile.loyalty_points += CONSTANTS.loyalty.review_bonus;
+            this.state.customerProfile.has_claimed_review = true;
+            this.state.customerProfile.is_claiming_review = false;
+
+            // NEW: Save final state to DB
+            await this.saveCustomerProfile();
+
+            ui.showToast(`+${CONSTANTS.loyalty.review_bonus} bonus points added! Review verified!`, 3000);
+            await this.refreshPage();
+        }, 3000);
+    },
+
+    async redeemReward() { // NEW: Made async
+        if (!this.state.customerProfile || this.state.customerProfile.id.startsWith('guest_user_fallback')) {
+            return ui.showToast("Profile needed to redeem.", 3000);
+        }
+        if (this.state.customerProfile.loyalty_points < CONSTANTS.loyalty.redeem_cost) {
+            return ui.showToast('Not enough points to redeem.', 3000);
+        }
+
+        this.state.customerProfile.loyalty_points -= CONSTANTS.loyalty.redeem_cost;
+
+        // Add a free item to the cart (Local only, doesn't need DB interaction)
+        this.state.cart.push({
+            cartId: Date.now(),
+            itemId: 999, // Using a mock ID for free item
+            variantId: 999,
+            name: 'FREE REWARD ITEM',
+            variantName: 'Loyalty Reward',
+            price: 0,
+            quantity: 1
+        });
+
+        // NEW: Save profile points update and local cart
+        await this.saveCustomerProfile();
+        this.saveCartAndBrandToStorage();
+
+        ui.showToast(`Redeemed ${CONSTANTS.loyalty.redeem_cost} points! Free item added to cart.`, 4000);
+        await this.refreshPage();
+    },
+
+
+    // --- Game Logic (Ported) ---
+    showGame(gameId) {
+        ui.closeModal('games-modal');
+        if (gameId === 'quickLight') {
+            GAMES.quickLight.start();
+        } else {
+            ui.showToast(`Game "${gameId}" is coming soon!`, 2000);
+        }
+    }
+};
+
+// --- UI Rendering Object ---
+const ui = {
+     // NEW: Loading spinner state
+     loadingSpinnerVisible: false,
+
+    showModal(id, content) {
+        location.hash = id; // Add modal ID to hash
+        const existingModal = $(`#${id}`);
+        if (existingModal) existingModal.remove();
+
+        const modalHTML = `
+            <div id="${id}" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-end justify-center z-50 p-4 pt-16"> <!-- Added pt-16 -->
+                <div class="modal-content bg-primary rounded-t-2xl shadow-xl p-6 w-full max-w-lg">
+                    ${content}
+                </div>
+            </div>`;
+        $('#modal-container').insertAdjacentHTML('beforeend', modalHTML);
+        // Render icons in modal
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
+    },
+
+    closeModal(id) {
+        // NEW: Stop game if closing game modal
+        if (id === 'quick-light-game-modal' && GAMES.quickLight.state.isRunning) {
+            GAMES.quickLight.stop();
+        }
+
+        const modal = $(`#${id}`);
+        if (modal) {
+            // Simple remove for now, fade-out can be added back if needed
+            modal.remove();
+        }
+
+        if (location.hash.substring(1) === id) {
+            if (history.length > 1 && window.performance.navigation.type !== window.performance.navigation.TYPE_RELOAD) {
+                 history.back();
+            } else {
+                 history.replaceState(null, '', location.pathname + location.search + '#' + app.state.currentPage);
+            }
+
+        }
+    },
+
+    showToast(message, duration = 3000) {
+        const toast = $('#toast'), p = $('#toast-message');
+        if (!toast || !p) return; // Add null check
+        p.textContent = message;
+        toast.classList.remove('hidden');
+        toast.style.animation = `toast-in 0.5s ease, toast-out 0.5s ease ${duration / 1000 - 0.5}s forwards`;
+        // Ensure hidden class is re-added after animation
+        setTimeout(() => {
+            toast.classList.add('hidden');
+            toast.style.animation = ''; // Reset animation
+        }, duration);
+    },
+
+    // NEW: Loading Spinner Functions
+    showLoadingSpinner() {
+        if (this.loadingSpinnerVisible) return;
+        this.loadingSpinnerVisible = true;
+        const spinnerHtml = `
+            <div id="loading-spinner-overlay" class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-[99]">
+                <div class="spinner !w-12 !h-12 !border-4 !border-[var(--brand-secondary)] !border-t-[var(--brand-primary)]"></div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', spinnerHtml);
+    },
+
+    hideLoadingSpinner() {
+        this.loadingSpinnerVisible = false;
+        const overlay = $('#loading-spinner-overlay');
+        if (overlay) overlay.remove();
+    },
+
+    async renderHeader(page) { // NEW: Made async
+        const header = $('#page-header');
+        if (!header) return;
+        const pageConfigs = {
+            home: { title: 'Bulb & Gulabi' },
+            order: { title: 'Menu' },
+            cart: { title: 'My Cart' },
+            social: { title: 'Social' },
+            gulabi: { title: 'Gulabi Thali' },
+            more: { title: 'Profile & More' }
+        };
+        const config = pageConfigs[page] || { title: 'Bulb & Gulabi' };
+
+        // NEW: Add "Switch to Bulb" button if on Gulabi brand
+        const switchButton = app.state.currentBrand === 'gulabi' ? `
+            <button onclick="app.switchBrand('bulb')" class="brand-bg-secondary brand-text text-xs font-bold py-1 px-2 rounded-lg shadow-sm">
+                Switch to Bulb 💡
+            </button>
+        ` : '';
+
+        // Determine profile initial - use 'G' if profile hasn't loaded yet
+         const profileInitial = app.state.customerProfile ? app.state.customerProfile.name.charAt(0).toUpperCase() : 'G';
+
+        // NEW: Added animated bulb icon
+        header.innerHTML = `
+            <div class="flex items-center space-x-2">
+                <h1 class="text-2xl font-bold brand-text ${app.state.currentBrand === 'bulb' ? 'glitch-text' : ''}">${config.title}</h1>
+                ${switchButton}
+            </div>
+            <div class="text-right flex items-center space-x-2">
+                <!-- NEW BULB ICON -->
+                <button id="animated-bulb-button" onclick="app.toggleAnimatedBulb()" class="bulb-icon text-secondary">
+                    <i data-lucide="lightbulb" class="w-6 h-6"></i>
+                </button>
+                <!-- Existing Profile Button -->
+                <button onclick="app.navigateTo('more')" class="brand-bg-secondary brand-text font-bold rounded-full h-10 w-10 flex items-center justify-center text-lg shadow-sm">
+                     ${profileInitial}
+                </button>
+            </div>`;
+    },
+
+    async renderPageContent(page) { // NEW: Made async
+        const content = $('#page-content');
+        if (!content) return;
+        content.innerHTML = ''; // Clear previous content
+        const renderers = {
+            home: this.renderHomePage,
+            order: this.renderMenuPage,
+            cart: this.renderCartPage,
+            social: this.renderSocialPage,
+            gulabi: this.renderGulabiPage,
+            more: this.renderMorePage,
+        };
+        content.classList.remove('fade-in');
+        void content.offsetWidth; // Trigger reflow
+        content.classList.add('fade-in');
+
+        // NEW: Await render function
+        const renderFunction = renderers[page];
+        if (typeof renderFunction === 'function') {
+            try {
+                await renderFunction.call(this);
+            } catch (e) {
+                console.error(`Error rendering page ${page}:`, e);
+                content.innerHTML = `<div class="p-4 text-center text-red-500">Error loading page content.</div>`;
+            }
+
+        } else {
+             content.innerHTML = `<div class="p-4 text-center text-secondary">Page not found.</div>`;
+        }
+    },
+
+    async renderBottomNav(){ // NEW: Made async
+        const nav = $('#bottom-nav');
+        if (!nav) return;
+        const icons = {
+            home: 'home',
+            order: 'book-open',
+            cart: 'shopping-cart',
+            social: 'users',
+            gulabi: 'heart', // Changed from 'cowork'
+            more: 'menu'
+        };
+        const labels = { home: 'Home', order: 'Menu', cart: 'Cart', social: 'Social', gulabi: 'Gulabi', more: 'More' };
+
+        nav.innerHTML = PAGES.map(p => `
+            <button onclick="app.navigateTo('${p}')" class="nav-item flex-1 p-2 text-secondary" data-page="${p}">
+                <div class="relative w-full flex justify-center">
+                    <i data-lucide="${icons[p]}" class="h-7 w-7 mx-auto"></i>
+                    ${p === 'cart' ? '<span id="cart-count" class="absolute -top-1 right-1/4 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>' : ''}
+                </div>
+                <span id="${p}-tab-label" class="text-xs font-bold capitalize">${labels[p]}</span>
+            </button>`).join('');
+    },
+
+    async updateActiveNav(page) { // NEW: Made async
+        // Update cart icon/label
+        const cartLabel = $('#cart-tab-label');
+        if (cartLabel) cartLabel.textContent = 'Cart'; // No order tracking
+
+        // Set active tab
+        $$('.nav-item').forEach(item => {
+            const isActive = item.dataset.page === page;
+            item.classList.toggle('brand-text', isActive);
+            item.classList.toggle('text-secondary', !isActive);
+            item.style.transform = isActive ? 'scale(1.1)' : 'scale(1)';
+        });
+        await this.refreshCartDependentUI();
+    },
+
+    async refreshCartDependentUI() { // NEW: Made async
+        const el = $('#cart-count');
+        if (!el) return;
+        const total = app.state.cart.reduce((s, i) => s + i.quantity, 0);
+        if (total > 0) {
+            el.textContent = total;
+            el.classList.remove('hidden');
+        } else {
+            el.classList.add('hidden');
+        }
+    },
+
+    // --- Page Specific Renderers ---
+
+    async renderHomePage(){ // NEW: Made async
+        const profile = app.state.customerProfile;
+        const brand = app.state.currentBrand;
+
+        // Show Bulb video, hide for Gulabi
+        const mediaHTML = brand === 'bulb' ? `
+            <div class="relative h-48 overflow-hidden rounded-b-2xl">
+                <video src="${CONSTANTS.bulb_video_url}" autoplay loop muted playsinline preload="metadata" class="absolute top-1/2 left-1/2 w-full h-full object-cover -translate-x-1/2 -translate-y-1/2"></video>
+                <div class="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white text-center p-4">
+                    <h1 class="text-3xl font-bold glitch-text">Bulb Cafe</h1>
+                    <p class="text-lg mt-1 font-light">Illuminating your day</p>
+                </div>
+            </div>` : `
+            <div class="relative h-48 overflow-hidden rounded-b-2xl">
+                <img src="https://placehold.co/600x400/EC4899/FFFFFF?text=Gulabi+Thali" class="absolute top-1/2 left-1/2 w-full h-full object-cover -translate-x-1/2 -translate-y-1/2" alt="Gulabi Thali Banner">
+                <div class="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white text-center p-4">
+                    <h1 class="text-3xl font-bold">Gulabi Thali</h1>
+                    <p class="text-lg mt-1 font-light">Authentic. Fresh. Delicious.</p>
+                </div>
+            </div>`;
+
+        // Review Bonus Card
+        const reviewPromoHTML = `
+            <div onclick="app.navigateTo('more')" class="cursor-pointer group relative bg-secondary rounded-xl p-6 overflow-hidden shadow-sm border border-custom">
+                <h2 class="text-2xl font-bold text-primary">⭐ Get ${CONSTANTS.loyalty.review_bonus} Bonus Points!</h2>
+                <p class="mt-1 text-secondary">Post a review, upload a screenshot in the 'More' tab, and claim your reward.</p>
+                <button class="font-semibold mt-3 text-sm brand-bg px-4 py-2 rounded-lg group-hover:opacity-90 transition">Learn More &rarr;</button>
+            </div>`;
+
+        // NEW: Loyalty Card
+        const loyaltyPromoHTML = `
+            <div class="group relative bg-secondary rounded-xl p-6 overflow-hidden shadow-sm border border-custom">
+                <h2 class="text-2xl font-bold text-primary">💰 Earn 10% Loyalty Points!</h2>
+                <p class="mt-1 text-secondary">Get <strong>10%</strong> back in points on all Bulb orders over <strong>₹${CONSTANTS.loyalty.min_order_for_points}</strong>.</p>
+                <p class="mt-1 text-secondary">Redeem your points for free items in the 'More' tab.</p>
+            </div>`;
+
+        // UPDATED: "View Full Menu" button text
+        const menuButtonText = brand === 'bulb' ? 'Order from Bulb (Full Menu)' : 'View Gulabi Menu (View Only)';
+
+        // NEW: Re-ordered layout
+        $('#page-content').innerHTML = `
+            <div class="space-y-6">
+                ${mediaHTML}
+                <div class="p-4 space-y-8">
+                    <div class="text-center">
+                        <h2 class="text-2xl font-bold text-primary">Welcome, ${profile ? profile.name : 'Guest'}!</h2>
+                        <p class="text-secondary">You are currently viewing: <strong class="brand-text capitalize">${brand}</strong></p>
+                    </div>
+
+                    <!-- NEW ORDER: Loyalty Card is here -->
+                    ${brand === 'bulb' ? loyaltyPromoHTML : ''}
+
+                    <button onclick="app.navigateTo('order')" class="w-full brand-bg font-semibold py-4 px-6 rounded-lg text-lg">
+                        ${menuButtonText}
+                    </button>
+
+                    <!-- NEW ORDER: Review Card is here -->
+                    ${brand === 'bulb' ? reviewPromoHTML : ''}
+                </div>
+            </div>`;
+    },
+
+    async renderMenuPage(){ // NEW: Made async
+        const content = $('#page-content');
+        if (!content) return;
+        const brand = app.state.currentBrand;
+
+        // NEW: Search bar HTML
+        const searchBarHTML = `
+            <div class="p-4 sticky top-16 bg-primary z-10 border-b border-custom">
+                <div class="relative">
+                    <input type="text" id="menu-search-input" placeholder="Search menu..."
+                           class="w-full p-3 pl-10 border-2 border-custom rounded-lg bg-secondary text-primary text-lg"
+                           oninput="app.performSearch(this.value)" value="${app.state.searchQuery}">
+                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary"></i>
+                </div>
+            </div>
+        `;
+
+        // Show loading state if menuData is empty (might be fetching)
+        if (app.state.menuData.length === 0 && app.state.allMenuItems.length === 0) {
+             content.innerHTML = searchBarHTML + `<div class="p-4 text-center text-secondary">Loading menu...</div>`;
+             if (window.lucide) window.lucide.createIcons();
+             // Maybe trigger loadMenuData again? Depends on initial load logic.
+             // await app.loadMenuData(true); // Re-fetch if needed
+             // await this.renderMenuPage(); // Re-render after fetch
+             return;
+        }
+
+
+        let itemsHTML;
+
+        // NEW: Logic to show search results or category list
+        if (app.state.searchQuery.length > 1) {
+            // Filter all items based on search query
+            const searchResults = app.state.allMenuItems.filter(item =>
+                item.name.toLowerCase().includes(app.state.searchQuery) ||
+                (item.description && item.description.toLowerCase().includes(app.state.searchQuery))
+            );
+
+            if (searchResults.length > 0) {
+                itemsHTML = this.renderMenuItemsList(searchResults);
+            } else {
+                itemsHTML = `<p class="text-secondary text-center col-span-full mt-8">No items found for "${app.state.searchQuery}".</p>`;
+            }
+            // Add padding for search results
+            itemsHTML = `<div class="grid grid-cols-1 gap-4 px-4">${itemsHTML}</div>`;
+
+        } else {
+            // Render all categories vertically
+             if (app.state.menuData.length > 0) {
+                 itemsHTML = app.state.menuData.map(category => {
+                     return `
+                         <div class="category-section pt-4">
+                             <h2 class="text-2xl font-bold text-primary px-4 mb-3">${category.category}</h2>
+                             <div class="grid grid-cols-1 gap-4 px-4">
+                                 ${this.renderMenuItemsList(category.items)}
+                             </div>
+                         </div>
+                     `;
+                 }).join('');
+             } else {
+                  itemsHTML = `<div class="p-4 text-center text-secondary">No menu items available for ${brand}.</div>`;
+             }
+        }
+
+        content.innerHTML = `
+            ${brand === 'gulabi' ? '<div class="p-4"><div class="brand-bg-secondary brand-text p-3 rounded-lg text-center font-bold">Gulabi Thali is for View Only. Ordering is disabled.</div></div>' : ''}
+            ${searchBarHTML}
+            <div id="menu-items" class="pb-4">
+                ${itemsHTML}
+            </div>
+        `;
+
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
+    },
+
+
+    // NEW: Refactored function to just return the HTML for a list of items
+    renderMenuItemsList(items) {
+        const isBulb = app.state.currentBrand === 'bulb';
+
+        return items.map(item => {
+            // Ensure product_variants exists and has at least one item
+            if (!item.product_variants || item.product_variants.length === 0) {
+                 console.warn("Product skipped due to missing variants:", item.name);
+                 return ''; // Skip rendering this item
+            }
+
+            // Handle multiple variants or single variant
+            const variant = item.product_variants[0]; // Default to first for price display
+            const cartItem = item.product_variants.length === 1 ? app.state.cart.find(ci => ci.itemId === item.id && ci.variantId === variant.id) : null; // Check cart only if single variant
+
+            let actionButtonHTML = '';
+            if (isBulb) {
+                if (item.product_variants.length > 1) {
+                    actionButtonHTML = `<button class="add-to-cart-btn" style="font-size: 16px; line-height: 1;" onclick="event.stopPropagation(); ui.showItemDetailModal(${item.id})">
+                           ...
+                       </button>`;
+                } else if (cartItem) {
+                    actionButtonHTML = `<div class="quantity-control" onclick="event.stopPropagation();">
+                           <button onclick="app.addOrUpdateCart(${item.id}, ${variant.id}, -1)">-</button>
+                           <span>${cartItem.quantity}</span>
+                           <button onclick="app.addOrUpdateCart(${item.id}, ${variant.id}, 1)">+</button>
+                       </div>`;
+                } else {
+                    actionButtonHTML = `<button class="add-to-cart-btn" onclick="event.stopPropagation(); app.handleMenuAddClick(${item.id}, ${variant.id})">
+                           +
+                       </button>`;
+                }
+            } else {
+                actionButtonHTML = `<span class="bg-gray-200 text-gray-600 px-3 py-1 rounded-full text-xs font-bold">View Only</span>`;
+            }
+
+            return `
+                <div class="bg-secondary rounded-lg shadow-sm overflow-hidden"
+                     onclick="${item.product_variants.length > 1 && isBulb ? `ui.showItemDetailModal(${item.id})` : 'void(0)'}">
+                    <div class="p-3 flex items-center justify-between">
+                        <img src="${item.image_url || 'https://placehold.co/64x64/eee/ccc?text=?'}" alt="${item.name}" class="w-16 h-16 rounded-lg object-cover mr-3">
+                        <div class="flex-1 pr-4 min-w-0"> <!-- Added min-w-0 for better truncation -->
+                            <h3 class="font-semibold text-base truncate text-primary">${item.name}</h3>
+                            <p class="text-sm text-secondary truncate">${item.description || ''}</p>
+                            <p class="font-bold text-sm text-secondary mt-1">₹${variant.price}</p>
+                        </div>
+                        <div class="flex-shrink-0">
+                            ${actionButtonHTML}
+                        </div>
+                    </div>
+                </div>`;
+        }).join('');
+    },
+
+
+
+    async renderCartPage() { // NEW: Made async
+        const content = $('#page-content');
+         if (!content) return;
+        if (app.state.cart.length === 0) {
+            content.innerHTML = `
+            <div class="text-center p-10">
+                <h2 class="text-2xl font-bold text-primary">Your cart is empty</h2>
+                <p class="text-secondary mt-2">Add items from the Bulb Cafe menu to get started.</p>
+                <button onclick="app.navigateTo('order')" class="mt-6 brand-bg font-semibold py-3 px-6 rounded-lg">View Menu</button>
+            </div>`;
+            return;
+        }
+
+        const { subtotal, gst, finalTotal } = app.calculateCartTotal();
+
+        content.innerHTML = `
+            <div class="p-4 space-y-3">
+                ${app.state.cart.map(i => `
+                    <div class="bg-secondary p-3 rounded-xl flex items-center justify-between">
+                        <div>
+                            <p class="font-bold text-primary">${i.name} ${i.variantName !== 'Single Serving' && i.variantName !== 'Regular' ? `(${i.variantName})` : ''}</p>
+                            <p class="font-semibold text-secondary text-sm">${i.price === 0 ? 'FREE' : `₹${(i.price * i.quantity).toFixed(2)}`}</p>
+                        </div>
+                        ${i.price === 0 ? `
+                            <span class="font-bold brand-text">x ${i.quantity}</span>
+                        ` : `
+                            <div class="quantity-control" style="background-color: var(--bg-primary); color: var(--brand-primary); border: 1px solid var(--border-color);">
+                                <button onclick="app.addOrUpdateCart(${i.itemId}, ${i.variantId}, -1)">-</button>
+                                <span>${i.quantity}</span>
+                                <button onclick="app.addOrUpdateCart(${i.itemId}, ${i.variantId}, 1)">+</button>
+                            </div>
+                        `}
+                    </div>
+                `).join('')}
+            </div>
+
+            <div class="p-4 bg-primary border-t-custom sticky bottom-16">
+                 <div id="cart-summary" class="mb-4 space-y-1 text-primary">
+                    <div class="flex justify-between items-center text-md">
+                        <span>Subtotal</span>
+                        <span>₹${subtotal.toFixed(2)}</span>
+                    </div>
+                    <div class="flex justify-between items-center text-md ${gst > 0 ? '' : 'hidden'}">
+                        <span>GST (5%)</span>
+                        <span>₹${gst.toFixed(2)}</span>
+                    </div>
+                    <div class="flex justify-between items-center text-xl font-bold pt-1 border-t border-custom">
+                        <span>To Pay</span>
+                        <span>₹${finalTotal.toFixed(2)}</span>
+                    </div>
+                 </div>
+                <button id="place-order-btn" onclick="ui.showPaymentModal()" class="w-full brand-bg font-bold py-4 rounded-lg">Proceed to Payment</button>
+            </div>`;
+    },
+
+    async renderSocialPage(){ // NEW: Made async
+        const brand = app.state.currentBrand;
+        // NEW: Mock social data, as this wasn't in DB
+        const socialData = {
+            bulb: { handle: '@a_bulbcafejaipur' },
+            gulabi: { handle: '@gulabithali_cloudkitchen' }
+        };
+        const handle = socialData[brand]?.handle || '@unknown_handle'; // Added fallback
+        const qrUrl = CONSTANTS.qr_code_url_base + handle.substring(1);
+
+         const content = $('#page-content');
+         if (!content) return;
+        content.innerHTML = `
+            <div class="p-4 space-y-6 text-center flex flex-col justify-center items-center pt-10">
+                 <div class="bg-secondary p-6 rounded-xl shadow-sm border border-custom w-full max-w-sm">
+                    <h2 class="text-2xl font-bold text-primary">Join Our Community!</h2>
+                    <p class="text-secondary mt-1">Follow us on Instagram for updates, offers, and good vibes.</p>
+                    <a href="https://instagram.com/${handle.substring(1)}" target="_blank" class="brand-text text-2xl font-bold my-4 block glitch-text">${handle}</a>
+                    <div class="flex justify-center">
+                         <img src="${qrUrl}" alt="Instagram QR Code" class="rounded-lg bg-white p-2">
+                    </div>
+                    <p class="text-xs text-secondary mt-2">Scan to follow!</p>
+                </div>
+            </div>
+        `;
+    },
+
+    async renderGulabiPage() { // NEW: Made async
+        const content = $('#page-content');
+        if (!content) return;
+        content.innerHTML = `
+            <div class="p-4 space-y-6">
+                 <div class="bg-secondary p-8 rounded-xl shadow-lg border border-custom text-center">
+                    <img src="https://placehold.co/150x150/EC4899/FFFFFF?text=Gulabi+Thali" alt="Gulabi Thali Logo" class="w-32 h-32 rounded-full mx-auto mb-4 border-4 border-white shadow-lg">
+                    <h2 class="text-3xl font-bold text-primary mb-2">Gulabi Thali</h2>
+                    <p class="text-lg text-secondary mb-6">Authentic. Fresh. Delicious.</p>
+                    <ul class="text-left space-y-2 mb-8 list-disc list-inside text-secondary">
+                        <li><b>Thali Combos:</b> Complete, wholesome meals.</li>
+                        <li><b>Curries by Kilo:</b> Sabji by Kilo, perfect for family dinners.</li>
+                        <li><b>Fresh Breads & Accompaniments:</b> Everything you need for a feast.</li>
+                    </ul>
+                    <p class="text-primary font-semibold mb-4">Ordering for Gulabi Thali is not available in this app. You can browse the menu for viewing purposes.</p>
+                    <button onclick="app.switchBrand('gulabi'); app.navigateTo('order');" class="w-full mb-4 brand-bg font-semibold py-3 px-6 rounded-lg transition hover:opacity-90">
+                        View Gulabi Menu
+                    </button>
+                </div>
+            </div>
+        `;
+    },
+
+    async renderMorePage(){ // NEW: Made async
+        const content = $('#page-content');
+        if (!content) return;
+        const profile = app.state.customerProfile;
+        if (!profile) {
+             content.innerHTML = `<div class="p-4 flex justify-center items-center"><div class="spinner"></div></div>`; // Centered spinner
+             return;
+        }
+
+        const loyaltyPoints = profile.loyalty_points ?? 0;
+
+        // --- Review Button Logic ---
+        const fileInputHtml = `<input type="file" id="review-screenshot-input" accept="image/*" class="hidden" onchange="app.handleScreenshotUpload(event)">`;
+        let claimButtonText = 'Step 2: Upload Screenshot & Claim';
+        if (profile.is_claiming_review) claimButtonText = 'Verification Pending...';
+        if (profile.has_claimed_review) claimButtonText = 'Points Claimed!';
+        const claimButtonDisabled = profile.is_claiming_review || profile.has_claimed_review;
+
+        // --- Redeem Button Logic ---
+        const redeemButtonDisabled = loyaltyPoints < CONSTANTS.loyalty.redeem_cost;
+
+        // NEW: Updated 2-Step Review Layout
+        content.innerHTML = `
+            <div class="p-4 space-y-4">
+                <!-- Loyalty Points Card -->
+                <div class="w-full bg-secondary p-4 rounded-xl text-left border border-custom">
+                   <div class="flex items-center"><span class="text-2xl mr-4">⭐</span><span class="font-semibold text-primary">Loyalty Points: ${loyaltyPoints}</span></div>
+                   <p class="text-xs text-secondary mt-1">Earn 10% points on Bulb orders over ₹350. Redeem points for free items!</p>
+                   <button onclick="app.redeemReward()" class="brand-bg font-semibold py-2 px-4 rounded-lg text-sm mt-3 ${redeemButtonDisabled ? 'opacity-50 cursor-not-allowed' : ''}" ${redeemButtonDisabled ? 'disabled' : ''}>
+                        Redeem ${CONSTANTS.loyalty.redeem_cost} Points
+                   </button>
+                </div>
+
+                <!-- Review Bonus Card (NEW 2-Step Layout) -->
+                <div class="w-full bg-secondary p-4 rounded-xl text-left border border-custom space-y-3">
+                   <div class="flex items-center"><span class="text-2xl mr-4">📸</span><span class="font-semibold text-primary">Claim Review Bonus (+${CONSTANTS.loyalty.review_bonus} Pts)</span></div>
+
+                   <a href="${CONSTANTS.review_url}" target="_blank" class="block w-full brand-bg font-semibold py-3 px-4 rounded-lg text-center">
+                        Step 1: Write Google Review
+                   </a>
+
+                   ${fileInputHtml}
+                   <button onclick="app.claimReviewBonus()" class="w-full brand-bg-secondary brand-text font-semibold py-3 px-4 rounded-lg ${claimButtonDisabled ? 'opacity-50 cursor-not-allowed' : ''}" ${claimButtonDisabled ? 'disabled' : ''}>
+                        ${claimButtonText}
+                   </button>
+                </div>
+
+                <!-- Play Games Card -->
+                <button onclick="ui.showGamesModal()" class="w-full flex items-center justify-between bg-secondary p-4 rounded-xl text-left border border-custom">
+                   <div class="flex items-center"><span class="text-2xl mr-4">🎮</span><span class="font-semibold text-primary">Play Games</span></div>
+                   <span class="text-secondary">&rarr;</span>
+                </button>
+
+                <!-- Brand Switcher Card -->
+                <div class="w-full bg-secondary p-4 rounded-xl text-left border border-custom">
+                   <div class="flex items-center"><span class="text-2xl mr-4">🔄</span><span class="font-semibold text-primary">Switch Brand</span></div>
+                   <p class="text-xs text-secondary mt-1">Currently viewing: <strong class="brand-text capitalize">${app.state.currentBrand}</strong></p>
+                   <div class="flex space-x-2 mt-3">
+                        <button onclick="app.switchBrand('bulb')" class="flex-1 font-semibold py-2 px-4 rounded-lg text-sm ${app.state.currentBrand === 'bulb' ? 'brand-bg' : 'brand-bg-secondary brand-text'}">
+                            Bulb 💡
+                        </button>
+                        <button onclick="app.switchBrand('gulabi')" class="flex-1 font-semibold py-2 px-4 rounded-lg text-sm ${app.state.currentBrand === 'gulabi' ? 'brand-bg' : 'brand-bg-secondary brand-text'}">
+                            Gulabi 🌸
+                        </button>
+                   </div>
+                </div>
+            </div>`;
+    },
+
+
+
+    // --- Modal Renderers ---
+
+    showPaymentModal(){
+         ui.showModal('payment-modal', `
+            <h2 class="text-xl font-bold text-primary mb-4">Select Payment</h2>
+            <div class="space-y-3">
+                <button onclick="app.placeOrder('Pay at Counter', this)" class="payment-btn w-full flex items-center justify-center bg-secondary p-4 rounded-xl"><span class="text-2xl mr-4">💵</span><span class="font-semibold">Pay at Counter</span></button>
+            </div>
+            <button onclick="ui.closeModal('payment-modal')" class="w-full mt-6 bg-secondary font-semibold py-3 rounded-lg">Cancel</button>
+        `);
+    },
+
+    showItemDetailModal(itemId){
+        const item = app.state.allMenuItems.find(i => i.id === itemId); if (!item) return;
+         // Ensure variants exist
+         if (!item.product_variants || item.product_variants.length === 0) {
+             console.error("Item has no variants:", item);
+             return ui.showToast("Error displaying item options.", 3000);
+         }
+
+        // Build options HTML
+        let optionsHTML = item.product_variants.map((variant, index) => {
+            const cartItem = app.state.cart.find(ci => ci.itemId === item.id && ci.variantId === variant.id);
+            const currentQuantity = cartItem ? cartItem.quantity : 0;
+            return `
+                <div class="flex justify-between items-center bg-secondary p-3 rounded-lg">
+                    <div>
+                        <span class="font-semibold text-primary">${variant.name}</span>
+                        <span class="font-bold text-secondary ml-2">₹${variant.price}</span>
+                    </div>
+                    ${currentQuantity > 0 ? `
+                        <div class="quantity-control" onclick="event.stopPropagation();">
+                           <button onclick="app.addOrUpdateCart(${item.id}, ${variant.id}, -1); ui.showItemDetailModal(${item.id});">-</button>
+                           <span>${currentQuantity}</span>
+                           <button onclick="app.addOrUpdateCart(${item.id}, ${variant.id}, 1); ui.showItemDetailModal(${item.id});">+</button>
+                        </div>
+                    ` : `
+                        <button class="add-to-cart-btn" style="width: 36px; height: 36px; font-size: 20px;" onclick="event.stopPropagation(); app.handleMenuAddClick(${item.id}, ${variant.id}); ui.showItemDetailModal(${item.id});">
+                           +
+                        </button>
+                    `}
+                </div>
+            `;
+        }).join('');
+
+        ui.showModal('item-detail-modal', `
+            <div class="flex justify-between items-start">
+                <div>
+                    <h2 class="text-2xl font-bold text-primary">${item.name}</h2>
+                </div>
+                <img src="${item.image_url || 'https://placehold.co/80x80/eee/ccc?text=?'}" alt="${item.name}" class="w-20 h-20 rounded-lg object-cover">
+            </div>
+            <p class="text-secondary mt-2 mb-4">${item.description || 'A delicious choice.'}</p>
+            <div class="space-y-3">${optionsHTML}</div>
+            <div class="mt-6">
+                <button onclick="ui.closeModal('item-detail-modal')" class="w-full bg-secondary font-semibold py-3 rounded-lg">Done</button>
+            </div>`);
+    },
+
+
+    showGamesModal() {
+        ui.showModal('games-modal', `
+            <h2 class="text-xl font-bold text-center mb-4">Entertainment</h2>
+            <div class="space-y-3">
+                ${app.state.games.map(game => `
+                    <div class="bg-secondary p-4 rounded-xl">
+                        <h3 class="text-lg font-bold text-primary mb-1">${game.name}</h3>
+                        <p class="text-secondary text-sm mb-3">${game.description}</p>
+                        <button onclick="app.showGame('${game.id}')" class="brand-bg font-semibold py-2 px-4 rounded-lg text-sm">Play</button>
+                    </div>`).join("")}
+            </div>
+            <button onclick="ui.closeModal('games-modal')" class="w-full mt-6 bg-secondary font-semibold py-3 rounded-lg">Close</button>
+        `);
+    },
+
+    showGameModal_QuickLight() {
+        ui.showModal('quick-light-game-modal', `
+            <div class="text-center">
+                <h2 class="text-3xl font-bold brand-text glitch-text">Quick Light!</h2>
+                <p class="text-text-secondary mb-4">Click the lit bulb as fast as you can.</p>
+                <div class="flex justify-around mb-4 text-lg">
+                    <div class="text-text-primary">Score: <span id="ql-score" class="font-bold">0</span></div>
+                    <div class="text-text-primary">Time: <span id="ql-time" class="font-bold">30</span>s</div>
+                </div>
+                <div id="ql-grid" class="grid grid-cols-3 gap-4 max-w-sm mx-auto mb-4">
+                    ${Array.from({length: 9}).map((_, i) => `
+                        <div class="game-bulb w-full h-20 sm:h-24 rounded-full border-4 border-custom cursor-pointer" data-index="${i}"></div>
+                    `).join('')}
+                </div>
+                <button id="ql-start-button" class="brand-bg font-semibold py-3 px-6 rounded-lg w-full">Start Game</button>
+                <button onclick="ui.closeModal('quick-light-game-modal')" class="w-full mt-2 bg-secondary font-semibold py-3 rounded-lg">Close</button>
+            </div>
+        `);
+    }
+};
+
+// --- NEW: Game Logic Object ---
+const GAMES = {
+    quickLight: {
+        state: { score: 0, gameInterval: null, activeBulb: -1, timeLeft: 30, timerInterval: null, isRunning: false },
+
+        start() {
+            ui.showGameModal_QuickLight();
+            // Attach listeners *after* modal is rendered
+            setTimeout(() => {
+                const startBtn = $('#ql-start-button');
+                if (startBtn) startBtn.onclick = () => this.runGame();
+
+                $$('#ql-grid .game-bulb').forEach(bulb => {
+                     if (bulb) bulb.onclick = () => this.handleBulbClick(parseInt(bulb.dataset.index));
+                });
+            }, 100); // Small delay to ensure DOM is ready
+        },
+
+
+        runGame() {
+            if (this.state.isRunning) return;
+            this.state.isRunning = true;
+
+            const g = this.state;
+            const qlScore = $('#ql-score');
+            const qlTime = $('#ql-time');
+            const startBtn = $('#ql-start-button');
+
+            if (qlScore) qlScore.textContent = 0;
+            if (qlTime) qlTime.textContent = 30;
+            if (startBtn) {
+                startBtn.disabled = true;
+                startBtn.textContent = 'Go!';
+            }
+
+            g.score = 0; g.timeLeft = 30;
+            // Clear any previous intervals just in case
+            clearInterval(g.timerInterval);
+            clearInterval(g.gameInterval);
+            g.timerInterval = setInterval(() => this.tick(), 1000);
+            this.nextRound();
+        },
+
+        stop() {
+            const g = this.state;
+            clearInterval(g.gameInterval);
+            clearInterval(g.timerInterval);
+            g.gameInterval = null;
+            g.timerInterval = null;
+            g.isRunning = false;
+
+            // Turn off last bulb
+            const oldBulb = $(`#ql-grid .game-bulb[data-index="${g.activeBulb}"]`);
+            if (oldBulb) oldBulb.classList.remove('lit');
+            g.activeBulb = -1;
+
+            const startBtn = $('#ql-start-button');
+            if (startBtn) {
+                startBtn.disabled = false;
+                startBtn.textContent = 'Play Again';
+            }
+            if (g.score > 0) {
+                 sound.play('game_over');
+                 ui.showToast(`Game Over! Final Score: ${g.score}`, 3000);
+            }
+            g.score = 0; // Reset score after showing toast
+        },
+
+
+        tick() {
+            const g = this.state;
+            if (!g.isRunning) return; // Prevent tick after stop
+            g.timeLeft--;
+            const qlTime = $('#ql-time');
+            if (qlTime) qlTime.textContent = g.timeLeft;
+            if (g.timeLeft <= 0) {
+                this.stop();
+            }
+        },
+
+        nextRound() {
+            const g = this.state;
+            if (g.gameInterval) clearInterval(g.gameInterval);
+            if (!g.isRunning) return;
+
+            // Turn off old bulb
+            const oldBulb = $(`#ql-grid .game-bulb[data-index="${g.activeBulb}"]`);
+            if (oldBulb) oldBulb.classList.remove('lit');
+
+            // Find new bulb
+            g.activeBulb = Math.floor(Math.random() * 9);
+            const newBulb = $(`#ql-grid .game-bulb[data-index="${g.activeBulb}"]`);
+            if (newBulb) newBulb.classList.add('lit');
+
+            // Set timeout for next round (if user doesn't click)
+            g.gameInterval = setTimeout(() => this.nextRound(), 1500); // 1.5s to click
+        },
+
+        handleBulbClick(index) {
+            const g = this.state;
+            if (!g.isRunning || index !== g.activeBulb) return;
+
+            sound.play('game_hit');
+            g.score++;
+            const qlScore = $('#ql-score');
+            if (qlScore) qlScore.textContent = g.score;
+
+            // Immediately go to next round
+            this.nextRound();
+        }
+    }
+};
+
+
+// --- Start the App ---
+document.addEventListener('DOMContentLoaded', () => {
+    app.init();
+
+    // Clean up subscriptions on page leave
+     window.addEventListener('beforeunload', () => {
+         app.unsubscribeAll();
+     });
+});
+
+
+</script>
+</body>
+</html>
+
