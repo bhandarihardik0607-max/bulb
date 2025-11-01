@@ -247,7 +247,7 @@
             allMenuItems: [],
             appSettings: {},
             orderSubscription: null,
-            currentMenuCategory: null,
+            currentMenuCategory: 'All Menu', // Default category
             searchQuery: '',
             searchResults: [],
             pointsToRedeem: 0,
@@ -412,6 +412,14 @@
                 }, []);
 
                 this.state.menuData = groupedMenu;
+                
+                // Set initial category state now that data is loaded
+                const activeBrand = document.body.dataset.theme === 'gulabi' ? 'Gulabi Thali' : 'Bulb Cafe';
+                
+                // FIX: Removed 'item' variable reference (typo)
+                const firstCategory = groupedMenu.find(c => c.items.some(i => i?.brand === activeBrand));
+                this.state.currentMenuCategory = firstCategory ? firstCategory.category : 'All Menu';
+
 
             } catch (error) {
                 console.error('Error fetching menu data:', error);
@@ -505,11 +513,10 @@
                 this.state.customerProfile.loyalty_points = this.state.customerProfile.loyalty_points || 0;
                 this.state.tableNumber = tableNumber;
                 
-                // FIX: Initialize main UI and navigate *before* closing the modal
-                await this.startSession();
-                ui.closeModal('onboarding-modal');
-                // Ensure navigation is called after the DOM is updated by startSession
-                this.navigateTo('home', false); 
+                // FIX: Initialize main UI *before* closing the modal
+                await this.startSession(); // This calls showMainInterface()
+                ui.closeModal('onboarding-modal'); // Now close the modal
+                this.navigateTo('home', false); // Manually set the final state
 
             } catch (error) {
                 console.error("Onboarding/Linking Error:", error);
@@ -550,11 +557,18 @@
             $('#main-interface').classList.remove('hidden');
             $('#bottom-nav').classList.remove('hidden');
             ui.renderBottomNav();
-            this.navigateTo(this.state.currentPage, false);
+            // Do not navigate here, let the calling function handle navigation
+            // to prevent the "double-click" tab issue.
         },
 
         navigateTo(page, pushToHistory = true){
              if (!this.state.customerProfile) return;
+             
+             // If clicking the same tab, do nothing.
+             if (this.state.currentPage === page && !pushToHistory && location.hash.substring(1) === page) {
+                 return;
+             }
+             
              sound.play('click');
              
              // --- Robust Back/Forward/Modal Navigation Logic ---
@@ -571,15 +585,12 @@
              if (pushToHistory) {
                 if (currentHash !== page) {
                     location.hash = page; // Pushes new state
-                } else {
-                    // If clicking the currently active tab, just re-render UI
-                    // FIX: Ensure UI is rendered immediately on click, even if hash doesn't change
-                    if (this.state.currentPage === page && location.hash.substring(1) === page) {
-                         // Don't push history, just fall through to UI updates below
-                    } else {
-                        location.hash = page; 
-                    }
                 }
+             } else {
+                 // This is a 'popstate' (back button) or internal navigation (modal close)
+                 if (currentHash !== page) {
+                     history.replaceState(null, '', '#' + page);
+                 }
              }
              
              // Always update UI after determining history state
@@ -596,14 +607,14 @@
                 // 1. Close open modal
                 ui.closeModal(openModal.id);
                 event.preventDefault(); // Stop browser default back
-                history.replaceState(null, '', '#' + app.state.currentPage); // Ensure hash reflects the page underneath
+                // We DON'T replace state here; closeModal will handle it.
                 return;
              }
              
              // 2. Prevent infinite back loop or sudden exit on mobile
              if (this.state.currentPage !== 'home') {
                  event.preventDefault();
-                 this.navigateTo('home', false); // Navigate back to home without pushing a new history entry
+                 this.navigateTo('home', true); // Navigate back to home *and* push history
              }
              // If already on 'home', allow default behavior (exit or app minimum navigation)
         },
@@ -678,10 +689,16 @@
                 if (searchContainer) searchContainer.classList.remove('hidden');
                 if (menuContainer) menuContainer.classList.add('hidden');
                 if (tabsContainer) tabsContainer.classList.add('hidden');
-                this.state.searchResults = this.state.allMenuItems.filter(item =>
-                    item.name.toLowerCase().includes(this.state.searchQuery) ||
+                
+                // Filter all items by brand first
+                const activeBrand = (document.body.dataset.theme === 'gulabi' ? 'Gulabi Thali' : 'Bulb Cafe').toLowerCase();
+                const brandItems = this.state.allMenuItems.filter(item => (item?.brand?.toLowerCase() || 'undefined') === activeBrand);
+                
+                this.state.searchResults = brandItems.filter(item =>
+                    item.name?.toLowerCase().includes(this.state.searchQuery) ||
                     (item.description && item.description.toLowerCase().includes(this.state.searchQuery))
                 );
+                // FIX: Use ui.renderMenuItems directly with the search results
                 ui.renderMenuItems(this.state.searchResults, 'search-results-container');
              } else {
                 if (searchContainer) searchContainer.classList.add('hidden');
@@ -689,7 +706,7 @@
                 if (tabsContainer) tabsContainer.classList.remove('hidden');
                 this.state.searchResults = [];
                 // Go back to the currently selected category when search is cleared
-                this.filterMenuByCategory(this.state.currentMenuCategory, $(`.category-tab[data-category="${this.state.currentMenuCategory}"]`));
+                ui.filterMenuByCategory(this.state.currentMenuCategory, $(`.category-tab[data-category="${this.state.currentMenuCategory}"]`));
              }
         },
 
@@ -1044,7 +1061,8 @@
             
             // Navigate back to the current page without pushing a new history entry
             if (location.hash.substring(1) === id) {
-                 app.navigateTo(app.state.currentPage, false);
+                 // We only replace state, app.navigateTo will be handled by the caller
+                 history.replaceState(null, '', '#' + app.state.currentPage);
             }
         },
 
@@ -1145,11 +1163,13 @@
         refreshCartDependentUI() {
             const el = $('#cart-count');
             const total = app.state.cart.reduce((s, i) => s + i.quantity, 0);
-            if (total > 0 && !app.state.activeOrder) {
-                el.textContent = total;
-                el.classList.remove('hidden');
-            } else {
-                el.classList.add('hidden');
+            if (el) { // Add null check
+                if (total > 0 && !app.state.activeOrder) {
+                    el.textContent = total;
+                    el.classList.remove('hidden');
+                } else {
+                    el.classList.add('hidden');
+                }
             }
         },
 
@@ -1208,9 +1228,6 @@
                         
                         <button onclick="app.navigateTo('order')" class="w-full brand-bg font-semibold py-4 px-6 rounded-lg text-lg"> View Full Menu </button>
                         
-                        <div class="grid grid-cols-1 gap-4">
-                            <button onclick="app.sendStaffCall('assistance')" class="bg-secondary rounded-xl p-4 text-center flex flex-col items-center justify-center h-28"><span class="text-3xl">🛎</span><p class="font-semibold mt-2 text-primary">Call Staff</p></button>
-                        </div>
                     </div>
                 </div>`;
         },
@@ -1239,13 +1256,16 @@
             // 1. Filter menu data based on active brand (theme)
             const activeBrand = document.body.dataset.theme === 'gulabi' ? 'Gulabi Thali' : 'Bulb Cafe';
             
-            const filteredMenuData = app.state.menuData.filter(categoryObj => {
-                 // Check if any item in the category belongs to the active brand
-                 return categoryObj.items.some(item => item.brand === activeBrand);
-            });
+            // Filter categories based on which ones contain items for the active brand
+            const filteredMenuData = app.state.menuData
+                .map(categoryObj => {
+                    // Filter items *within* each category
+                    const items = categoryObj.items.filter(item => (item?.brand || '').toLowerCase() === activeBrand.toLowerCase());
+                    return { ...categoryObj, items };
+                })
+                .filter(categoryObj => categoryObj.items.length > 0); // Remove categories with no items for this brand
             
-            let allCategories = [{ category: 'All Menu' }];
-            filteredMenuData.forEach(c => allCategories.push(c));
+            let allCategories = [{ category: 'All Menu' }, ...filteredMenuData];
             
             // Set initial category if not set or if the current one is filtered out
             if (!app.state.currentMenuCategory || !allCategories.some(c => c.category === app.state.currentMenuCategory)) {
@@ -1291,7 +1311,8 @@
         },
 
         filterMenuByCategory(category, tabElement) {
-            app.state.currentMenuCategory = category;
+            const categoryToUse = category || 'All Menu';
+            app.state.currentMenuCategory = categoryToUse;
             
             // Only clear search if it's not a search result render
             if (tabElement) {
@@ -1313,18 +1334,20 @@
             }
 
             let itemsToShow = [];
-            // FIX: Get the correct brand string based on the active theme
-            const activeBrand = document.body.dataset.theme === 'gulabi' ? 'Gulabi Thali' : 'Bulb Cafe';
+            const activeBrand = (document.body.dataset.theme === 'gulabi' ? 'Gulabi Thali' : 'Bulb Cafe').toLowerCase();
+            
+            const categoryToLower = categoryToUse.toLowerCase();
 
-            if (category === 'All Menu') {
-                // FIX: Ensure filter is run against allMenuItems and matches the brand string exactly
-                itemsToShow = app.state.allMenuItems.filter(item => item.brand === activeBrand);
+            // Filter all items that match the current active brand
+            const brandItems = app.state.allMenuItems.filter(item => (item?.brand?.toLowerCase() || 'undefined') === activeBrand);
+
+            if (categoryToUse === 'All Menu') {
+                itemsToShow = brandItems;
             } else {
-                // Filter items that belong to the current category AND the current active brand
-                const allItemsInCategory = app.state.menuData.find(d => d.category === category)?.items || [];
-                // FIX: Ensure filter matches the brand string exactly
-                itemsToShow = allItemsInCategory.filter(item => item.brand === activeBrand);
+                // Filter by category, ensuring category is present before calling toLowerCase
+                itemsToShow = brandItems.filter(item => (item?.category?.toLowerCase() || 'undefined') === categoryToLower);
             }
+            
             this.renderMenuItems(itemsToShow, 'menu-items');
         },
 
@@ -1534,7 +1557,8 @@
                     <div onclick="ui.showInstagramPromo()" class="cursor-pointer group relative bg-secondary rounded-xl p-6 overflow-hidden shadow-sm text-left">
                          <h2 class="text-2xl font-bold text-primary">${promoTitle}</h2>
                         <p class="mt-1 text-secondary">${promoSubtitle}</p>
-                        <button onclick="ui.showInstagramPromo()" class="font-semibold mt-3 text-sm brand-bg px-4 py-2 rounded-lg group-hover:opacity-90 transition">Get Caption Ideas &rarr;</button>
+                        <!-- Removed caption ideas button -->
+                        <a href="https://instagram.com/stories/create" target="_blank" class="font-semibold mt-3 text-sm brand-bg px-4 py-2 rounded-lg group-hover:opacity-90 transition inline-block">Post Story &rarr;</a>
                     </div>
                 </div>
             `;
@@ -1714,7 +1738,7 @@
 
         async showOrderHistoryModal() {
             if (!supabase) return ui.showToast("History failed: Supabase not initialized.");
-            if (!app.state.customerProfile || !app.state.customerProfile.id) return ui.showToast("Error: Profile not loaded.");
+            if (!app.state.customerProfile || !this.state.customerProfile.id) return ui.showToast("Error: Profile not loaded.");
             // Fetch order history
             const { data } = await supabase.from('orders').select(`*, order_items (products(name), quantity), discount_amount, discount_points_redeemed`).eq('customer_id', app.state.customerProfile.id).order('created_at', { ascending: false });
             
@@ -1819,7 +1843,6 @@
                             ${item.o.map((opt, index) => `<button class="trivia-option w-full bg-secondary font-semibold p-3 rounded-lg text-left" onclick="GAMES.coffeeTrivia.checkAnswer(${index}, ${item.a})">${opt}</button>`).join('')}
                         </div>
                         <button onclick="ui.closeModal('trivia-modal')" class="w-full mt-6 bg-secondary py-3 rounded-lg">Close</button>
-                    </div>
                 `);
             },
             checkAnswer(selectedIndex, correctIndex) {
@@ -1905,7 +1928,19 @@
     window.ui = ui;
     window.GAMES = GAMES;
 
-    document.addEventListener('DOMContentLoaded', () => app.init());
+    document.addEventListener('DOMContentLoaded', () => {
+        if (supabase) {
+            app.init();
+        } else {
+            console.error("Supabase failed to initialize. App cannot start.");
+            // Display an error to the user on the splash screen
+            const splash = $('#splash-screen');
+            if (splash) {
+                splash.innerHTML = `<div class_
+="text-red-500 text-center p-4">Could not connect to services. Please check your internet connection and refresh.</div>`;
+            }
+        }
+    });
 
 </script>
 </body>
