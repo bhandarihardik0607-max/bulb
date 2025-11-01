@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Restaurant App</title>
+    <!-- Title changed to match brand -->
+    <title>Bulb Cafe & Gulabi Thali</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Google Fonts (New Design) -->
+    <!-- Google Fonts (From New Design) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,400..900&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -16,10 +17,10 @@
     <!-- Supabase Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- App Styles -->
+    <!-- App Styles (From New Design) -->
     <style>
         :root {
-            /* Light Mode (From Design File) */
+            /* Light Mode */
             --bg-primary-light: #FFFFFF;
             --bg-secondary-light: #F3F4F6;
             --text-primary-light: #111827;
@@ -27,7 +28,7 @@
             --border-light: #E5E7EB;
             --brand-primary-light: #111827;
 
-            /* Dark Mode (From Design File) */
+            /* Dark Mode */
             --bg-primary-dark: #111111;
             --bg-secondary-dark: #1F2023;
             --text-primary-dark: #F9FAFB;
@@ -82,18 +83,20 @@
 
         /* Base App Styling */
         body {
-            font-family: 'Poppins', sans-serif; /* New Font */
+            font-family: 'Poppins', sans-serif;
             background-color: var(--bg-primary);
             color: var(--text-primary);
             margin: 0;
             padding: 0;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         #app {
             display: flex;
             flex-direction: column;
             width: 100%;
-            max-width: 480px; /* Mobile-first container */
+            max-width: 480px;
             margin: 0 auto;
             background-color: var(--bg-primary);
             min-height: 100vh;
@@ -103,8 +106,8 @@
         /* Main Content Area */
         #main-content {
             flex-grow: 1;
-            padding: 1.5rem 1.5rem 6rem 1.5rem; /* Padding for content + bottom nav */
-            overflow-y: auto; /* Enable scrolling for content */
+            padding: 1.5rem 1.5rem 6rem 1.5rem;
+            overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             width: 100%;
         }
@@ -113,12 +116,17 @@
             width: 100%;
             display: none; /* Hidden by default */
         }
-
         .page.active {
             display: block; /* Show active page */
         }
+        
+        /* Specific padding for cart page to avoid sticky footer */
+        #page-cart {
+            /* More padding to account for signature pad + sticky footer */
+            padding-bottom: 260px; 
+        }
 
-        /* Fonts (New Design) */
+        /* Fonts */
         .font-brand {
             font-family: 'Playfair Display', serif;
             font-style: italic;
@@ -140,7 +148,6 @@
             justify-content: center;
             transition: opacity 0.5s ease-out;
         }
-
         /* Pulsing Bulb Animation */
         .bulb {
             width: 60px;
@@ -172,34 +179,30 @@
             background-color: #1F2937;
             border-radius: 2px;
         }
-
         @keyframes pulse {
-            0%, 100% {
-                box-shadow: 0 0 10px #FBBF24, 0 0 20px #FBBF24;
-                opacity: 0.8;
-            }
-            50% {
-                box-shadow: 0 0 20px #FBBF24, 0 0 40px #FBBF24;
-                opacity: 1;
-            }
+            0%, 100% { box-shadow: 0 0 10px #FBBF24, 0 0 20px #FBBF24; opacity: 0.8; }
+            50% { box-shadow: 0 0 20px #FBBF24, 0 0 40px #FBBF24; opacity: 1; }
         }
 
-        /* Tab Bar Navigation */
+        /* Tab Bar Navigation (4-Tab) */
         #tab-bar {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            max-width: 480px; /* Match app width */
+            max-width: 480px;
             margin: 0 auto;
             height: 60px;
-            background-color: var(--bg-secondary);
+            background-color: var(--bg-primary);
             border-top: 1px solid var(--border);
             display: flex;
             justify-content: space-around;
             align-items: center;
             z-index: 50;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
         }
+        .theme-dark #tab-bar { box-shadow: 0 -2px 10px rgba(0,0,0,0.2); }
+        
         .tab-item {
             display: flex;
             flex-direction: column;
@@ -209,25 +212,26 @@
             border: none;
             color: var(--text-secondary);
             font-size: 0.75rem;
+            font-weight: 500;
             flex-grow: 1;
             position: relative;
+            height: 100%;
         }
-        .tab-item svg {
-            width: 24px;
-            height: 24px;
-            margin-bottom: 2px;
-        }
-        .tab-item.active {
-            color: var(--brand-accent);
-        }
+        .tab-item svg { width: 24px; height: 24px; margin-bottom: 2px; }
+        .tab-item .icon-outline { display: block; }
+        .tab-item .icon-solid { display: none; }
+        .tab-item.active { color: var(--brand-accent); }
+        .tab-item.active .icon-outline { display: none; }
+        .tab-item.active .icon-solid { display: block; }
 
         /* Cart Badge */
         #cart-badge {
             position: absolute;
-            top: -5px;
-            right: 20px;
+            top: 6px;
+            /* Adjusted right position for 4-tab layout */
+            right: calc(25% + 6px); 
             background-color: var(--brand-accent);
-            color: var(--bg-primary); /* High contrast */
+            color: #111111;
             border-radius: 50%;
             width: 20px;
             height: 20px;
@@ -238,22 +242,21 @@
             justify-content: center;
             transform: scale(0);
             transition: transform 0.2s ease;
+            border: 2px solid var(--bg-primary);
         }
-        #cart-badge.visible {
-            transform: scale(1);
-        }
+        #cart-badge.visible { transform: scale(1); }
 
-        /* Page Headers (New Design) */
+        /* Page Headers */
         .page-header {
             font-family: 'Playfair Display', serif;
             font-style: italic;
             font-size: 2.5rem;
-            font-weight: 800; /* Bolder */
+            font-weight: 800;
             margin-bottom: 1.5rem;
             color: var(--brand-primary);
         }
 
-        /* Form Elements (New Design) */
+        /* Form Elements */
         .input {
             background-color: var(--bg-secondary);
             border: 1px solid var(--border);
@@ -267,7 +270,7 @@
         .input:focus {
             outline: none;
             border-color: var(--brand-accent);
-            box-shadow: 0 0 0 1px var(--brand-accent); /* Subtle focus */
+            box-shadow: 0 0 0 1px var(--brand-accent);
         }
         .btn {
             border: none;
@@ -276,76 +279,84 @@
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: opacity 0.2s;
+            transition: all 0.2s;
             font-family: 'Poppins', sans-serif;
         }
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .btn:hover:not(:disabled) {
-            opacity: 0.8;
-        }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn:hover:not(:disabled) { opacity: 0.8; }
         .btn-primary {
             background-color: var(--brand-accent);
-            color: var(--bg-primary); /* High contrast text on accent */
+            color: #111111;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.1);
         }
-        /* Special case for dark mode button text */
-        .theme-dark .btn-primary {
-             color: #111111; /* Black text on yellow/pink for dark mode */
-        }
+        .btn-primary:hover:not(:disabled) { opacity: 1; box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
         .btn-secondary {
             background-color: var(--bg-secondary);
             color: var(--text-primary);
             border: 1px solid var(--border);
         }
 
-        /* Menu Item Card (New Design) */
+        /* Menu Item Card (From last good version) */
         .menu-item-card {
-            background-color: var(--bg-primary); /* Use primary bg */
-            border-bottom: 1px solid var(--border); /* Simple separator */
-            padding: 1rem 0.5rem;
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border);
+            padding: 1rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
-        .menu-item-card h3 {
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-        .menu-item-card p {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            margin: 0.25rem 0;
-        }
-        .menu-item-price {
-            font-size: 1.125rem;
-            font-weight: 700;
-            color: var(--brand-accent);
-        }
-        .menu-item-add-btn {
+        .theme-dark .menu-item-card { box-shadow: none; }
+        .menu-item-card h3 { font-size: 1.125rem; font-weight: 600; color: var(--text-primary); }
+        .menu-item-card p { font-size: 0.875rem; color: var(--text-secondary); margin: 0.25rem 0; max-width: 200px; }
+        .menu-item-price { font-size: 1.125rem; font-weight: 700; color: var(--brand-accent); }
+        
+        /* Menu Buttons (From last good version) */
+        .menu-item-action { flex-shrink: 0; margin-left: 1rem; }
+        .menu-item-add-btn, .menu-item-select-btn {
             background-color: var(--brand-accent);
-            color: var(--bg-primary);
+            color: #111111;
             border: none;
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
-            font-size: 1.5rem;
-            font-weight: 300;
+            border-radius: 2rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .menu-item-select-btn.in-cart {
+            background-color: var(--bg-secondary);
+            color: var(--brand-accent);
+            border: 1px solid var(--brand-accent);
+        }
+        .menu-quantity-control {
             display: flex;
             align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: transform 0.2s;
+            justify-content: flex-end;
+            background-color: var(--brand-accent);
+            border-radius: 2rem;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
-        /* Dark mode text for add button */
-         .theme-dark .menu-item-add-btn {
-             color: #111111;
-         }
-        .menu-item-add-btn:hover {
-            transform: scale(1.1);
+        .menu-quantity-control button {
+            background: none;
+            border: none;
+            color: #111111;
+            font-size: 1.25rem;
+            font-weight: 600;
+            width: 36px;
+            height: 36px;
+            cursor: pointer;
+        }
+        .menu-quantity-control span {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #111111;
+            padding: 0 0.25rem;
+            min-width: 24px;
+            text-align: center;
         }
         .menu-item-view-btn {
             background-color: var(--bg-secondary);
@@ -356,8 +367,49 @@
             font-size: 0.875rem;
             font-weight: 500;
         }
+        
+        /* Sticky Cart Summary (From new file) */
+        #cart-summary-container {
+            position: fixed;
+            bottom: 60px; /* Tab bar height */
+            left: 0;
+            right: 0;
+            max-width: 480px;
+            margin: 0 auto;
+            background-color: var(--bg-primary);
+            border-top: 1px solid var(--border);
+            padding: 1.5rem;
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.05);
+            z-index: 40;
+            transition: transform 0.3s ease;
+            transform: translateY(100%); /* Hidden by default */
+        }
+        #cart-summary-container.visible {
+            transform: translateY(0);
+        }
+        .theme-dark #cart-summary-container {
+             box-shadow: 0 -4px 12px rgba(0,0,0,0.2);
+        }
 
-        /* Modals (New Design) */
+        /* Cart Item Card (From last good version) */
+        .cart-item-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .cart-item-card .cart-quantity-control {
+            background-color: var(--bg-secondary);
+            border-radius: 2rem;
+            overflow: hidden;
+            box-shadow: none;
+            border: 1px solid var(--border);
+        }
+        .cart-item-card .cart-quantity-control button { color: var(--text-primary); font-size: 1rem; width: 32px; height: 32px; }
+        .cart-item-card .cart-quantity-control span { color: var(--text-primary); font-size: 0.875rem; }
+
+        /* Modals (From new file) */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -366,53 +418,41 @@
             bottom: 0;
             background-color: rgba(0, 0, 0, 0.5);
             z-index: 60;
-            display: none; /* Hidden by default */
-            align-items: center;
+            display: flex;
+            align-items: flex-end;
             justify-content: center;
             opacity: 0;
+            pointer-events: none;
             transition: opacity 0.3s ease;
         }
-        .modal-overlay.visible {
-            display: flex;
-            opacity: 1;
-        }
+        .modal-overlay.visible { opacity: 1; pointer-events: auto; }
         .modal-content {
             background-color: var(--bg-primary);
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            width: 90%;
-            max-width: 400px;
-            transform: scale(0.9);
+            border-radius: 1rem 1rem 0 0;
+            padding: 1rem 1.5rem 1.5rem 1.5rem;
+            width: 100%;
+            max-width: 480px;
+            transform: translateY(100%);
             transition: transform 0.3s ease;
         }
-        .modal-overlay.visible .modal-content {
-            transform: scale(1);
+        .modal-overlay.visible .modal-content { transform: translateY(0); }
+        .modal-content::before {
+            content: '';
+            display: block;
+            width: 50px;
+            height: 5px;
+            background-color: var(--border);
+            border-radius: 3px;
+            margin: 0 auto 1rem auto;
         }
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-        .modal-header h2 {
-            font-family: 'Playfair Display', serif;
-            font-style: italic;
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-        .modal-close-btn {
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .modal-header h2 { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.75rem; font-weight: 700; color: var(--text-primary); }
+        .modal-close-btn { background: none; border: none; color: var(--text-secondary); font-size: 1.75rem; cursor: pointer; }
         
-        /* Toast Notifications */
+        /* Toast Notifications (From new file) */
         #toast-container {
             position: fixed;
-            bottom: 70px; /* Above tab bar */
+            top: 10px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 70;
@@ -420,23 +460,52 @@
             flex-direction: column;
             align-items: center;
             pointer-events: none;
+            width: 90%;
+            max-width: 440px;
         }
         .toast-notification {
-            background-color: #22C55E; /* Green for success */
+            background-color: #22C55E;
             color: #FFFFFF;
             padding: 0.75rem 1.5rem;
-            border-radius: 2rem;
+            border-radius: 0.5rem;
             font-size: 0.875rem;
             font-weight: 500;
             margin-top: 0.5rem;
             opacity: 0;
-            transform: translateY(20px);
+            transform: translateY(-20px);
             transition: all 0.3s ease;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            width: 100%;
+            text-align: center;
         }
-        .toast-notification.visible {
-            opacity: 1;
-            transform: translateY(0);
+        .toast-notification.visible { opacity: 1; transform: translateY(0); }
+        
+        /* Loyalty Card (From new file) */
+        .loyalty-card {
+            background-color: var(--bg-secondary);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .loyalty-card-bg {
+            position: absolute;
+            top: -50%;
+            right: -30%;
+            width: 200px;
+            height: 200px;
+            background-color: var(--brand-accent);
+            opacity: 0.1;
+            border-radius: 50%;
+            filter: blur(40px);
+        }
+
+        /* Signature Pad (From new file) */
+        #signature-pad {
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            cursor: crosshair;
+            touch-action: none;
         }
 
     </style>
@@ -449,44 +518,49 @@
         <!-- Splash Screen -->
         <div id="splash-screen">
             <div class="bulb"></div>
-            <h1 class="font-brand text-3xl text-white mt-6" style="font-style: italic;">BULB CAFE</h1>
+            <!-- Title updated to Bulb Cafe -->
+            <h1 class="font-brand text-4xl text-white mt-6" style="font-style: italic;">BULB CAFE</h1>
         </div>
+        
+        <!-- Toast Notification Container -->
+        <div id="toast-container"></div>
 
         <!-- Main Content Area (Scrollable) -->
         <main id="main-content">
 
-            <!-- Home Page -->
+            <!-- Home Page (page-home) -->
             <div id="page-home" class="page active">
                 <h1 class="page-header" id="home-header">Welcome</h1>
                 <p class="text-lg -mt-4 mb-6" style="color: var(--text-secondary);">Good to see you!</p>
 
-                <!-- Brand Switcher -->
+                <!-- Brand Switcher (From old app) -->
                 <div class="mb-6">
-                    <h2 class="text-sm font-semibold uppercase mb-2" style="color: var(--text-secondary);">Select Brand</h2>
+                    <h2 class="text-sm font-semibold uppercase mb-3" style="color: var(--text-secondary);">Select Brand</h2>
                     <div class="flex space-x-2">
                         <button id="brand-bulb-btn" class="btn btn-secondary flex-1 border-2 border-yellow-400">Bulb Cafe</button>
                         <button id="brand-gulabi-btn" class="btn btn-secondary flex-1">Gulabi Thali</button>
                     </div>
                 </div>
 
-                <!-- Loyalty Card -->
-                <div class="mb-6 p-5 rounded-lg" style="background-color: var(--bg-secondary);">
-                    <div class="flex justify-between items-center mb-4">
-                        <span class="text-sm font-semibold uppercase" style="color: var(--text-secondary);">Loyalty Points</span>
-                        <span id="home-brand-logo" class="font-brand font-bold" style="color: var(--brand-accent); font-style: italic;">BULB</span>
+                <!-- Loyalty Card (Merged) -->
+                <div class="mb-6 loyalty-card">
+                    <div class="loyalty-card-bg"></div>
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-sm font-semibold uppercase" style="color: var(--text-secondary);">Loyalty Points</span>
+                            <span id="home-brand-logo" class="font-brand font-bold" style="color: var(--brand-accent); font-style: italic;">BULB</span>
+                        </div>
+                        <!-- ID updated to match JS: 'loyalty-points' -->
+                        <div id="loyalty-points" class="font-brand text-5xl font-bold mb-1" style="color: var(--brand-primary); font-style: italic;">0</div>
+                        <p class="text-sm" style="color: var(--text-secondary);">points</p>
+                        <!-- ID updated to match JS: 'redeem-points-btn' -->
+                        <button id="redeem-points-btn" class="btn btn-primary w-full mt-6">Redeem Reward (500 pts)</button>
                     </div>
-                    <div id="loyalty-points" class="font-brand text-4xl font-bold mb-1" style="color: var(--brand-primary); font-style: italic;">0</div>
-                    <p class="text-sm" style="color: var(--text-secondary);">points</p>
-                    <button id="redeem-points-btn" class="btn btn-primary w-full mt-4">Redeem Reward (500 pts)</button>
-                </div>
-                
-                <!-- Placeholder for future content -->
-                <div class="text-center p-6 rounded-lg" style="background-color: var(--bg-secondary);">
-                    <p style="color: var(--text-secondary);">Check out our specials on the Order page!</p>
                 </div>
             </div>
 
-            <!-- Order Page -->
+            <!-- Menu Page (page-order) -->
+            <!-- ID updated to 'page-order' to match JS logic -->
             <div id="page-order" class="page">
                 <h1 class="page-header" id="order-header">Menu</h1>
                 
@@ -501,14 +575,14 @@
                 
                 <!-- Menu List -->
                 <div id="menu-list">
-                    <!-- Categories and items will be injected by JavaScript -->
                     <p id="menu-loading-text" style="color: var(--text-secondary);">Loading menu...</p>
                 </div>
             </div>
 
-            <!-- Cart Page -->
+            <!-- Cart/Order Page (page-cart) -->
+            <!-- ID updated to 'page-cart' to match JS logic -->
             <div id="page-cart" class="page">
-                <h1 class="page-header">My Cart</h1>
+                <h1 class="page-header">My Order</h1>
                 
                 <div id="cart-items-container">
                     <!-- Cart items will be injected here -->
@@ -520,8 +594,18 @@
                     <button id="cart-back-to-menu" class="btn btn-primary mt-4">Browse Menu</button>
                 </div>
 
-                <div id="cart-summary-container" class="hidden">
-                    <div class="mt-6 pt-6 border-t" style="border-color: var(--border);">
+                <!-- Signature Pad (From new file) -->
+                <div id="signature-section" class="hidden mt-6">
+                    <div class="flex justify-between items-center mb-2">
+                        <h2 class="font-brand text-2xl font-semibold" style="font-style: italic;">Confirm Signature</h2>
+                        <button id="clear-signature-btn" class="text-sm btn-secondary py-1 px-3">Clear</button>
+                    </div>
+                    <canvas id="signature-pad" width="300" height="150" class="w-full"></canvas>
+                </div>
+
+                <!-- Sticky Cart Summary (Upgraded) -->
+                <div id="cart-summary-container">
+                    <div>
                         <h2 class="font-brand text-2xl font-semibold mb-4" style="font-style: italic;">Summary</h2>
                         <div class="space-y-2">
                             <div class="flex justify-between" style="color: var(--text-secondary);">
@@ -537,81 +621,81 @@
                                 <span id="cart-total">₹0.00</span>
                             </div>
                         </div>
+                        <!-- ID updated to match JS -->
                         <button id="proceed-to-payment-btn" class="btn btn-primary w-full mt-6">Proceed to Payment</button>
                     </div>
                 </div>
             </div>
 
-            <!-- History Page -->
-            <div id="page-history" class="page">
-                <h1 class="page-header">Order History</h1>
-                <div id="order-history-list">
-                    <!-- Order history will be injected here -->
-                    <p id="history-loading-text" style="color: var(--text-secondary);">Loading history...</p>
-                </div>
-                <div id="history-empty-msg" class="hidden text-center py-10" style="color: var(--text-secondary);">
-                    <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
-                    <p>You haven't placed any orders yet.</p>
-                </div>
-            </div>
-
-            <!-- Profile Page -->
+            <!-- Account/Profile Page (page-profile) -->
+            <!-- ID updated to 'page-profile' to match JS logic -->
             <div id="page-profile" class="page">
-                <h1 class="page-header">Profile</h1>
+                <h1 class="page-header">Account</h1>
                 
-                <!-- Theme Switcher -->
-                <div class="mb-6">
-                    <h2 class="text-sm font-semibold uppercase mb-2" style="color: var(--text-secondary);">Theme</h2>
+                <!-- Theme Switcher (From new file) -->
+                <div class="mb-6 p-5 rounded-lg" style="background-color: var(--bg-secondary);">
+                    <h2 class="text-sm font-semibold uppercase mb-3" style="color: var(--text-secondary);">Theme</h2>
                     <div class="flex space-x-2">
                         <button class="theme-btn btn btn-secondary flex-1" data-theme="theme-light">Light</button>
                         <button class="theme-btn btn btn-secondary flex-1" data-theme="theme-dark">Dark</button>
                     </div>
                 </div>
 
-                <!-- Review Bonus -->
+                <!-- Review Bonus (From old app) -->
                 <div class="p-5 rounded-lg mb-6" style="background-color: var(--bg-secondary);">
                     <h2 class="font-brand text-2xl font-semibold mb-2" style="font-style: italic;">Get a Free Coffee!</h2>
                     <p class="mb-4" style="color: var(--text-secondary);">Get 100 bonus points for leaving us a review!</p>
                     <a href="https://www.google.com/search?q=bulb+cafe+jaipur+reviews" target="_blank" id="leave-review-btn" class="btn btn-secondary w-full mb-2 text-center">Step 1: Leave a Review</a>
                     <button id="claim-review-btn" class="btn btn-primary w-full">Step 2: Claim Bonus</button>
                 </div>
+                
+                <!-- Order History (From old app) -->
+                <div class="mb-6">
+                    <h2 class="font-brand text-2xl font-semibold mb-4" style="font-style: italic;">Order History</h2>
+                    <div id="order-history-list">
+                        <p id="history-loading-text" style="color: var(--text-secondary);">Loading history...</p>
+                    </div>
+                    <div id="history-empty-msg" class="hidden text-center py-10" style="color: var(--text-secondary);">
+                        <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                        <p>You haven't placed any orders yet.</p>
+                    </div>
+                </div>
 
-                <!-- User ID -->
-                <div class="text-center">
-                    <p class="text-xs" style="color: var(--text-secondary);">Anonymous User ID:</p>
-                    <p id="user-id-display" class="text-xs break-all" style="color: var(--text-secondary);"></p>
+                <!-- User ID (From new file) -->
+                <div class="text-center p-4 rounded-lg" style="background-color: var(--bg-secondary);">
+                    <p class="text-xs" style="color: var(--text-secondary); font-family: 'Poppins', sans-serif;">Anonymous User ID:</p>
+                    <p id="user-id-display" class="text-xs break-all" style="color: var(--text-secondary); font-family: 'Poppins', sans-serif;"></p>
                 </div>
             </div>
 
         </main>
 
-        <!-- Bottom Tab Bar -->
+        <!-- Bottom Tab Bar (4-Tab) -->
+        <!-- data-page attributes updated to match JS logic -->
         <nav id="tab-bar">
             <button class="tab-item active" data-page="home">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6-4a1 1 0 001-1v-1a1 1 0 10-2 0v1a1 1 0 001 1z"></path></svg>
+                <svg class="icon-outline w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6-4a1 1 0 001-1v-1a1 1 0 10-2 0v1a1 1 0 001 1z"></path></svg>
+                <svg class="icon-solid w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
                 <span>Home</span>
             </button>
             <button class="tab-item" data-page="order">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13.5M9.503 3.512l.33 1.98M14.497 3.512l-.33 1.98M21 12.031H3M6.5 12.031l-3.33-3.329M17.5 12.031l3.33-3.329"></path></svg>
-                <span>Order</span>
+                <svg class="icon-outline w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13.5M9.503 3.512l.33 1.98M14.497 3.512l-.33 1.98M21 12.031H3M6.5 12.031l-3.33-3.329M17.5 12.031l3.33-3.329"></path></svg>
+                <svg class="icon-solid w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M13.586 2.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0l-1.586-1.586a2 2 0 10-2.828 2.828l1.586 1.586a2 2 0 010 2.828l-3 3a2 2 0 01-2.828-2.828L7 11.172V6.828l-1.586-1.586a2 2 0 112.828-2.828l3 3a2 2 0 010 2.828l1.586 1.586a2 2 0 102.828-2.828L13.586 2.586zM6 16a1 1 0 100-2 1 1 0 000 2zM14 4a1 1 0 100-2 1 1 0 000 2z"></path></svg>
+                <span>Menu</span>
             </button>
             <button class="tab-item" data-page="cart">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                <span>Cart</span>
+                <!-- This is the cart badge that was missing -->
                 <div id="cart-badge">0</div>
-            </button>
-            <button class="tab-item" data-page="history">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3M20 12a8 8 0 11-16 0 8 8 0 0116 0z"></path></svg>
-                <span>History</span>
+                <svg class="icon-outline w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                <svg class="icon-solid w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"></path></svg>
+                <span>Order</span>
             </button>
             <button class="tab-item" data-page="profile">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                <span>Profile</span>
+                <svg class="icon-outline w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                <svg class="icon-solid w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path></svg>
+                <span>Account</span>
             </button>
         </nav>
-
-        <!-- Toast Notification Container -->
-        <div id="toast-container"></div>
 
         <!-- Variant Selection Modal -->
         <div id="variant-modal" class="modal-overlay">
@@ -649,23 +733,95 @@
         const { createClient } = supabase;
 
         // --- SUPABASE & APP CONFIG ---
+        // Correct keys for Bulb Cafe
         const SUPABASE_URL = 'https://vrvlvvlfzbdqwfsdlrkv.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZydmx2dmxmemJkcXdmc2Rscmt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NzI2NzAsImV4cCI6MjA3NzU0ODY3MH0.yYnxeipLuO0DlTvGITI5ajHDeoWZ80N2PS3rPhuOyp8';
 
         const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // --- SIGNATURE PAD CLASS (From new file) ---
+        class SignaturePad {
+            constructor(canvasId) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext("2d");
+                this.painting = false;
+                this.init();
+            }
+
+            init() {
+                // Set canvas size
+                this.canvas.width = this.canvas.clientWidth;
+                this.canvas.height = this.canvas.clientHeight;
+
+                // Set context properties
+                this.ctx.lineWidth = 3;
+                this.ctx.lineCap = "round";
+                this.ctx.strokeStyle = document.body.classList.contains('theme-dark') ? '#FFFFFF' : '#111111'; // Match theme
+
+                // Add event listeners
+                this.canvas.addEventListener("pointerdown", this.startPosition.bind(this));
+                this.canvas.addEventListener("pointerup", this.finishedPosition.bind(this));
+                this.canvas.addEventListener("pointermove", this.draw.bind(this));
+                this.canvas.addEventListener("touchstart", this.startPosition.bind(this), { passive: false });
+                this.canvas.addEventListener("touchend", this.finishedPosition.bind(this));
+                this.canvas.addEventListener("touchmove", this.draw.bind(this), { passive: false });
+                
+                // Resize listener
+                window.addEventListener('resize', this.resizeCanvas.bind(this));
+            }
+
+            resizeCanvas() {
+                if (!this.canvas) return;
+                this.canvas.width = this.canvas.clientWidth;
+                this.canvas.height = this.canvas.clientHeight;
+                this.ctx.lineWidth = 3;
+                this.ctx.lineCap = "round";
+                this.ctx.strokeStyle = document.body.classList.contains('theme-dark') ? '#FFFFFF' : '#111111';
+            }
+
+            getEventPosition(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                if (e.touches && e.touches.length > 0) {
+                    return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
+                }
+                return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+            }
+
+            startPosition(e) { this.painting = true; this.draw(e); }
+            finishedPosition() { this.painting = false; this.ctx.beginPath(); }
+            
+            draw(e) {
+                if (!this.painting) return;
+                e.preventDefault();
+                const { x, y } = this.getEventPosition(e);
+                this.ctx.lineTo(x, y); this.ctx.stroke();
+                this.ctx.beginPath(); this.ctx.moveTo(x, y);
+            }
+
+            changeColor(c) { if(this.ctx) this.ctx.strokeStyle = c; }
+            clearCanvas() { if(this.ctx) this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); }
+            getSignatureData() { return this.canvas.toDataURL(); }
+            isEmpty() {
+                const pixelBuffer = new Uint32Array(this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height).data.buffer);
+                return !pixelBuffer.some(color => color !== 0);
+            }
+        }
+        // --- END SIGNATURE PAD CLASS ---
 
         // --- STATE MANAGEMENT ---
         const AppState = {
             currentBrand: 'bulb', // 'bulb' or 'gulabi'
             currentTheme: 'theme-light', // 'theme-light' or 'theme-dark'
-            currentPage: 'home',
+            // Page IDs updated to match new 4-tab layout
+            currentPage: 'home', // home, order, cart, profile
             currentUser: null,
             userProfile: null,
-            products: [], // All products from DB
-            cart: [], // Array of cart items
+            products: [],
+            cart: [],
             recentSearches: [],
             orderHistory: [],
-            realtimeChannels: [], // Store all active Supabase channels
+            realtimeChannels: [],
+            signaturePad: null // To hold the signature pad instance
         };
 
         // --- DOM ELEMENT SELECTORS ---
@@ -673,6 +829,7 @@
             app: document.getElementById('app'),
             body: document.body,
             splashScreen: document.getElementById('splash-screen'),
+            toastContainer: document.getElementById('toast-container'), // FIX: Added missing reference
             mainContent: document.getElementById('main-content'),
             pages: document.querySelectorAll('.page'),
             tabBar: document.getElementById('tab-bar'),
@@ -684,17 +841,17 @@
             homeBrandLogo: document.getElementById('home-brand-logo'),
             brandBulbBtn: document.getElementById('brand-bulb-btn'),
             brandGulabiBtn: document.getElementById('brand-gulabi-btn'),
-            loyaltyPoints: document.getElementById('loyalty-points'),
-            redeemPointsBtn: document.getElementById('redeem-points-btn'),
-            
-            // Order
+            loyaltyPoints: document.getElementById('loyalty-points'), // ID updated
+            redeemPointsBtn: document.getElementById('redeem-points-btn'), // ID updated
+
+            // Order (Menu)
             orderHeader: document.getElementById('order-header'),
             menuList: document.getElementById('menu-list'),
             menuLoadingText: document.getElementById('menu-loading-text'),
             searchBar: document.getElementById('search-bar'),
             recentSearches: document.getElementById('recent-searches'),
 
-            // Cart
+            // Cart (Order)
             cartItemsContainer: document.getElementById('cart-items-container'),
             cartEmptyMsg: document.getElementById('cart-empty-msg'),
             cartBackToMenu: document.getElementById('cart-back-to-menu'),
@@ -702,14 +859,17 @@
             cartSubtotal: document.getElementById('cart-subtotal'),
             cartGst: document.getElementById('cart-gst'),
             cartTotal: document.getElementById('cart-total'),
-            proceedToPaymentBtn: document.getElementById('proceed-to-payment-btn'),
+            proceedToPaymentBtn: document.getElementById('proceed-to-payment-btn'), // ID updated
 
-            // History
+            // Signature Pad
+            signatureSection: document.getElementById('signature-section'),
+            clearSignatureBtn: document.getElementById('clear-signature-btn'),
+
+            // Profile (Account)
+            // History elements are now on this page
             orderHistoryList: document.getElementById('order-history-list'),
             historyLoadingText: document.getElementById('history-loading-text'),
             historyEmptyMsg: document.getElementById('history-empty-msg'),
-
-            // Profile
             themeButtons: document.querySelectorAll('.theme-btn'),
             leaveReviewBtn: document.getElementById('leave-review-btn'),
             claimReviewBtn: document.getElementById('claim-review-btn'),
@@ -723,1046 +883,917 @@
             variantModalAddBtn: document.getElementById('variant-modal-add-btn'),
             paymentModal: document.getElementById('payment-modal'),
             confirmPaymentBtn: document.getElementById('confirm-payment-btn'),
-            modalCloseButtons: document.querySelectorAll('.modal-close-btn'),
-            
-            // Toast
-            toastContainer: document.getElementById('toast-container'),
+            modalCloseBtns: document.querySelectorAll('.modal-close-btn')
         };
+        
+        // --- APP LOGIC ---
 
-        // --- CORE APP LOGIC ---
-
-        /**
-         * Initializes the application.
-         * Authenticates, fetches data, sets up listeners, and hides splash screen.
-         */
         const App = {
+            // --- Initialization ---
             async init() {
-                console.log("App initializing...");
-                
-                // Show splash screen, then hide it after a short delay
-                // This makes the app feel responsive immediately
-                setTimeout(() => {
-                    if (DOM.splashScreen) {
-                        DOM.splashScreen.style.opacity = '0';
-                        // Use setTimeout to remove after animation
-                        setTimeout(() => {
-                            DOM.splashScreen.remove();
-                        }, 500); // Matches CSS transition time
-                    }
-                }, 1000); // 1-second splash screen
-
                 try {
-                    this.setupEventListeners();
-                    this.loadStateFromLocalStorage();
+                    // 1. Show splash
+                    setTimeout(() => {
+                        if (DOM.splashScreen) {
+                            DOM.splashScreen.style.opacity = '0';
+                            setTimeout(() => DOM.splashScreen.remove(), 500);
+                        }
+                    }, 1000); // Show splash for 1 sec
 
-                    await this.authenticateUser();
+                    // 2. Load settings
+                    this.loadSettings();
+
+                    // 3. Attach event listeners
+                    this.attachEventListeners();
                     
-                    // Fetch initial data in parallel
-                    await Promise.all([
-                        this.fetchProducts(),
-                        this.fetchUserProfile(),
-                        this.fetchOrderHistory()
-                    ]);
+                    // 4. Authenticate user (in background)
+                    await this.authenticateUser();
 
+                    // 5. Initial Data Load
+                    if (AppState.currentUser) {
+                        this.loadInitialData();
+                        this.setupRealtimeSubscriptions();
+                    }
+
+                    // 6. Initial Render
                     this.renderAll();
-                    this.setupRealtimeSubscriptions();
 
                 } catch (error) {
                     console.error("Error during app initialization:", error);
-                    // Failsafe: Ensure splash screen is hidden
+                    App.showToast(`Error: ${error.message}`, true);
+                    // Ensure splash screen is hidden even on error
                     if (DOM.splashScreen) DOM.splashScreen.remove();
-                    // Show specific error for auth
-                    if (error.message.includes("Invalid API key") || error.message.includes("failed to fetch")) {
-                        this.showToast("Connection failed. Check API key.", "error");
-                    } else {
-                        this.showToast("Error loading app. Please refresh.", "error");
-                    }
                 }
             },
 
-            /**
-             * Sets up all global event listeners for the app.
-             */
-            setupEventListeners() {
-                // Tab Bar Navigation
-                DOM.tabBar.addEventListener('click', (e) => {
-                    const tabItem = e.target.closest('.tab-item');
-                    if (tabItem) {
-                        this.navigateTo(tabItem.dataset.page);
-                    }
-                });
+            loadInitialData() {
+                // Load cart and recent searches from local storage
+                const savedCart = localStorage.getItem('restaurantCart');
+                if (savedCart) AppState.cart = JSON.parse(savedCart);
+                
+                const savedSearches = localStorage.getItem('recentSearches');
+                if (savedSearches) AppState.recentSearches = JSON.parse(savedSearches);
+                
+                // Fetch data from Supabase
+                this.fetchProducts();
+                this.fetchUserProfile();
+                this.fetchOrderHistory();
+            },
 
+            attachEventListeners() {
+                // Tab Bar
+                DOM.tabItems.forEach(tab => {
+                    tab.addEventListener('click', () => this.navigateTo(tab.dataset.page));
+                });
+                
                 // Brand Switcher
                 DOM.brandBulbBtn.addEventListener('click', () => this.setBrand('bulb'));
                 DOM.brandGulabiBtn.addEventListener('click', () => this.setBrand('gulabi'));
-
+                
                 // Theme Switcher
                 DOM.themeButtons.forEach(btn => {
                     btn.addEventListener('click', () => this.setTheme(btn.dataset.theme));
                 });
                 
+                // Modals
+                DOM.modalCloseBtns.forEach(btn => {
+                    btn.addEventListener('click', () => this.closeModal(btn.dataset.modalId));
+                });
+                
                 // Search
                 DOM.searchBar.addEventListener('input', (e) => this.renderMenu(e.target.value));
                 DOM.searchBar.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        this.addRecentSearch(e.target.value);
-                        e.target.blur();
-                    }
+                    if (e.key === 'Enter') this.saveSearchTerm(e.target.value);
                 });
                 
-                // Recent Searches
-                DOM.recentSearches.addEventListener('click', (e) => {
-                    if (e.target.classList.contains('recent-search-tag')) {
-                        DOM.searchBar.value = e.target.dataset.term;
-                        this.renderMenu(DOM.searchBar.value);
-                    }
-                });
-
                 // Cart
-                DOM.cartBackToMenu.addEventListener('click', () => this.navigateTo('order'));
-                DOM.proceedToPaymentBtn.addEventListener('click', () => this.showModal('payment-modal'));
-
-                // Modals
-                DOM.modalCloseButtons.forEach(btn => {
-                    btn.addEventListener('click', () => this.hideModal(btn.dataset.modalId));
-                });
+                DOM.proceedToPaymentBtn.addEventListener('click', () => this.openModal('payment-modal'));
                 DOM.confirmPaymentBtn.addEventListener('click', () => this.placeOrder());
-
+                DOM.cartBackToMenu.addEventListener('click', () => this.navigateTo('order'));
+                
                 // Profile
-                DOM.claimReviewBtn.addEventListener('click', () => this.claimReviewBonus());
                 DOM.redeemPointsBtn.addEventListener('click', () => this.redeemPoints());
-
-                // Menu & Cart (Event delegation)
-                DOM.menuList.addEventListener('click', (e) => {
-                    const addBtn = e.target.closest('.menu-item-add-btn');
-                    if (addBtn) {
-                        this.handleAddItemClick(addBtn.dataset.productId);
-                    }
-                });
+                DOM.claimReviewBtn.addEventListener('click', () => this.claimReviewBonus());
                 
-                DOM.cartItemsContainer.addEventListener('click', (e) => {
-                    const btn = e.target.closest('button');
-                    if (!btn) return;
-                    
-                    const cartId = btn.dataset.cartId;
-                    if (btn.classList.contains('cart-quantity-decrease')) {
-                        this.updateCartQuantity(cartId, -1);
-                    } else if (btn.classList.contains('cart-quantity-increase')) {
-                        this.updateCartQuantity(cartId, 1);
-                    } else if (btn.classList.contains('cart-remove-item')) {
-                        this.updateCartQuantity(cartId, -Infinity); // Removes item
-                    }
-                });
-                
-                // History
-                DOM.orderHistoryList.addEventListener('click', (e) => {
-                    const reorderBtn = e.target.closest('.reorder-btn');
-                    if (reorderBtn) {
-                        this.reorderFromHistory(reorderBtn.dataset.orderId);
-                    }
+                // Signature Pad
+                DOM.clearSignatureBtn.addEventListener('click', () => {
+                    if (AppState.signaturePad) AppState.signaturePad.clearCanvas();
                 });
             },
 
-            /**
-             * Loads persisted state (cart, theme, brand) from Local Storage.
-             */
-            loadStateFromLocalStorage() {
-                const cart = localStorage.getItem('appCart');
-                if (cart) {
-                    AppState.cart = JSON.parse(cart);
+            // --- Authentication & User ---
+            async authenticateUser() {
+                try {
+                    const { data, error } = await supabaseClient.auth.signInAnonymously();
+                    if (error) throw error;
+                    if (data.user) {
+                        AppState.currentUser = data.user;
+                        DOM.userIdDisplay.textContent = AppState.currentUser.id;
+                        // Now that we have a user, create/fetch their profile
+                        await this.fetchUserProfile();
+                    }
+                } catch (error) {
+                    console.error("Error signing in:", error);
+                    App.showToast("Connection failed. Please refresh.", true);
                 }
-                
-                const theme = localStorage.getItem('appTheme');
-                if (theme) {
-                    AppState.currentTheme = theme;
-                }
-                
-                const brand = localStorage.getItem('appBrand');
-                if (brand) {
-                    AppState.currentBrand = brand;
-                }
-                
-                const searches = localStorage.getItem('appRecentSearches');
-                if (searches) {
-                    AppState.recentSearches = JSON.parse(searches);
-                }
-            },
-
-            /**
-             * Saves a specific part of the state to Local Storage.
-             * @param {string} key - The key to save (e.g., 'appCart').
-             * @param {any} value - The value to save.
-             */
-            saveStateToLocalStorage(key, value) {
-                localStorage.setItem(key, JSON.stringify(value));
             },
             
-            /**
-             * Renders all components based on the current AppState.
-             */
-            renderAll() {
-                this.renderTheme();
-                this.renderBrand();
-                this.renderPage();
-                this.renderMenu();
-                this.renderCart();
-                this.renderRecentSearches();
-                this.renderOrderHistory();
-                this.renderProfile();
-            },
-
-            // --- AUTH & USER ---
-
-            /**
-             * Signs the user in anonymously.
-             */
-            async authenticateUser() {
-                const { data, error } = await supabaseClient.auth.signInAnonymously();
-                if (error) {
-                    console.error("Error signing in:", error);
-                    throw error;
-                }
-                AppState.currentUser = data.user;
-                console.log("Anonymous user authenticated:", AppState.currentUser.id);
-                DOM.userIdDisplay.textContent = AppState.currentUser.id;
-            },
-
-            /**
-             * Fetches the user's profile from the 'customers' table.
-             * Creates one if it doesn't exist.
-             */
             async fetchUserProfile() {
-                if (!AppState.currentUser) throw new Error("User not authenticated.");
-
-                // FIX: Query using 'user_id' not 'id'
-                const { data, error } = await supabaseClient
-                    .from('customers')
-                    .select('*')
-                    .eq('user_id', AppState.currentUser.id) // Use user_id
-                    .single();
-                
-                if (error && error.code === 'PGRST116') {
-                    // No profile found, create one
-                    console.warn("No profile found, creating one...");
-                    const { data: newProfile, error: createError } = await supabaseClient
+                if (!AppState.currentUser) return;
+                try {
+                    // Try to fetch existing profile
+                    // FIX: Removed stray underscore
+                    const { data, error } = await supabaseClient
                         .from('customers')
-                        .insert({ user_id: AppState.currentUser.id, loyalty_points: 0 }) // Use user_id
-                        .select()
+                        .select('*')
+                        .eq('user_id', AppState.currentUser.id) // Corrected from 'id' to 'user_id'
                         .single();
-                    
-                    if (createError) {
-                        console.error("Error creating profile:", createError);
-                        throw createError;
+
+                    if (data) {
+                        AppState.userProfile = data;
+                    } else {
+                        // No profile exists, create one
+                        const { data: newData, error: insertError } = await supabaseClient
+                            .from('customers')
+                            .insert({ user_id: AppState.currentUser.id, loyalty_points: 0 })
+                            .select()
+                            .single();
+                        
+                        if (insertError) throw insertError;
+                        AppState.userProfile = newData;
                     }
-                    AppState.userProfile = newProfile;
-                } else if (error) {
-                    console.error("Error fetching profile:", error);
-                    throw error;
-                } else {
-                    AppState.userProfile = data;
-                }
-                
-                console.log("Profile loaded:", AppState.userProfile);
-                this.renderProfile();
-            },
-
-            /**
-             * Updates the user's profile in the database.
-             * @param {object} updates - An object of fields to update (e.g., { loyalty_points: 100 }).
-             */
-            async updateUserProfile(updates) {
-                if (!AppState.userProfile) return;
-
-                // FIX: Update using 'user_id' not 'id'
-                const { data, error } = await supabaseClient
-                    .from('customers')
-                    .update(updates)
-                    .eq('user_id', AppState.userProfile.user_id) // Use user_id
-                    .select()
-                    .single();
-                
-                if (error) {
-                    console.error("Error updating profile:", error);
-                    this.showToast("Error updating profile", "error");
-                } else {
-                    AppState.userProfile = data; // Update local state
                     this.renderProfile();
-                    console.log("Profile updated:", data);
+                } catch (error) {
+                    // Don't throw a blocking error if profile just doesn't exist yet
+                    if (error.code !== 'PGRST116') { // PGRST116: "single()_did_not_return_a_row"
+                         console.error("Error fetching/creating profile:", error.message);
+                    } else {
+                        // This is the case where we need to create it
+                         const { data: newData, error: insertError } = await supabaseClient
+                            .from('customers')
+                            .insert({ user_id: AppState.currentUser.id, loyalty_points: 0 })
+                            .select()
+                            .single();
+                        
+                        if (insertError) {
+                            console.error("Error creating profile:", insertError);
+                            throw insertError;
+                        }
+                        AppState.userProfile = newData;
+                        this.renderProfile();
+                    }
                 }
             },
 
-            // --- REALTIME SUBSCRIPTIONS ---
-
-            /**
-             * Sets up Supabase realtime subscriptions.
-             */
+            // --- Realtime Subscriptions ---
             setupRealtimeSubscriptions() {
-                // Clean up old channels if any
-                this.unsubscribeAll();
+                // Clear old channels
+                AppState.realtimeChannels.forEach(channel => channel.unsubscribe());
+                AppState.realtimeChannels = [];
                 
-                // Watch for product changes
-                const productChannel = supabaseClient
-                    .channel('public:products')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'products' },
-                        (payload) => {
-                            console.log('Product change detected!', payload);
-                            this.fetchProducts(); // Refetch all products
-                        }
-                    )
-                    .subscribe();
-                AppState.realtimeChannels.push(productChannel);
-                
-                // Watch for changes to THIS user's orders
-                if (AppState.currentUser) {
+                // Subscribe to Products
+                try {
+                    const productChannel = supabaseClient
+                        .channel('public:products')
+                        .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, (payload) => {
+                            console.log('Product change received!', payload);
+                            this.fetchProducts(); // Refetch all products on change
+                        })
+                        .subscribe();
+                    AppState.realtimeChannels.push(productChannel);
+                } catch (error) { console.error('Error subscribing to products:', error); }
+
+                // Subscribe to User's Orders
+                try {
                     const orderChannel = supabaseClient
                         .channel(`public:orders:user_id=eq.${AppState.currentUser.id}`)
-                        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: `user_id=eq.${AppState.currentUser.id}` },
-                            (payload) => {
-                                console.log('Order change detected!', payload);
-                                // If a new order is created, clear cart and show success
-                                if (payload.eventType === 'INSERT') {
-                                    this.showToast("Order placed successfully!", "success");
-                                    this.clearCart();
-                                    this.navigateTo('history');
-                                }
-                                this.fetchOrderHistory(); // Refetch history
-                            }
-                        )
+                        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: `user_id=eq.${AppState.currentUser.id}` }, (payload) => {
+                            console.log('Order change received!', payload);
+                            this.fetchOrderHistory(); // Refetch history
+                        })
                         .subscribe();
                     AppState.realtimeChannels.push(orderChannel);
-
-                    // Watch for changes to THIS user's profile
-                    // FIX: Filter using 'user_id'
+                } catch (error) { console.error('Error subscribing to orders:', error); }
+                
+                // Subscribe to User's Profile
+                try {
                     const profileChannel = supabaseClient
                         .channel(`public:customers:user_id=eq.${AppState.currentUser.id}`)
-                        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'customers', filter: `user_id=eq.${AppState.currentUser.id}` },
-                            (payload) => {
-                                console.log('Profile change detected!', payload);
-                                const oldPoints = AppState.userProfile.loyalty_points;
-                                const newPoints = payload.new.loyalty_points;
-                                if (newPoints > oldPoints) {
-                                    this.showToast(`+${newPoints - oldPoints} points earned!`, "success");
-                                }
-                                AppState.userProfile = payload.new;
-                                this.renderProfile();
-                            }
-                        )
+                        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'customers', filter: `user_id=eq.${AppState.currentUser.id}` }, (payload) => {
+                            console.log('Profile change received!', payload);
+                            AppState.userProfile = payload.new;
+                            this.renderProfile();
+                        })
                         .subscribe();
                     AppState.realtimeChannels.push(profileChannel);
-                }
-                console.log("Realtime subscriptions setup.");
+                } catch (error) { console.error('Error subscribing to profile:', error); }
+            },
+
+            // --- Theming & Branding ---
+            loadSettings() {
+                const theme = localStorage.getItem('restaurantTheme') || 'theme-light';
+                const brand = localStorage.getItem('restaurantBrand') || 'bulb';
+                this.setTheme(theme);
+                this.setBrand(brand);
             },
             
-            /**
-             * Unsubscribes from all active Supabase channels.
-             */
-            unsubscribeAll() {
-                for (const channel of AppState.realtimeChannels) {
-                    supabaseClient.removeChannel(channel);
+            setBrand(brand) {
+                AppState.currentBrand = brand;
+                localStorage.setItem('restaurantBrand', brand);
+                
+                DOM.body.classList.remove('brand-bulb', 'brand-gulabi');
+                DOM.body.classList.add(`brand-${brand}`);
+                
+                // Update UI elements
+                DOM.brandBulbBtn.classList.toggle('border-yellow-400', brand === 'bulb');
+                DOM.brandBulbBtn.classList.toggle('border-2', brand === 'bulb');
+                DOM.brandGulabiBtn.classList.toggle('border-pink-500', brand === 'gulabi');
+                DOM.brandGulabiBtn.classList.toggle('border-2', brand === 'gulabi');
+
+                if (brand === 'bulb') {
+                    DOM.homeHeader.textContent = 'Welcome';
+                    DOM.orderHeader.textContent = 'Bulb Menu';
+                    DOM.homeBrandLogo.textContent = 'BULB';
+                } else {
+                    DOM.homeHeader.textContent = 'नमस्ते';
+                    DOM.orderHeader.textContent = 'Gulabi Menu';
+                    DOM.homeBrandLogo.textContent = 'GULABI';
                 }
-                AppState.realtimeChannels = [];
-                console.log("Unsubscribed from all channels.");
+                
+                // Re-filter and render menu for the new brand
+                this.renderAll();
+            },
+            
+            setTheme(theme) {
+                AppState.currentTheme = theme;
+                localStorage.setItem('restaurantTheme', theme);
+                
+                DOM.body.classList.remove('theme-light', 'theme-dark');
+                DOM.body.classList.add(theme);
+                
+                // Update signature pad color
+                if (AppState.signaturePad) {
+                    const color = theme === 'theme-dark' ? '#FFFFFF' : '#111111';
+                    AppState.signaturePad.changeColor(color);
+                }
+                
+                // Update theme button active state
+                DOM.themeButtons.forEach(btn => {
+                   btn.classList.toggle('btn-primary', btn.dataset.theme === theme);
+                   btn.classList.toggle('btn-secondary', btn.dataset.theme !== theme);
+                });
             },
 
-            // --- PAGE & THEME ---
-
-            /**
-             * Navigates to a specific page.
-             * @param {string} pageId - The ID of the page to show.
-             */
+            // --- Navigation ---
             navigateTo(pageId) {
                 AppState.currentPage = pageId;
-                this.renderPage();
-            },
-            
-            /**
-             * Renders the current page and tab bar state.
-             */
-            renderPage() {
-                DOM.pages.forEach(page => {
-                    page.classList.toggle('active', page.id === `page-${AppState.currentPage}`);
+                
+                // Hide all pages
+                DOM.pages.forEach(page => page.classList.remove('active'));
+                
+                // Show active page
+                const activePage = document.getElementById(`page-${pageId}`);
+                if (activePage) activePage.classList.add('active');
+
+                // Update active tab
+                DOM.tabItems.forEach(tab => {
+                    tab.classList.toggle('active', tab.dataset.page === pageId);
                 });
                 
-                DOM.tabItems.forEach(tab => {
-                    tab.classList.toggle('active', tab.dataset.page === AppState.currentPage);
-                });
+                // Special actions on page navigation
+                if (pageId === 'cart') {
+                    this.renderCart(); // Re-render cart on navigation
+                    DOM.cartSummaryContainer.classList.add('visible');
+                    // Init signature pad only when navigating to cart page
+                    if (!AppState.signaturePad) {
+                        AppState.signaturePad = new SignaturePad('signature-pad');
+                    }
+                    AppState.signaturePad.resizeCanvas(); // Ensure it's sized correctly
+                } else {
+                    DOM.cartSummaryContainer.classList.remove('visible');
+                }
                 
                 // Scroll to top of new page
                 DOM.mainContent.scrollTop = 0;
             },
 
-            /**
-             * Sets the active brand ('bulb' or 'gulabi').
-             * @param {string} brandName - The name of the brand.
-             */
-            setBrand(brandName) {
-                AppState.currentBrand = brandName;
-                this.saveStateToLocalStorage('appBrand', brandName);
-                this.renderBrand();
-                this.renderMenu(); // Re-render menu for new brand
-            },
-
-            /**
-             * Applies brand styles to the UI.
-             */
-            renderBrand() {
-                DOM.body.classList.remove('brand-bulb', 'brand-gulabi');
-                DOM.body.classList.add(`brand-${AppState.currentBrand}`);
-                
-                // Update brand-specific UI elements
-                if (AppState.currentBrand === 'bulb') {
-                    DOM.homeHeader.textContent = "Welcome to Bulb";
-                    DOM.orderHeader.textContent = "Bulb Menu";
-                    DOM.homeBrandLogo.textContent = "BULB";
-                    DOM.brandBulbBtn.classList.add('border-2', 'border-yellow-400');
-                    DOM.brandGulabiBtn.classList.remove('border-2', 'border-pink-400');
-                } else {
-                    DOM.homeHeader.textContent = "Welcome to Gulabi";
-                    DOM.orderHeader.textContent = "Gulabi Menu";
-                    DOM.homeBrandLogo.textContent = "GULABI";
-                    DOM.brandGulabiBtn.classList.add('border-2', 'border-pink-400');
-                    DOM.brandBulbBtn.classList.remove('border-2', 'border-yellow-400');
-                }
-            },
-            
-            /**
-             * Sets the active theme ('theme-light' or 'theme-dark').
-             * @param {string} themeName - The name of the theme class.
-             */
-            setTheme(themeName) {
-                AppState.currentTheme = themeName;
-                this.saveStateToLocalStorage('appTheme', themeName);
-                this.renderTheme();
-            },
-            
-            /**
-             * Applies theme styles to the UI.
-             */
-            renderTheme() {
-                DOM.body.classList.remove('theme-light', 'theme-dark');
-                DOM.body.classList.add(AppState.currentTheme);
-                
-                // Update button states
-                DOM.themeButtons.forEach(btn => {
-                    btn.classList.toggle('btn-primary', btn.dataset.theme === AppState.currentTheme);
-                    btn.classList.toggle('btn-secondary', btn.dataset.theme !== AppState.currentTheme);
-                });
-            },
-            
-            /**
-             * Renders the user's loyalty points and button states.
-             */
-            renderProfile() {
-                if (AppState.userProfile) {
-                    const points = AppState.userProfile.loyalty_points;
-                    DOM.loyaltyPoints.textContent = points;
-                    if (points >= 500) {
-                        DOM.redeemPointsBtn.classList.add('btn-primary');
-                        DOM.redeemPointsBtn.classList.remove('btn-secondary');
-                        DOM.redeemPointsBtn.disabled = false;
-                    } else {
-                        DOM.redeemPointsBtn.classList.add('btn-secondary');
-                        DOM.redeemPointsBtn.classList.remove('btn-primary');
-                        DOM.redeemPointsBtn.disabled = true;
-                    }
-                    
-                    const reviewClaimed = AppState.userProfile.review_bonus_claimed;
-                    DOM.claimReviewBtn.disabled = reviewClaimed;
-                    DOM.claimReviewBtn.textContent = reviewClaimed ? "Bonus Claimed" : "Step 2: Claim Bonus";
-                    if(reviewClaimed) {
-                        DOM.claimReviewBtn.classList.add('btn-secondary');
-                        DOM.claimReviewBtn.classList.remove('btn-primary');
-                    }
-                    
-                } else {
-                    // Default state if profile is not loaded
-                    DOM.loyaltyPoints.textContent = '0';
-                    DOM.redeemPointsBtn.classList.add('btn-secondary');
-                    DOM.redeemPointsBtn.classList.remove('btn-primary');
-                    DOM.redeemPointsBtn.disabled = true;
-                    DOM.claimReviewBtn.disabled = true;
-                }
-            },
-            
-            // --- MENU & ORDERING ---
-
-            /**
-             * Fetches all products from the database.
-             */
+            // --- Menu & Products ---
             async fetchProducts() {
-                const { data, error } = await supabaseClient
-                    .from('products')
-                    .select('*')
-                    .order('category', { ascending: true })
-                    .order('name', { ascending: true });
-                
-                if (error) {
-                    console.error("Error fetching products:", error);
-                    DOM.menuLoadingText.textContent = "Could not load menu. Please try again.";
-                } else {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('products')
+                        .select('*');
+                    if (error) throw error;
                     AppState.products = data;
-                    console.log("Products loaded:", data.length);
                     this.renderMenu();
+                } catch (error) {
+                    console.error("Error fetching products:", error.message);
+                    DOM.menuLoadingText.textContent = 'Error loading menu.';
                 }
             },
             
-            /**
-             * Renders the menu, filtered by brand and search term.
-             * @param {string} [searchTerm=""] - The search term to filter by.
-             */
-            renderMenu(searchTerm = "") {
-                if (!DOM.menuList) return; // Guard clause if element doesn't exist yet
+            saveSearchTerm(term) {
+                if (!term || term.trim() === '') return;
+                term = term.trim().toLowerCase();
                 
-                const lowerSearchTerm = searchTerm.toLowerCase();
-                
-                // Filter products by the CURRENT brand and search term
-                const filteredProducts = AppState.products.filter(product => {
-                    const matchesBrand = product.brand === AppState.currentBrand;
-                    const matchesSearch = product.name.toLowerCase().includes(lowerSearchTerm) || 
-                                          product.category.toLowerCase().includes(lowerSearchTerm);
-                    return matchesBrand && matchesSearch;
-                });
-                
-                if (filteredProducts.length === 0 && AppState.products.length > 0) {
-                    DOM.menuList.innerHTML = `<p style="color: var(--text-secondary);">No items found for "${searchTerm}"</p>`;
-                    return;
-                }
-                
-                if (AppState.products.length === 0) {
-                     DOM.menuList.innerHTML = `<p id="menu-loading-text" style="color: var(--text-secondary);">Loading menu...</p>`;
-                     return;
-                }
-
-                // Group products by category
-                const productsByCategory = filteredProducts.reduce((acc, product) => {
-                    if (!acc[product.category]) {
-                        acc[product.category] = [];
-                    }
-                    acc[product.category].push(product);
-                    return acc;
-                }, {});
-
-                // Generate HTML
-                let html = '';
-                for (const category in productsByCategory) {
-                    html += `<h2 class="font-brand text-2xl font-semibold mt-6 mb-4" style="font-style: italic;">${category}</h2>`;
-                    html += productsByCategory[category].map(product => {
-                        const hasVariants = product.variants && product.variants.length > 0;
-                        
-                        // FIX: Add check for product.base_price and variant.price
-                        let price = 0;
-                        if (hasVariants) {
-                            price = product.variants[0]?.price || 0; // Default to 0 if variant or price is missing
-                        } else {
-                            price = product.base_price || 0; // Default to 0 if base_price is missing
-                        }
-                        
-                        // Gulabi Thali is "View Only"
-                        const isOrderable = AppState.currentBrand === 'bulb' && product.is_orderable;
-                        
-                        return `
-                            <div class="menu-item-card">
-                                <div>
-                                    <h3>${product.name}</h3>
-                                    <p>${product.description || ''}</p>
-                                    <span class="menu-item-price">
-                                        ${hasVariants ? 'From ' : ''}₹${price.toFixed(2)}
-                                    </span>
-                                </div>
-                                ${isOrderable ? `
-                                    <button class="menu-item-add-btn" data-product-id="${product.id}">+</button>
-                                ` : `
-                                    <span class="menu-item-view-btn">View Only</span>
-                                `}
-                            </div>
-                        `;
-                    }).join('');
-                }
-                
-                DOM.menuList.innerHTML = html;
-            },
-            
-            /**
-             * Renders the recent search tags.
-             */
-            renderRecentSearches() {
-                DOM.recentSearches.innerHTML = AppState.recentSearches.map(term => 
-                    `<button class="recent-search-tag text-xs px-3 py-1 rounded-full" style="background-color: var(--bg-secondary); color: var(--text-secondary);" data-term="${term}">${term}</button>`
-                ).join('');
-            },
-            
-            /**
-             * Adds a search term to the recent searches list.
-             * @param {string} term - The search term.
-             */
-            addRecentSearch(term) {
-                if (!term || term.length < 2) return;
-                
-                // Remove existing instance, if any
-                const existingIndex = AppState.recentSearches.indexOf(term);
-                if (existingIndex > -1) {
-                    AppState.recentSearches.splice(existingIndex, 1);
-                }
-                
-                // Add to the front
+                // Remove if already exists
+                AppState.recentSearches = AppState.recentSearches.filter(s => s !== term);
+                // Add to front
                 AppState.recentSearches.unshift(term);
+                // Keep only last 5
+                AppState.recentSearches = AppState.recentSearches.slice(0, 5);
                 
-                // Limit to 5
-                if (AppState.recentSearches.length > 5) {
-                    AppState.recentSearches.pop();
-                }
-                
-                this.saveStateToLocalStorage('appRecentSearches', AppState.recentSearches);
+                localStorage.setItem('recentSearches', JSON.stringify(AppState.recentSearches));
                 this.renderRecentSearches();
             },
             
-            // --- CART LOGIC ---
-
-            /**
-             * Handles the click event for adding an item.
-             * Opens variant modal if needed, or adds to cart directly.
-             * @param {string} productId - The ID of the product to add.
-             */
-            handleAddItemClick(productId) {
-                const product = AppState.products.find(p => p.id == productId);
+            // --- Cart Logic ---
+            addToCart(productId, variantName = null, price = null) {
+                const product = AppState.products.find(p => p.id === productId);
                 if (!product) return;
+
+                // Use provided price (for variants) or product price
+                const itemPrice = price !== null ? price : (product.price || 0);
                 
-                const hasVariants = product.variants && product.variants.length > 0;
-                
-                if (hasVariants) {
-                    this.showVariantModal(product);
-                } else {
-                    this.addItemToCart(product, null, product.base_price || 0);
-                    this.showToast(`${product.name} added to cart!`, "success");
-                }
-            },
-            
-            /**
-             * Adds an item (with or without variant) to the cart.
-             * @param {object} product - The product object.
-             * @param {string|null} variantName - The name of the selected variant.
-             * @param {number} price - The price of the item/variant.
-             */
-            addItemToCart(product, variantName, price) {
-                // Create a unique cart ID
-                const cartId = variantName ? `${product.id}_${variantName}` : `${product.id}`;
+                // Create a unique cart ID for items with variants
+                const cartId = variantName ? `${productId}_${variantName}` : productId;
                 
                 const existingItem = AppState.cart.find(item => item.cartId === cartId);
                 
                 if (existingItem) {
-                    existingItem.quantity += 1;
+                    existingItem.quantity++;
                 } else {
                     AppState.cart.push({
                         cartId: cartId,
                         productId: product.id,
                         name: product.name,
                         variantName: variantName,
-                        price: price,
-                        quantity: 1
+                        price: parseFloat(itemPrice),
+                        quantity: 1,
                     });
                 }
                 
-                this.saveStateToLocalStorage('appCart', AppState.cart);
-                this.renderCart();
+                this.showToast(`${product.name}${variantName ? ` (${variantName})` : ''} added to cart`);
+                this.saveCartAndRender();
             },
             
-            /**
-             * Updates the quantity of an item in the cart.
-             * @param {string} cartId - The unique ID of the cart item.
-             * @param {number} amount - The amount to change (e.g., 1, -1).
-             */
-            updateCartQuantity(cartId, amount) {
-                const itemIndex = AppState.cart.findIndex(item => item.cartId === cartId);
-                if (itemIndex === -1) return;
+            updateCartQuantity(cartId, change) {
+                const item = AppState.cart.find(item => item.cartId === cartId);
+                if (!item) return;
+
+                item.quantity += change;
                 
-                if (amount === -Infinity) { // Remove item
-                    AppState.cart.splice(itemIndex, 1);
-                } else {
-                    const item = AppState.cart[itemIndex];
-                    item.quantity += amount;
-                    
-                    if (item.quantity <= 0) {
-                        AppState.cart.splice(itemIndex, 1); // Remove if quantity is 0 or less
-                    }
+                if (item.quantity <= 0) {
+                    // Remove item from cart
+                    AppState.cart = AppState.cart.filter(item => item.cartId !== cartId);
                 }
                 
-                this.saveStateToLocalStorage('appCart', AppState.cart);
+                this.saveCartAndRender();
+            },
+            
+            saveCartAndRender() {
+                localStorage.setItem('restaurantCart', JSON.stringify(AppState.cart));
                 this.renderCart();
+                this.renderMenu(); // Re-render menu to update quantity controls
             },
             
-            /**
-             * Renders the cart page and updates the cart badge.
-             */
-            renderCart() {
-                // Update Badge
-                const totalItems = AppState.cart.reduce((sum, item) => sum + item.quantity, 0);
-                DOM.cartBadge.textContent = totalItems;
-                DOM.cartBadge.classList.toggle('visible', totalItems > 0);
-                
-                // Render Cart Page
-                if (totalItems === 0) {
-                    DOM.cartItemsContainer.innerHTML = '';
-                    DOM.cartEmptyMsg.style.display = 'block';
-                    DOM.cartSummaryContainer.classList.add('hidden');
-                } else {
-                    DOM.cartEmptyMsg.style.display = 'none';
-                    DOM.cartSummaryContainer.classList.remove('hidden');
-                    
-                    DOM.cartItemsContainer.innerHTML = AppState.cart.map(item => `
-                        <div class="flex items-center justify-between py-4 border-b" style="border-color: var(--border);">
-                            <div>
-                                <h3 class="text-lg font-semibold">${item.name}</h3>
-                                ${item.variantName ? `<p class="text-sm" style="color: var(--text-secondary);">${item.variantName}</p>` : ''}
-                                <span class="font-bold" style="color: var(--brand-accent);">₹${item.price.toFixed(2)}</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <button class="cart-quantity-decrease w-8 h-8 rounded-full" style="background-color: var(--bg-secondary); color: var(--text-secondary);" data-cart-id="${item.cartId}">-</button>
-                                <span class="w-8 text-center font-semibold">${item.quantity}</span>
-                                <button class="cart-quantity-increase w-8 h-8 rounded-full" style="background-color: var(--bg-secondary); color: var(--text-primary);" data-cart-id="${item.cartId}">+</button>
-                            </div>
-                        </div>
-                    `).join('');
-                    
-                    // Calculate and render totals
-                    const subtotal = AppState.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-                    const gst = subtotal * 0.05;
-                    const total = subtotal + gst;
-                    
-                    DOM.cartSubtotal.textContent = `₹${subtotal.toFixed(2)}`;
-                    DOM.cartGst.textContent = `₹${gst.toFixed(2)}`;
-                    DOM.cartTotal.textContent = `₹${total.toFixed(2)}`;
-                }
-            },
-            
-            /**
-             * Clears all items from the cart.
-             */
             clearCart() {
                 AppState.cart = [];
-                this.saveStateToLocalStorage('appCart', AppState.cart);
-                this.renderCart();
-            },
-
-            // --- CHECKOUT & HISTORY ---
-
-            /**
-             * Fetches the user's past orders.
-             */
-            async fetchOrderHistory() {
-                if (!AppState.currentUser) return; // Don't fetch if user auth failed
-                
-                const { data, error } = await supabaseClient
-                    .from('orders')
-                    .select('*, order_items(*)')
-                    .eq('user_id', AppState.currentUser.id)
-                    .order('created_at', { ascending: false });
-                
-                if (error) {
-                    console.error("Error fetching orders:", error);
-                    DOM.historyLoadingText.textContent = "Could not load history.";
-                } else {
-                    AppState.orderHistory = data;
-                    this.renderOrderHistory();
-                }
+                this.saveCartAndRender();
             },
             
-            /**
-             * Renders the order history list.
-             */
-            renderOrderHistory() {
-                if (AppState.orderHistory.length === 0) {
-                    DOM.historyLoadingText.style.display = 'none';
-                    DOM.historyEmptyMsg.classList.remove('hidden');
-                    DOM.orderHistoryList.innerHTML = '';
-                } else {
-                    DOM.historyLoadingText.style.display = 'none';
-                    DOM.historyEmptyMsg.classList.add('hidden');
-                    
-                    DOM.orderHistoryList.innerHTML = AppState.orderHistory.map(order => {
-                        const orderDate = new Date(order.created_at).toLocaleString('en-IN', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                            hour: 'numeric',
-                            minute: '2-digit'
-                        });
-                        const totalItems = order.order_items.reduce((sum, item) => sum + item.quantity, 0);
-                        
-                        return `
-                            <div class="mb-4 p-4 rounded-lg" style="background-color: var(--bg-secondary);">
-                                <div class="flex justify-between items-center mb-2">
-                                    <span class="font-semibold">Order #${order.id.toString().slice(-6)}</span>
-                                    <span class="text-sm" style="color: var(--text-secondary);">${orderDate}</span>
-                                </div>
-                                <p class="mb-1" style="color: var(--text-secondary);">${totalItems} items</p>
-                                <p class="text-lg font-bold mb-4" style="color: var(--brand-accent);">Total: ₹${order.total_amount.toFixed(2)}</p>
-                                <div class="text-xs mb-3 p-2 rounded" style="background-color: var(--bg-primary);">
-                                    ${order.order_items.map(item => `
-                                        <p>${item.quantity}x ${item.name} ${item.variant_name ? `(${item.variant_name})` : ''}</p>
-                                    `).join('')}
-                                </div>
-                                <button class="reorder-btn btn btn-secondary w-full" data-order-id="${order.id}">Re-order</button>
-                            </div>
-                        `;
-                    }).join('');
-                }
+            getCartItemQuantity(productId, variantName = null) {
+                const cartId = variantName ? `${productId}_${variantName}` : productId;
+                const item = AppState.cart.find(i => i.cartId === cartId);
+                return item ? item.quantity : 0;
             },
 
-            /**
-             * Places the order in the database.
-             */
+            // --- Ordering ---
             async placeOrder() {
                 if (AppState.cart.length === 0) {
-                    this.showToast("Your cart is empty.", "error");
+                    this.showToast("Your cart is empty!", true);
                     return;
                 }
                 
-                this.showToast("Placing order...", "info");
-                this.hideModal('payment-modal');
-                
-                const subtotal = AppState.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-                const gst = subtotal * 0.05;
-                const total = subtotal + gst;
-                
-                // 1. Create the 'orders' record
-                const { data: orderData, error: orderError } = await supabaseClient
-                    .from('orders')
-                    .insert({
-                        user_id: AppState.currentUser.id,
-                        total_amount: total,
-                        status: 'pending',
-                        payment_method: 'pay_at_counter'
-                    })
-                    .select()
-                    .single();
-                
-                if (orderError) {
-                    console.error("Error creating order:", orderError);
-                    this.showToast("Order failed. Please try again.", "error");
+                if (AppState.signaturePad.isEmpty()) {
+                    this.showToast("Please sign to confirm your order", true);
                     return;
                 }
                 
-                // 2. Create the 'order_items' records
-                const orderItems = AppState.cart.map(item => ({
-                    order_id: orderData.id,
-                    product_id: item.productId,
-                    name: item.name,
-                    variant_name: item.variantName,
-                    quantity: item.quantity,
-                    price: item.price
-                }));
+                DOM.confirmPaymentBtn.disabled = true;
+                DOM.confirmPaymentBtn.textContent = 'Placing Order...';
                 
-                const { error: itemsError } = await supabaseClient
-                    .from('order_items')
-                    .insert(orderItems);
-                
-                if (itemsError) {
-                    console.error("Error creating order items:", itemsError);
-                    // Try to delete the failed order record
-                    await supabaseClient.from('orders').delete().eq('id', orderData.id);
-                    this.showToast("Order failed. Please try again.", "error");
-                    return;
+                try {
+                    const { subtotal, gst, total } = this.calculateCartTotals();
+                    const pointsToRedeem = AppState.cart.find(i => i.productId === 'REDEEM_REWARD') ? 500 : 0;
+                    // Earn 1 point for every 100 spent (example)
+                    const pointsToEarn = total > 100 ? Math.floor(total / 100) : 0;
+                    
+                    // 1. Create the Order
+                    const { data: orderData, error: orderError } = await supabaseClient
+                        .from('orders')
+                        .insert({
+                            user_id: AppState.currentUser.id,
+                            total_amount: total,
+                            gst_amount: gst,
+                            subtotal_amount: subtotal,
+                            brand: AppState.currentBrand,
+                            points_earned: pointsToEarn,
+                            points_redeemed: pointsToRedeem,
+                            signature_base64: AppState.signaturePad.getSignatureData() // Save signature
+                        })
+                        .select()
+                        .single();
+                        
+                    if (orderError) throw orderError;
+
+                    // 2. Create Order Items
+                    const orderItems = AppState.cart.map(item => ({
+                        order_id: orderData.id,
+                        product_id: item.productId === 'REDEEM_REWARD' ? null : item.productId,
+                        product_name: item.name,
+                        quantity: item.quantity,
+                        unit_price: item.price,
+                        variant_name: item.variantName
+                    }));
+                    
+                    const { error: itemsError } = await supabaseClient
+                        .from('order_items')
+                        .insert(orderItems);
+                        
+                    if (itemsError) throw itemsError;
+
+                    // 3. Update User's Loyalty Points
+                    if (AppState.userProfile && (pointsToEarn > 0 || pointsToRedeem > 0)) {
+                        const newPoints = (AppState.userProfile.loyalty_points || 0) + pointsToEarn - pointsToRedeem;
+                        const { error: profileError } = await supabaseClient
+                            .from('customers')
+                            .update({ loyalty_points: newPoints })
+                            .eq('user_id', AppState.currentUser.id); // Corrected from 'id'
+                        
+                        if (profileError) console.error("Error updating points:", profileError);
+                    }
+
+                    // 4. Success
+                    this.showToast("Order placed successfully!");
+                    this.clearCart();
+                    AppState.signaturePad.clearCanvas();
+                    this.closeModal('payment-modal');
+                    this.navigateTo('home');
+                    this.fetchOrderHistory(); // Refresh history
+                    
+                } catch (error) {
+                    console.error("Error placing order:", error);
+                    this.showToast("Failed to place order. Please try again.", true);
+                } finally {
+                    DOM.confirmPaymentBtn.disabled = false;
+                    DOM.confirmPaymentBtn.textContent = 'Confirm Order (Pay at Counter)';
                 }
-                
-                // 3. Award loyalty points (e.g., 10 points for orders > 100)
-                if (total > 100 && AppState.userProfile) {
-                    const newPoints = (AppState.userProfile.loyalty_points || 0) + 10;
-                    await this.updateUserProfile({ loyalty_points: newPoints });
-                }
-                
-                // Success is handled by the realtime subscription,
-                // which will clear the cart and navigate to history.
             },
             
-            /**
-             * Re-adds all items from a past order to the current cart.
-             * @param {string} orderId - The ID of the order to re-order.
-             */
-            reorderFromHistory(orderId) {
-                const order = AppState.orderHistory.find(o => o.id == orderId);
-                if (!order) return;
+            async fetchOrderHistory() {
+                if (!AppState.currentUser) return;
+                
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('orders')
+                        .select('*, order_items(*)')
+                        .eq('user_id', AppState.currentUser.id)
+                        .order('created_at', { ascending: false });
+                        
+                    if (error) throw error;
+                    AppState.orderHistory = data;
+                    this.renderOrderHistory();
+                    
+                } catch (error) {
+                    console.error("Error fetching orders:", error.message);
+                    DOM.historyLoadingText.textContent = 'Error loading history.';
+                }
+            },
+            
+            reOrder(orderId) {
+                const order = AppState.orderHistory.find(o => o.id === orderId);
+                if (!order || !order.order_items) return;
+                
+                // Clear existing cart
+                this.clearCart();
                 
                 order.order_items.forEach(item => {
-                    const cartId = item.variant_name ? `${item.product_id}_${item.variant_name}` : `${item.product_id}`;
-                    const existingItem = AppState.cart.find(ci => ci.cartId === cartId);
+                    // Find matching product in our current product list
+                    const product = AppState.products.find(p => p.id === item.product_id);
                     
-                    if (existingItem) {
-                        existingItem.quantity += item.quantity;
-                    } else {
-                        AppState.cart.push({
-                            cartId: cartId,
-                            productId: item.product_id,
-                            name: item.name,
-                            variantName: item.variant_name,
-                            price: item.price,
-                            quantity: item.quantity
-                        });
-                    }
+                    // Add to cart with data from the *original order*
+                    AppState.cart.push({
+                        cartId: item.variant_name ? `${item.product_id}_${item.variant_name}` : item.product_id,
+                        productId: item.product_id,
+                        name: item.product_name,
+                        variantName: item.variant_name,
+                        price: parseFloat(item.unit_price),
+                        quantity: item.quantity,
+                    });
                 });
                 
-                this.saveStateToLocalStorage('appCart', AppState.cart);
-                this.renderCart();
-                this.showToast("Items added to your cart!", "success");
+                this.saveCartAndRender();
+                this.showToast("Order added to cart!");
                 this.navigateTo('cart');
-            },
-
-            // --- LOYALTY & REWARDS ---
-
-            /**
-             * Claims the 100-point review bonus.
-             */
-            async claimReviewBonus() {
-                if (!AppState.userProfile) {
-                    this.showToast("Profile not loaded. Please wait.", "error");
-                    return;
-                }
-                
-                if (AppState.userProfile.review_bonus_claimed) {
-                    this.showToast("Bonus already claimed.", "info");
-                    return;
-                }
-                
-                const newPoints = (AppState.userProfile.loyalty_points || 0) + 100;
-                await this.updateUserProfile({
-                    loyalty_points: newPoints,
-                    review_bonus_claimed: true
-                });
-                
-                this.showToast("100 bonus points added!", "success");
-                this.renderProfile();
             },
             
-            /**
-             * Redeems 500 points for a free reward.
-             */
-            async redeemPoints() {
+            // --- Loyalty & Reviews ---
+            redeemPoints() {
                 if (!AppState.userProfile) {
-                    this.showToast("Profile not loaded. Please wait.", "error");
-                    return;
+                    this.showToast("Profile not loaded yet.", true); return;
                 }
-
+                
                 if (AppState.userProfile.loyalty_points < 500) {
-                    this.showToast("Not enough points.", "error");
+                    this.showToast("Not enough points to redeem.", true);
                     return;
                 }
                 
-                const newPoints = AppState.userProfile.loyalty_points - 500;
+                // Check if reward already in cart
+                if (AppState.cart.some(item => item.productId === 'REDEEM_REWARD')) {
+                    this.showToast("Reward already in cart.", true);
+                    return;
+                }
                 
-                // Add "Free Reward" to cart
-                // This is a "dummy" product
+                // Add a special item to cart
                 AppState.cart.push({
-                    cartId: `reward_${Date.now()}`,
-                    productId: 'REWARD-ITEM',
+                    cartId: 'REDEEM_REWARD',
+                    productId: 'REDEEM_REWARD',
                     name: 'Free Reward Item',
-                    variantName: null,
+                    variantName: 'Redeemed',
                     price: 0,
-                    quantity: 1
+                    quantity: 1,
                 });
                 
-                this.saveStateToLocalStorage('appCart', AppState.cart);
-                this.renderCart();
-                
-                // Update profile
-                await this.updateUserProfile({ loyalty_points: newPoints });
-                
-                this.showToast("Free Reward added to cart!", "success");
+                this.saveCartAndRender();
+                this.showToast("Reward added to cart!");
                 this.navigateTo('cart');
             },
-
-            // --- MODALS & TOASTS ---
-
-            /**
-             * Shows the variant selection modal for a product.
-             * @param {object} product - The product with variants.
-             */
-            showVariantModal(product) {
-                DOM.variantModalTitle.textContent = product.name;
-                DOM.variantModalDesc.textContent = product.description || 'Select an option';
+            
+            async claimReviewBonus() {
+                if (!AppState.userProfile) {
+                    this.showToast("Profile not loaded yet.", true); return;
+                }
                 
-                DOM.variantModalOptions.innerHTML = product.variants.map((variant, index) => {
-                    // FIX: Check for variant.price
-                    const price = variant.price || 0;
-                    return `
-                        <label class="flex items-center justify-between p-3 rounded-lg" style="background-color: var(--bg-secondary);">
-                            <div>
-                                <span class="font-semibold">${variant.name}</span>
-                                <span class="ml-2" style="color: var(--text-secondary);">+₹${price.toFixed(2)}</span>
-                            </div>
-                            <input type="radio" name="variant" value="${index}" ${index === 0 ? 'checked' : ''} class="form-radio" style="color: var(--brand-accent); border-color: var(--border);">
-                        </label>
-                    `
-                }).join('');
+                // Check if claimed recently
+                if (AppState.userProfile.last_review_claimed_at) {
+                    const lastClaimed = new Date(AppState.userProfile.last_review_claimed_at);
+                    const oneDay = 24 * 60 * 60 * 1000;
+                    if (Date.now() - lastClaimed.getTime() < oneDay) {
+                        this.showToast("Bonus claimed too recently. Try again tomorrow.", true);
+                        return;
+                    }
+                }
                 
-                // Unbind old listener, bind new one
-                DOM.variantModalAddBtn.onclick = () => {
-                    const selectedIndex = DOM.variantModalOptions.querySelector('input[name="variant"]:checked').value;
-                    const selectedVariant = product.variants[selectedIndex];
-                    const price = selectedVariant.price || 0; // FIX: Check for price
+                DOM.claimReviewBtn.disabled = true;
+                DOM.claimReviewBtn.textContent = 'Claiming...';
+                
+                try {
+                    const newPoints = (AppState.userProfile.loyalty_points || 0) + 100;
+                    const { data, error } = await supabaseClient
+                        .from('customers')
+                        .update({ 
+                            loyalty_points: newPoints,
+                            last_review_claimed_at: new Date().toISOString()
+                        })
+                        .eq('user_id', AppState.currentUser.id) // Corrected from 'id'
+                        .select()
+                        .single();
+                        
+                    if (error) throw error;
                     
-                    this.addItemToCart(product, selectedVariant.name, price);
-                    this.showToast(`${product.name} (${selectedVariant.name}) added!`, "success");
-                    this.hideModal('variant-modal');
-                };
-                
-                this.showModal('variant-modal');
+                    AppState.userProfile = data;
+                    this.renderProfile();
+                    this.showToast("100 points added! Thank you!");
+                    
+                } catch (error) {
+                    console.error("Error claiming bonus:", error);
+                    this.showToast("Could not claim bonus. Try again later.", true);
+                } finally {
+                    DOM.claimReviewBtn.disabled = false;
+                    DOM.claimReviewBtn.textContent = 'Step 2: Claim Bonus';
+                }
             },
 
-            /**
-             * Shows a modal by its ID.
-             * @param {string} modalId - The ID of the modal to show.
-             */
-            showModal(modalId) {
+            // --- Modal Controls ---
+            openModal(modalId) {
                 document.getElementById(modalId).classList.add('visible');
             },
-
-            /**
-             * Hides a modal by its ID.
-             * @param {string} modalId - The ID of the modal to hide.
-             */
-            hideModal(modalId) {
+            
+            closeModal(modalId) {
                 document.getElementById(modalId).classList.remove('visible');
             },
+            
+            showVariantModal(productId) {
+                const product = AppState.products.find(p => p.id === productId);
+                if (!product || !product.variants) return;
 
-            /**
-             * Shows a toast notification.
-             * @param {string} message - The text to display.
-             * @param {'success'|'error'|'info'} [type='info'] - The type of toast.
-             */
-            showToast(message, type = 'info') {
+                DOM.variantModalTitle.textContent = product.name;
+                DOM.variantModalDesc.textContent = product.description || '';
+                
+                const variants = product.variants; // This is a JSON object e.g., {"Small": 100, "Large": 150}
+                DOM.variantModalOptions.innerHTML = Object.keys(variants).map(variantName => {
+                    const price = variants[variantName];
+                    const cartQty = this.getCartItemQuantity(productId, variantName);
+                    const inCartClass = cartQty > 0 ? 'in-cart' : '';
+                    
+                    return `
+                        <div class="flex justify-between items-center p-3 rounded-lg" style="background-color: var(--bg-secondary); border: 1px solid var(--border);">
+                            <div>
+                                <h4 class="font-semibold" style="color: var(--text-primary);">${variantName}</h4>
+                                <p class="font-bold" style="color: var(--brand-accent);">₹${price.toFixed(2)}</p>
+                            </div>
+                            <button class="menu-item-select-btn ${inCartClass}" data-product-id="${product.id}" data-variant-name="${variantName}" data-price="${price}">
+                                ${cartQty > 0 ? `${cartQty} in Cart` : 'Select'}
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+                
+                // Attach new listeners
+                DOM.variantModalOptions.querySelectorAll('.menu-item-select-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const { productId, variantName, price } = e.currentTarget.dataset;
+                        this.addToCart(productId, variantName, parseFloat(price));
+                        // Re-render modal to show updated "in cart" status
+                        this.showVariantModal(productId);
+                        // Also update menu to show "In Cart"
+                        this.renderMenu();
+                    });
+                });
+
+                // Update "Add to Cart" button (now just a "Close" button)
+                DOM.variantModalAddBtn.textContent = 'Done';
+                DOM.variantModalAddBtn.onclick = () => this.closeModal('variant-modal');
+                
+                this.openModal('variant-modal');
+            },
+            
+            // --- Toast Notifications ---
+            showToast(message, isError = false) {
                 const toast = document.createElement('div');
                 toast.className = 'toast-notification';
                 toast.textContent = message;
                 
-                if (type === 'success') {
-                    toast.style.backgroundColor = '#22C55E'; // Green
-                } else if (type === 'error') {
-                    toast.style.backgroundColor = '#EF4444'; // Red
-                } else {
-                    toast.style.backgroundColor = '#3B82F6'; // Blue
+                if (isError) {
+                    toast.style.backgroundColor = '#EF4444'; // Red for error
                 }
-                
+
                 DOM.toastContainer.appendChild(toast);
                 
-                // Trigger transition
                 setTimeout(() => {
                     toast.classList.add('visible');
-                }, 10);
+                }, 10); // Start transition
                 
-                // Remove after 3 seconds
                 setTimeout(() => {
                     toast.classList.remove('visible');
-                    setTimeout(() => {
-                        toast.remove();
-                    }, 300); // Wait for fade out
-                }, 3000);
+                    setTimeout(() => toast.remove(), 300); // Remove from DOM after fade
+                }, 3000); // Show for 3 seconds
+            },
+
+            // --- Rendering ---
+            renderAll() {
+                this.renderProfile();
+                this.renderMenu();
+                this.renderCart();
+                this.renderRecentSearches();
+                this.renderOrderHistory();
+            },
+            
+            renderProfile() {
+                if (AppState.userProfile) {
+                    DOM.loyaltyPoints.textContent = AppState.userProfile.loyalty_points || 0;
+                } else {
+                    DOM.loyaltyPoints.textContent = '...';
+                }
+            },
+            
+            renderMenu(filter = '') {
+                const products = AppState.products;
+                const brand = AppState.currentBrand;
+                const query = filter.trim().toLowerCase();
+                
+                if (!products || products.length === 0) {
+                    DOM.menuLoadingText.classList.remove('hidden');
+                    return;
+                }
+                
+                DOM.menuLoadingText.classList.add('hidden');
+                
+                const filteredProducts = products.filter(p => 
+                    p.brand === brand && 
+                    (p.name.toLowerCase().includes(query) || (p.category && p.category.toLowerCase().includes(query)))
+                );
+                
+                if (filteredProducts.length === 0) {
+                    DOM.menuList.innerHTML = `<p style="color: var(--text-secondary);">No items found for "${query}".</p>`;
+                    return;
+                }
+
+                const productsByCategory = filteredProducts.reduce((acc, p) => {
+                    const category = p.category || 'Other';
+                    if (!acc[category]) acc[category] = [];
+                    acc[category].push(p);
+                    return acc;
+                }, {});
+
+                DOM.menuList.innerHTML = Object.keys(productsByCategory).sort().map(category => {
+                    const itemsHtml = productsByCategory[category].map(product => {
+                        // FIX: Removed stray underscore
+                        const { id, name, description, price, variants, is_orderable } = product;
+                        let actionButtonHtml = '';
+                        
+                        if (!is_orderable) {
+                            // VIEW-ONLY (e.g., Gulabi Thali)
+                            actionButtonHtml = `<button class="menu-item-view-btn">View</button>`;
+                        } else if (variants) {
+                            // ORDERABLE WITH VARIANTS (e.g., Gulabi Take-away)
+                            // Check if *any* variant of this item is in the cart
+                            const isInCart = AppState.cart.some(item => item.productId === id);
+                            const inCartClass = isInCart ? 'in-cart' : '';
+                            actionButtonHtml = `<button class="menu-item-select-btn ${inCartClass}" data-product-id="${id}">
+                                ${isInCart ? 'In Cart' : 'Select'}
+                            </button>`;
+                        } else {
+                            // ORDERABLE, NO VARIANTS (e.g., Bulb Cafe)
+                            const cartQty = this.getCartItemQuantity(id, null);
+                            if (cartQty > 0) {
+                                actionButtonHtml = `
+                                    <div class="menu-quantity-control">
+                                        <button data-cart-id="${id}" data-change="-1">-</button>
+                                        <span>${cartQty}</span>
+                                        <button data-cart-id="${id}" data-change="1">+</button>
+                                    </div>
+                                `;
+                            } else {
+                                actionButtonHtml = `<button class="menu-item-add-btn" data-product-id="${id}">ADD</button>`;
+                            }
+                        }
+
+                        return `
+                            <div class="menu-item-card">
+                                <div>
+                                    <h3>${name}</h3>
+                                    ${description ? `<p>${description}</p>` : ''}
+                                    ${price ? `<span class="menu-item-price">₹${parseFloat(price).toFixed(2)}</span>` : ''}
+                                </div>
+                                <div class="menu-item-action">
+                                    ${actionButtonHtml}
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                    
+                    return `
+                        <h2 class="font-brand text-2xl font-semibold my-4" style="font-style: italic;">${category}</h2>
+                        ${itemsHtml}
+                    `;
+                }).join('');
+
+                // Add event listeners for new buttons
+                DOM.menuList.querySelectorAll('.menu-item-add-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        this.addToCart(e.currentTarget.dataset.productId, null, null);
+                    });
+                });
+                
+                DOM.menuList.querySelectorAll('.menu-item-select-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        this.showVariantModal(e.currentTarget.dataset.productId);
+                    });
+                });
+                
+                DOM.menuList.querySelectorAll('.menu-quantity-control button').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const { cartId, change } = e.currentTarget.dataset;
+                        this.updateCartQuantity(cartId, parseInt(change));
+                    });
+                });
+
+            },
+            
+            renderRecentSearches() {
+                DOM.recentSearches.innerHTML = AppState.recentSearches.map(term => 
+                    `<button class="recent-search-btn" data-term="${term}">${term}</button>`
+                ).join('');
+                
+                // Add listeners
+                DOM.recentSearches.querySelectorAll('.recent-search-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const term = e.currentTarget.dataset.term;
+                        DOM.searchBar.value = term;
+                        this.renderMenu(term);
+                    });
+                });
+            },
+            
+            calculateCartTotals() {
+                const subtotal = AppState.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                const gst = subtotal * 0.05;
+                const total = subtotal + gst;
+                return { subtotal, gst, total };
+            },
+            
+            renderCart() {
+                const cart = AppState.cart;
+                
+                // Update cart badge
+                const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+                DOM.cartBadge.textContent = totalItems;
+                DOM.cartBadge.classList.toggle('visible', totalItems > 0);
+                
+                // Show/hide empty message and signature pad
+                DOM.cartEmptyMsg.classList.toggle('hidden', cart.length > 0);
+                DOM.cartItemsContainer.classList.toggle('hidden', cart.length === 0);
+                DOM.signatureSection.classList.toggle('hidden', cart.length === 0);
+
+                if (cart.length > 0) {
+                    DOM.cartItemsContainer.innerHTML = cart.map(item => `
+                        <div class="cart-item-card">
+                            <div>
+                                <h3 class="text-lg font-semibold" style="color: var(--text-primary);">${item.name}</h3>
+                                ${item.variantName ? `<p class="text-sm" style="color: var(--text-secondary);">${item.variantName}</p>` : ''}
+                                <p class="font-semibold" style="color: var(--text-primary);">₹${item.price.toFixed(2)}</p>
+                            </div>
+                            <div class="cart-quantity-control menu-quantity-control">
+                                <button data-cart-id="${item.cartId}" data-change="-1">-</button>
+                                <span>${item.quantity}</span>
+                                <button data-cart-id="${item.cartId}" data-change="1">+</button>
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    // Add event listeners for new buttons
+                    DOM.cartItemsContainer.querySelectorAll('.cart-quantity-control button').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            const { cartId, change } = e.currentTarget.dataset;
+                            this.updateCartQuantity(cartId, parseInt(change));
+                        });
+                    });
+
+                } else {
+                    DOM.cartItemsContainer.innerHTML = ''; // Clear items
+                }
+                
+                // Update totals
+                const { subtotal, gst, total } = this.calculateCartTotals();
+                DOM.cartSubtotal.textContent = `₹${subtotal.toFixed(2)}`;
+                DOM.cartGst.textContent = `₹${gst.toFixed(2)}`;
+                DOM.cartTotal.textContent = `₹${total.toFixed(2)}`;
+                
+                // Enable/disable payment button
+                DOM.proceedToPaymentBtn.disabled = cart.length === 0;
+            },
+            
+            renderOrderHistory() {
+                const history = AppState.orderHistory;
+                
+                if (!history) {
+                    DOM.historyLoadingText.classList.remove('hidden');
+                    return;
+                }
+                
+                DOM.historyLoadingText.classList.add('hidden');
+                DOM.historyEmptyMsg.classList.toggle('hidden', history.length > 0);
+                
+                if (history.length > 0) {
+                    DOM.orderHistoryList.innerHTML = history.map(order => {
+                        const orderDate = new Date(order.created_at).toLocaleDateString('en-IN', {
+                            day: 'numeric', month: 'short', year: 'numeric'
+                        });
+                        const items = order.order_items || [];
+                        const itemSummary = items.length > 0 
+                            ? `${items[0].quantity}x ${items[0].product_name}${items.length > 1 ? ` & ${items.length - 1} more...` : ''}`
+                            : 'No items found';
+                        
+                        return `
+                            <div class="p-4 rounded-lg mb-3" style="background-color: var(--bg-secondary); border: 1px solid var(--border);">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="font-semibold text-lg" style="color: var(--text-primary);">₹${order.total_amount.toFixed(2)}</span>
+                                    <span class="text-xs px-2 py-1 rounded" style="background-color: var(--bg-primary); color: var(--text-secondary);">${order.status}</span>
+                                </div>
+                                <p class="text-sm mb-3" style="color: var(--text-secondary);">${itemSummary}</p>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs" style="color: var(--text-secondary);">${orderDate}</span>
+                                    <button class="btn-secondary py-1 px-3 text-sm re-order-btn" data-order-id="${order.id}">Re-order</button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                    
+                    // Add listeners
+                    DOM.orderHistoryList.querySelectorAll('.re-order-btn').forEach(btn => {
+                        btn.addEventListener('click', (e) => this.reOrder(e.currentTarget.dataset.orderId));
+                    });
+                    
+                } else {
+                    DOM.orderHistoryList.innerHTML = '';
+                }
             }
         };
 
-        // --- RUN THE APP ---
-        // Start the application once the DOM is ready.
-        document.addEventListener('DOMContentLoaded', () => {
-            App.init();
-        });
+        // --- Start the App ---
+        document.addEventListener('DOMContentLoaded', () => App.init());
 
     </script>
 </body>
