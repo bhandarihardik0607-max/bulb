@@ -2,2306 +2,1666 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Bulb & Gulabi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Food App</title>
+    
+    <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Load Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Load Fonts (Playfair Display for Brand, Poppins for Body) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-    <!-- Supabase Client -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
+        /*
+        ========================================
+        APP STYLING & DUAL-BRAND THEMING
+        NEW THEME inspired by index (7).html
+        ========================================
+        */
         :root {
-            /* --- BULB THEME (LIGHT) --- */
-            --bg-primary-bulb: #FFFFFF;
-            --bg-secondary-bulb: #F8FAFC; /* cool-gray-50 */
-            --text-primary-bulb: #1F2937; /* cool-gray-800 */
-            --text-secondary-bulb: #4B5563; /* cool-gray-600 */
-            --border-bulb: #E5E7EB; /* cool-gray-200 */
-            --brand-primary-bulb: #EAB308; /* yellow-500 */
-            --brand-secondary-bulb: #FEF08A; /* yellow-200 */
-            --brand-text-on-primary-bulb: #1F2937;
+            /* Brand A (Bulb Cafe) */
+            --brand-primary: 245 158 11; /* text-amber-500 */
+            --brand-secondary: 75 85 99; /* text-gray-600 */
+            --brand-font: 'Playfair Display', serif;
 
-            /* --- GULABI THEME (LIGHT) --- */
-            --bg-primary-gulabi: #FFF1F2; /* pink-50 */
-            --bg-secondary-gulabi: #FFFFFF;
-            --text-primary-gulabi: #1F2937;
-            --text-secondary-gulabi: #4B5563;
-            --border-gulabi: #FCE7F3; /* pink-100 */
-            --brand-primary-gulabi: #DB2777; /* pink-600 */
-            --brand-secondary-gulabi: #FBCFE8; /* pink-200 */
-            --brand-text-on-primary-gulabi: #FFFFFF;
-
-            /* --- DARK THEME (BRANDED) --- */
-            --bg-primary-dark: #111827; /* gray-900 */
-            --bg-secondary-dark: #1F2937; /* gray-800 */
-            --text-primary-dark: #F3F4F6; /* gray-100 */
-            --text-secondary-dark: #9CA3AF; /* gray-400 */
-            --border-dark: #374151; /* gray-700 */
-            /* Brand colors remain the same */
-            
-            --app-height: 100vh;
+            /* Light Theme (default) - From index (7).html */
+            --bg-primary: 255 255 255; /* #FFFFFF */
+            --bg-secondary: 243 244 246; /* #F3F4F6 */
+            --text-primary: 17 24 39; /* #111827 */
+            --text-secondary: 107 114 128; /* #6B7280 */
+            --border-color: 229 231 235; /* #E5E7EB */
         }
 
-        /* --- Theme Application --- */
-        [data-theme="bulb"] {
-            --bg-primary: var(--bg-primary-bulb);
-            --bg-secondary: var(--bg-secondary-bulb);
-            --text-primary: var(--text-primary-bulb);
-            --text-secondary: var(--text-secondary-bulb);
-            --border-color: var(--border-bulb);
-            --brand-primary: var(--brand-primary-bulb);
-            --brand-secondary: var(--brand-secondary-bulb);
-            --brand-text-on-primary: var(--brand-text-on-primary-bulb);
+        [data-brand="gulabi"] {
+            /* Brand B (Gulabi Thali) */
+            --brand-primary: 236 72 153; /* text-pink-500 */
+            --brand-secondary: 190 24 93; /* text-pink-700 */
+            --brand-font: 'Playfair Display', serif;
         }
-        [data-theme="gulabi"] {
-            --bg-primary: var(--bg-primary-gulabi);
-            --bg-secondary: var(--bg-secondary-gulabi);
-            --text-primary: var(--text-primary-gulabi);
-            --text-secondary: var(--text-secondary-gulabi);
-            --border-color: var(--border-gulabi);
-            --brand-primary: var(--brand-primary-gulabi);
-            --brand-secondary: var(--brand-secondary-gulabi);
-            --brand-text-on-primary: var(--brand-text-on-primary-gulabi);
-        }
+
         [data-theme="dark"] {
-            --bg-primary: var(--bg-primary-dark);
-            --bg-secondary: var(--bg-secondary-dark);
-            --text-primary: var(--text-primary-dark);
-            --text-secondary: var(--text-secondary-dark);
-            --border-color: var(--border-dark);
-            /* Brand color is set by brand */
-            --brand-primary: var(--brand-primary-bulb); 
-            --brand-secondary: var(--brand-secondary-bulb);
-            --brand-text-on-primary: var(--brand-text-on-primary-bulb);
-        }
-        [data-theme="dark"][data-brand="gulabi"] {
-             --brand-primary: var(--brand-primary-gulabi);
-             --brand-secondary: var(--brand-secondary-gulabi);
-             --brand-text-on-primary: var(--brand-text-on-primary-gulabi);
+            /* Dark Mode (Universal) - From index (7).html */
+            --bg-primary: 17 17 17; /* #111111 */
+            --bg-secondary: 31 32 35; /* #1F2023 */
+            --text-primary: 249 250 251; /* #F9FAFB */
+            --text-secondary: 156 163 175; /* #9CA3AF */
+            --border-color: 55 65 81; /* #374151 */
         }
 
-
-        html, body { height: 100%; overflow: hidden; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #000000;
-            color: var(--text-primary);
-            -webkit-tap-highlight-color: transparent;
-            transition: background-color 0.5s ease;
-        }
-        .app-container { 
-            background-color: var(--bg-primary); 
-            transition: background-color 0.5s ease, filter 0.5s ease-in-out; 
-            height: var(--app-height); 
-        }
-        .text-primary { color: var(--text-primary); } .text-secondary { color: var(--text-secondary); }
-        .bg-primary { background-color: var(--bg-primary); } .bg-secondary { background-color: var(--bg-secondary); }
-        .border-custom { border-color: var(--border-color); } .brand-text { color: var(--brand-primary); }
-        .brand-bg { background-color: var(--brand-primary); color: var(--brand-text-on-primary); }
-        .brand-bg-secondary { background-color: var(--brand-secondary); color: var(--brand-primary); }
-        .brand-border { border-color: var(--brand-primary); }
-
-        /* --- Page Transitions --- */
-        .page {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            overflow-y: auto;
-            backface-visibility: hidden;
-            z-index: 1;
-        }
-        .page-enter-active {
-            animation: slideInRight 0.3s forwards cubic-bezier(0.25, 1, 0.5, 1);
-            z-index: 2;
-        }
-        .page-exit-active {
-            animation: slideOutLeft 0.3s forwards cubic-bezier(0.25, 1, 0.5, 1);
-            z-index: 1;
-        }
-        @keyframes slideInRight {
-            from { transform: translateX(100%); opacity: 0.8; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        @keyframes slideOutLeft {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(-20%); opacity: 0; }
-        }
-
-        /* --- Animations --- */
-        .fade-in { animation: fadeIn 0.5s ease-in-out; } @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .fade-out { animation: fadeOut 0.5s ease-in-out forwards; } @keyframes fadeOut { from { opacity: 1; } to: { opacity: 0; } }
-
-        /* Staggered list animation */
-        .stagger-child {
-            animation: fadeInUp 0.5s both;
-            opacity: 0;
-        }
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Toast */
-        .toast {
-            animation: toast-in 0.5s ease, toast-out 0.5s ease forwards;
-            bottom: -100px;
-        }
-        @keyframes toast-in { from { bottom: -100px; opacity: 0; } to { bottom: 80px; opacity: 1; } }
-        @keyframes toast-out { from { bottom: 80px; opacity: 1; } to { bottom: -100px; opacity: 0; display: none; } }
-
-        /* Modal */
-        .modal-overlay { animation: fadeIn 0.3s ease; }
-        .modal-content {
-            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            max-height: 85vh;
-            overflow-y: auto;
-        }
-        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-        /* Splash Screen */
-        #splash-screen {
-            background-color: #111;
-            opacity: 1;
-            animation: page-flicker-on 3s ease-in-out forwards;
-        }
-        #splash-text {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--brand-secondary-bulb);
-            opacity: 0.7;
-            text-shadow: 0 0 5px var(--brand-secondary-bulb);
-            animation: text-flicker 2s ease-in-out forwards;
-        }
-        @keyframes page-flicker-on {
-            0%, 20%, 40%, 60% { opacity: 1; background-color: #111; }
-            10%, 30%, 50% { opacity: 0.9; background-color: #000; }
-            70% { opacity: 1; background-color: #111; }
-            100% { opacity: 0; background-color: #000; }
-        }
-        @keyframes text-flicker {
-            0%, 20% { opacity: 0.7; text-shadow: 0 0 5px var(--brand-secondary-bulb); }
-            10%, 30% { opacity: 0.5; text-shadow: none; }
-            40%, 60% { opacity: 1; text-shadow: 0 0 10px var(--brand-primary-bulb); }
-            50% { opacity: 0.6; text-shadow: none; }
-            70%, 100% { opacity: 1; text-shadow: 0 0 10px var(--brand-primary-bulb); }
-        }
+        /* Utility function to use CSS vars with Tailwind opacity */
+        .bg-primary { background-color: rgb(var(--bg-primary)); }
+        .bg-secondary { background-color: rgb(var(--bg-secondary)); }
+        .text-primary { color: rgb(var(--text-primary)); }
+        .text-secondary { color: rgb(var(--text-secondary)); }
+        .text-brand { color: rgb(var(--brand-primary)); }
+        .border-default { border-color: rgb(var(--border-color)); }
+        .font-brand { font-family: var(--brand-font); }
+        .fill-brand { fill: rgb(var(--brand-primary)); }
         
-        /* Scrollbar */
-        .horizontal-scroll::-webkit-scrollbar { display: none; }
-        .horizontal-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        .bg-brand-primary { background-color: rgb(var(--brand-primary)); }
+        .bg-brand-secondary { background-color: rgb(var(--brand-secondary)); }
 
-        /* Spinner */
-        .spinner {
-            border: 2px solid var(--brand-secondary);
-            border-top: 2px solid var(--brand-primary);
-            border-radius: 50%;
-            width: 16px;
-            height: 16px;
-            animation: spin 1s linear infinite;
+        /* Ensure app fills viewport */
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Poppins', sans-serif; /* Default font */
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Add/Qty Buttons */
-        .add-to-cart-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: var(--brand-primary);
-            color: var(--brand-text-on-primary);
-            font-size: 24px;
-            font-weight: 600;
-            line-height: 1;
+        /* Main app container */
+        #app {
+            max-width: 480px; /* Mobile-first max-width */
+            margin: 0 auto;
+            height: 100vh; /* Full viewport height */
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /*
+        ========================================
+        SPLASH SCREEN
+        ========================================
+        */
+        #splash-screen {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 100;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s ease;
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
         }
-        .add-to-cart-btn:hover { transform: scale(1.1); }
+        #splash-screen svg {
+            width: 80px;
+            height: 80px;
+            animation: pulse-light 2s infinite ease-in-out;
+        }
+        @keyframes pulse-light {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 1; }
+        }
+        .splash-hide {
+            opacity: 0;
+            transform: scale(1.2);
+            pointer-events: none;
+        }
 
-        .quantity-control {
+        /*
+        ========================================
+        PAGE CONTAINER & TRANSITIONS
+        ========================================
+        */
+        #main-content {
+            flex-grow: 1;
+            position: relative;
+            overflow-y: auto;
+            /* Enable momentum scrolling on iOS */
+            -webkit-overflow-scrolling: touch; 
+        }
+
+        .page {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            min-height: 100%;
+            padding: 1.5rem 1.5rem 6rem 1.5rem; /* 6rem bottom padding for tab bar */
+            opacity: 0;
+            transform: translateX(100%);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            display: none; /* Will be toggled by JS */
+            z-index: 1;
+        }
+
+        .page-active {
+            opacity: 1;
+            transform: translateX(0);
+            display: block;
+            z-index: 10;
+        }
+        
+        .page-exit {
+            opacity: 0;
+            transform: translateX(-100%);
+            z-index: 5;
+            display: block; /* Keep it in flow during transition */
+        }
+
+        /*
+        ========================================
+        TAB BAR
+        ========================================
+        */
+        #tab-bar {
+            flex-shrink: 0;
+            height: 64px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid rgb(var(--border-color));
+            position: relative;
+            z-index: 50;
+        }
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.75rem;
+            flex: 1;
+            padding-top: 8px;
+            padding-bottom: 4px;
+        }
+        .tab-item svg {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 2px;
+            transition: transform 0.2s ease;
+        }
+        .tab-item.active svg {
+            transform: scale(1.1);
+        }
+        .tab-item .icon-default { display: block; }
+        .tab-item .icon-active { display: none; }
+        .tab-item.active .icon-default { display: none; }
+        .tab-item.active .icon-active { display: block; }
+        
+        /* Cart badge */
+        #cart-badge {
+            position: absolute;
+            top: -4px;
+            right: -8px;
+            min-width: 20px;
+            height: 20px;
+            border-radius: 99px;
+            font-size: 0.75rem;
+            font-weight: 600;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            background-color: var(--brand-primary);
-            color: var(--brand-text-on-primary);
-            border-radius: 9999px;
-            font-weight: 600;
-            overflow: hidden;
-            width: 100px;
-            height: 40px;
-            user-select: none;
+            justify-content: center;
+            transform: scale(0);
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        .quantity-control button { width: 34px; height: 100%; font-size: 20px; line-height: 1; transition: background-color 0.2s ease; }
-        .quantity-control button:hover { background-color: rgba(0,0,0,0.1); }
-        .quantity-control span { font-size: 16px; }
-
-        /* Glitch text */
-        @keyframes glitch-shift-1 {
-            0% { text-shadow: 1px 0 0 var(--brand-primary), -1px 0 0 var(--brand-secondary); }
-            25% { text-shadow: -1px 0 0 var(--brand-primary), 1px 0 0 var(--brand-secondary); }
-            50% { text-shadow: 2px 0 0 var(--brand-primary), -2px 0 0 var(--brand-secondary); }
-            100% { text-shadow: 1px 0 0 var(--brand-primary), -1px 0 0 var(--brand-secondary); }
-        }
-        .glitch-text {
-            animation: glitch-shift-1 1s infinite alternate;
+        #cart-badge.active {
+            transform: scale(1);
         }
 
-        /* Animated Bulb */
-        @keyframes flicker-on {
-            0%, 100% { opacity: 0.8; text-shadow: 0 0 6px var(--brand-primary); }
-            50% { opacity: 1; text-shadow: 0 0 12px var(--brand-primary), 0 0 20px var(--brand-primary); }
+        /*
+        ========================================
+        MODALS
+        ========================================
+        */
+        #modal-container {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 60;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        #app.low-voltage { filter: brightness(0.85) opacity(0.95); }
-        .bulb-icon { transition: all 0.3s ease; opacity: 0.5; }
-        #app.low-voltage .bulb-icon {
-            color: var(--brand-primary);
-            opacity: 1;
-            animation: flicker-on 2s infinite ease-in-out;
+        #modal-backdrop {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
-        
-        /* Favorite Button */
-        .fav-btn { transition: transform 0.2s ease; }
-        .fav-btn .fav-icon-filled { display: none; }
-        .fav-btn.favorited .fav-icon-filled { display: block; }
-        .fav-btn.favorited .fav-icon-outline { display: none; }
-        .fav-btn.favorited { color: var(--brand-primary-gulabi); transform: scale(1.1); }
-
-        /* --- Game Styles --- */
-        .game-bulb {
-            transition: background-color 0.1s;
-            background-color: var(--border-color);
-        }
-        .game-bulb.lit {
-            background-color: var(--brand-primary) !important;
-            box-shadow: 0 0 20px var(--brand-primary);
-        }
-        
-        .game-tile {
-            transition: transform 0.1s ease, background-color 0.2s ease;
-            background-color: var(--border-color);
-        }
-        .game-tile.active {
-            background-color: var(--brand-primary);
+        #modal-box {
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             transform: scale(0.95);
-            box-shadow: 0 0 20px var(--brand-primary);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 61;
+            position: relative; /* For close button */
+        }
+        #modal-container.visible #modal-backdrop {
+            opacity: 1;
+        }
+        #modal-container.visible #modal-box {
+            transform: scale(1);
+            opacity: 1;
         }
 
-        /* --- Auth Tabs --- */
-        .auth-tab {
-            border-bottom: 2px solid transparent;
+        /*
+        ========================================
+        TOASTS / NOTIFICATIONS
+        ========================================
+        */
+        #toast-container {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
         }
-        .auth-tab.active {
-            border-bottom-color: var(--brand-primary);
-            color: var(--brand-primary);
+        .toast-item {
+            padding: 12px 20px;
+            border-radius: 99px;
+            font-weight: 500;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transform: translateY(-20px);
+            animation: toast-in 0.5s forwards;
         }
-        
-        /* --- Menu Tabs --- */
-        .menu-tab {
-            border-bottom: 3px solid transparent;
-            padding-bottom: 8px;
-            color: var(--text-secondary);
+        @keyframes toast-in {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        .menu-tab.active {
-            border-bottom-color: var(--brand-primary);
-            color: var(--brand-primary);
-            font-weight: 600;
+        .toast-item.exit {
+            animation: toast-out 0.5s forwards;
+        }
+        @keyframes toast-out {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
         }
     </style>
 </head>
-<body data-theme="bulb" data-brand="bulb">
 
-    <!-- Splash Screen -->
-    <div id="splash-screen" class="fixed inset-0 flex items-center justify-center z-[100]">
-        <h1 id="splash-text">Welcome to Bulb</h1>
-    </div>
+<body class="bg-primary text-primary">
 
-    <!-- Main App Container -->
-    <div id="app" class="app-container max-w-lg mx-auto shadow-2xl flex flex-col hidden">
-        <!-- Header -->
-        <header id="page-header" class="sticky top-0 bg-primary z-20 h-16 px-4 flex justify-between items-center border-b border-custom"></header>
-        
-        <!-- Main Content Area -->
-        <main class="flex-grow overflow-hidden relative">
-            <!-- This div will hold the pages -->
-            <div id="page-container" class="w-full h-full relative">
-                <!-- Pages will be dynamically injected here -->
-            </div>
+    <!-- 
+    ========================================
+    SVG ICONS
+    ========================================
+    We embed all SVGs for a true single-file app.
+    -->
+    <svg width="0" height="0" class="absolute">
+        <defs>
+            <!-- Splash Screen Bulb -->
+            <symbol id="icon-bulb" viewBox="0 0 24 24">
+                <path fill-rule="evenodd" d="M12 2.25c-3.13 0-6 2.636-6 6.035A6.08 6.08 0 007.5 13.978v5.158a.75.75 0 00.75.75h7.5a.75.75 0 00.75-.75v-5.158c.45-.1.884-.23 1.28-.396A6.035 6.035 0 0018 8.285c0-3.399-2.87-6.035-6-6.035zM12.75 21a.75.75 0 00-.75-.75h-1.5a.75.75 0 000 1.5h1.5a.75.75 0 00.75-.75z" clip-rule="evenodd" />
+                <path d="M12 2.25a.75.75 0 01.75.75v.255a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM10.705 5.032a.75.75 0 01.028 1.06l-.17.19a.75.75 0 01-1.088-.027l-.17-.19a.75.75 0 111.088-1.032l.17.19a.75.75 0 01-.028 1.06zM14.497 6.282a.75.75 0 01-1.06.028l-.19-.17a.75.75 0 01.028-1.06l.19-.17a.75.75 0 111.032 1.088l-.19.17a.75.75 0 01-1.06-.028zM7.5 15.478v3.658h9v-3.658c1.36-.612 2.37-2.023 2.494-3.633.23-2.934-2.006-5.59-4.82-5.59S6.284 8.91 6.513 11.845c.123 1.61 1.133 3.02 2.493 3.633z" />
+            </symbol>
+            
+            <!-- Home -->
+            <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </symbol>
+            <symbol id="icon-home-filled" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M11.47 3.84a.75.75 0 011.06 0l8.25 8.25a.75.75 0 01-.12 1.06l-.12.07v6.03a.75.75 0 01-.75.75H15a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75v4.5A.75.75 0 019 20.25H4.75a.75.75 0 01-.75-.75V13.22l-.1.07a.75.75 0 01-1.06-1.06l8.25-8.25z" />
+            </symbol>
+            
+            <!-- Order (Menu) -->
+            <symbol id="icon-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle>
+            </symbol>
+            <symbol id="icon-menu-filled" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" />
+                <path fill-rule="evenodd" d="M1.323 11.447C2.83 7.96 7.028 5.25 12 5.25c4.972 0 9.17 2.71 10.677 6.197a.75.75 0 010 .606C21.17 16.04 16.972 18.75 12 18.75c-4.972 0-9.17-2.71-10.677-6.197a.75.75 0 010-.606zM12 17.25c4.21 0 7.903-2.105 9.284-5.048C20.137 9.355 16.421 7.5 12 7.5c-4.421 0-8.137 1.855-9.285 4.702C4.098 15.145 7.79 17.25 12 17.25z" clip-rule="evenodd" />
+            </symbol>
+
+            <!-- Cart -->
+            <symbol id="icon-cart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </symbol>
+            <symbol id="icon-cart-filled" viewBox="0 0 24 24" fill="currentColor">
+                <path fill-rule="evenodd" d="M6 6a.75.75 0 01.75-.75h11.19l-1.12 4.46a.75.75 0 01-.72.54H9.75a.75.75 0 01-.75-.75V6z" clip-rule="evenodd" />
+                <path fill-rule="evenodd" d="M6.3 2.84A1.5 1.5 0 004.86 4.31L1.75 4.77a.75.75 0 00-.73 1.01l1.6 4.8a.75.75 0 00.73.51h14.7a.75.75 0 00.73-.51l2.4-7.2a.75.75 0 00-.73-1.01L8.25 2.27a.75.75 0 00-.72-.18L6.3 2.84zM3.4 12.016l.79 2.37a2.25 2.25 0 002.18 1.614h9.72a2.25 2.25 0 002.18-1.614l.79-2.37H3.4z" clip-rule="evenodd" />
+                <path d="M9 22.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM18.5 19.5a1.5 1.5 0 100 3 1.5 1.5 0 000-3z" />
+            </symbol>
+
+            <!-- History -->
+            <symbol id="icon-history" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.75 2.75"></path><path d="M3 7v6h6"></path>
+            </symbol>
+            <symbol id="icon-history-filled" viewBox="0 0 24 24" fill="currentColor">
+                <path fill-rule="evenodd" d="M11.925 3.003a.75.75 0 01.75.75v8.665l5.22 3.013a.75.75 0 01-.75 1.299l-5.63-3.25a.75.75 0 01-.37-.65V3.753a.75.75 0 01.75-.75z" clip-rule="evenodd" />
+                <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM3.5 12a8.25 8.25 0 1116.5 0 8.25 8.25 0 01-16.5 0z" clip-rule="evenodd" />
+            </symbol>
+
+            <!-- Profile -->
+            <symbol id="icon-profile" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle>
+            </symbol>
+            <symbol id="icon-profile-filled" viewBox="0 0 24 24" fill="currentColor">
+                <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 21.75c-2.67 0-5.197-.53-7.562-1.503a.75.75 0 01-.437-.695z" clip-rule="evenodd" />
+            </symbol>
+        </defs>
+    </svg>
+
+
+    <!-- 
+    ========================================
+    MAIN APP WRAPPER
+    ========================================
+    -->
+    <div id="app" class="bg-secondary">
+    
+        <!-- 
+        ========================================
+        SPLASH SCREEN
+        ========================================
+        -->
+        <div id="splash-screen" class="bg-primary">
+            <svg class="fill-brand">
+                <use href="#icon-bulb"></use>
+            </svg>
+        </div>
+
+        <!-- 
+        ========================================
+        MAIN CONTENT (Pages)
+        ========================================
+        This is where pages are dynamically loaded.
+        -->
+        <main id="main-content" class="bg-secondary">
+
+            <!-- ==== PAGE: HOME ==== -->
+            <section id="page-home" class="page space-y-6">
+                <!-- Brand-specific Header -->
+                <div id="home-header" class="text-center">
+                    <div id="brand-logo-home" class="h-24 mx-auto mb-2"></div>
+                    <h1 class="text-4xl font-bold font-brand text-primary" id="brand-welcome-text">Welcome</h1>
+                </div>
+
+                <!-- Featured Item -->
+                <div class="bg-primary rounded-xl shadow-lg overflow-hidden border border-default">
+                    <img src="https://placehold.co/600x400/f59e0b/white?text=Special+Offer" alt="Featured Offer" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <h2 class="text-2xl font-bold text-primary font-brand">Today's Special</h2>
+                        <p class="text-secondary mt-2">Get our best-selling "Bulb Signature Roast" for 20% off. Today only!</p>
+                        <button class="mt-4 w-full bg-brand-primary text-white font-bold py-3 px-6 rounded-lg shadow transition-transform hover:scale-105"
+                                onclick="app.navigateTo('order')">
+                            Order Now
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="grid grid-cols-2 gap-4">
+                    <button class="bg-primary p-6 rounded-xl shadow-lg text-center transition-transform hover:scale-105 border border-default" onclick="app.navigateTo('history')">
+                        <svg class="w-12 h-12 text-brand mx-auto" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
+                        <span class="mt-2 block font-semibold text-primary">Re-Order Last</span>
+                    </button>
+                    <button class="bg-primary p-6 rounded-xl shadow-lg text-center transition-transform hover:scale-105 border border-default" onclick="app.navigateTo('profile')">
+                        <svg class="w-12 h-12 text-brand mx-auto" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 6a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM16.5 18h-9a2.25 2.25 0 00-2.25 2.25v.005c0 .69.56 1.25 1.25 1.25h10.5c.69 0 1.25-.56 1.25-1.25v-.005A2.25 2.25 0 0016.5 18z" /></svg>
+                        <span class="mt-2 block font-semibold text-primary">My Profile</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- ==== PAGE: ORDER (MENU) ==== -->
+            <section id="page-order" class="page !p-0">
+                <div class="p-6 pb-2 sticky top-0 bg-secondary z-10">
+                    <h1 class="text-3xl font-bold font-brand text-primary mb-4">Menu</h1>
+                    <!-- Search Bar -->
+                    <div class="relative">
+                        <input id="search-bar" type="text" placeholder="Search menu..." class="w-full px-4 py-3 pl-10 rounded-full border border-default bg-primary text-primary placeholder:text-secondary focus:outline-none focus:ring-2 focus:ring-[rgb(var(--brand-primary))]">
+                        <svg class="w-5 h-5 text-secondary absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <!-- Recent Searches -->
+                    <div id="recent-searches-container" class="mt-2 flex flex-wrap gap-2">
+                        <!-- e.g., <button class="recent-search-btn">Coffee</button> -->
+                    </div>
+                </div>
+                
+                <!-- Menu List -->
+                <div id="menu-list-container" class="p-6 pt-2 space-y-6">
+                    <!-- Categories will be dynamically injected here -->
+                    <!-- 
+                    <div class="menu-category">
+                        <h2 class="text-2xl font-bold font-brand text-primary mb-2">Category Name</h2>
+                        <div class="space-y-4">
+                            <div class="menu-item-card"> ... </div>
+                        </div>
+                    </div>
+                    -->
+                    <div id="menu-loading" class="text-center py-10">
+                        <span class="text-secondary">Loading menu...</span>
+                    </div>
+                    <div id="menu-no-results" class="text-center py-10 hidden">
+                        <span class="text-secondary">No items match your search.</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==== PAGE: CART ==== -->
+            <section id="page-cart" class="page">
+                <h1 class="text-3xl font-bold font-brand text-primary mb-6">My Cart</h1>
+                
+                <!-- Cart Items -->
+                <div id="cart-items-container" class="space-y-4">
+                    <!-- Dynamically populated -->
+                    <!-- 
+                    <div class="cart-item-card flex items-center gap-4 bg-primary p-4 rounded-lg shadow border border-default">
+                        <img src="https://placehold.co/100x100" class="w-20 h-20 rounded-md object-cover">
+                        <div class="flex-grow">
+                            <h3 class="font-bold text-primary">Product Name</h3>
+                            <p class="text-sm text-secondary">Variant: Large</p>
+                            <span class="font-bold text-brand">$9.99</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button class="quantity-btn">-</button>
+                            <span>1</span>
+                            <button class="quantity-btn">+</button>
+                        </div>
+                        <button class="remove-btn">&times;</button>
+                    </div> 
+                    -->
+                </div>
+
+                <!-- Empty Cart Message -->
+                <div id="cart-empty-message" class="text-center py-20 hidden">
+                    <svg class="w-24 h-24 mx-auto text-gray-300" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24"><path d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM15.75 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" /></svg>
+                    <p class="mt-4 text-lg font-semibold text-secondary">Your cart is empty</p>
+                    <p class="text-secondary">Looks like you haven't added anything yet.</p>
+                    <button class="mt-6 bg-brand-primary text-white font-bold py-3 px-6 rounded-lg shadow transition-transform hover:scale-105"
+                            onclick="app.navigateTo('order')">
+                        Start Ordering
+                    </button>
+                </div>
+
+                <!-- Cart Summary (Show only if cart is not empty) -->
+                <div id="cart-summary-container" class="mt-8 pt-6 border-t border-default hidden">
+                    <div class="space-y-2 text-primary">
+                        <div class="flex justify-between">
+                            <span class="text-secondary">Subtotal</span>
+                            <span class="font-semibold" id="cart-subtotal">₹0.00</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-secondary">GST (5%)</span>
+                            <span class="font-semibold" id="cart-gst">₹0.00</span>
+                        </div>
+                        <div class="flex justify-between text-xl font-bold">
+                            <span class="text-primary">Total</span>
+                            <span class="text-brand" id="cart-total">₹0.00</span>
+                        </div>
+                    </div>
+                    <button id="checkout-button" class="mt-6 w-full bg-brand-primary text-white font-bold py-4 px-6 rounded-lg shadow-lg text-lg transition-transform hover:scale-105">
+                        Proceed to Payment
+                    </button>
+                </div>
+            </section>
+
+            <!-- ==== PAGE: HISTORY ==== -->
+            <section id="page-history" class="page">
+                <h1 class="text-3xl font-bold font-brand text-primary mb-6">Order History</h1>
+                
+                <div id="order-history-container" class="space-y-6">
+                    <!-- Dynamically populated -->
+                    <!--
+                    <div class="order-history-card bg-primary p-4 rounded-lg shadow border border-default">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-bold text-primary">Order #12345</span>
+                            <span class="text-sm text-secondary">01 Nov 2025</span>
+                        </div>
+                        <p class="text-secondary">Total: <span class="font-semibold text-brand">₹25.50</span></p>
+                        <p class="text-secondary">Status: <span class="font-semibold text-green-500">Delivered</span></p>
+                        <div class="mt-2 text-sm text-secondary">
+                            Items: Coffee (Large) x 1, Muffin x 2
+                        </div>
+                        <button class="re-order-btn mt-4 w-full bg-brand-secondary text-white font-semibold py-2 px-4 rounded-lg">
+                            Re-Order
+                        </button>
+                    </div>
+                    -->
+                </div>
+
+                <!-- Empty History Message -->
+                <div id="history-empty-message" class="text-center py-20 hidden">
+                    <svg class="w-24 h-24 mx-auto text-gray-300" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 7.5V6.108c0-1.135.845-2.098 1.976-2.192.351-.026.69.055 1.002.232.312.176.58.42.787.708.207.288.32.62.32.958V7.5M8.25 7.5h7.5M8.25 7.5V15M15.75 7.5V15m-7.5 4.5h7.5m-7.5 0a1.125 1.125 0 01-1.125-1.125V18.75c0-.621.504-1.125 1.125-1.125h7.5c.621 0 1.125.504 1.125 1.125v.375c0 .621-.504 1.125-1.125 1.125h-7.5z" /></svg>
+                    <p class="mt-4 text-lg font-semibold text-secondary">No orders yet</p>
+                    <p class="text-secondary">Place your first order to see it here.</p>
+                </div>
+            </section>
+
+            <!-- ==== PAGE: PROFILE ==== -->
+            <section id="page-profile" class="page space-y-6">
+                <h1 class="text-3xl font-bold font-brand text-primary mb-4">Profile</h1>
+
+                <!-- User Info -->
+                <div class="bg-primary p-6 rounded-xl shadow-lg flex items-center gap-4 border border-default">
+                    <div class="w-16 h-16 rounded-full bg-secondary flex items-center justify-center border border-default">
+                        <svg class="w-10 h-10 text-brand"><use href="#icon-profile-filled"></use></svg>
+                    </div>
+                    <div>
+                        <h2 id="profile-name" class="text-2xl font-bold text-primary">Guest</h2>
+                        <p id="profile-user-id" class="text-xs text-secondary break-all">user_id: ...</p>
+                    </div>
+                </div>
+
+                <!-- Loyalty Points -->
+                <div class="bg-primary p-6 rounded-xl shadow-lg border border-default">
+                    <h3 class="text-xl font-bold text-primary mb-3">Loyalty Points</h3>
+                    <div class="text-center mb-4">
+                        <span id="profile-loyalty-points" class="text-6xl font-bold text-brand">0</span>
+                        <span class="block text-secondary">Points</span>
+                    </div>
+                    <button id="redeem-points-btn" class="w-full bg-brand-primary text-white font-bold py-3 px-6 rounded-lg shadow transition-transform hover:scale-105 disabled:opacity-50">
+                        Redeem Free Reward (100 Pts)
+                    </button>
+                </div>
+                
+                <!-- Review Bonus -->
+                <div class="bg-primary p-6 rounded-xl shadow-lg border border-default">
+                    <h3 class="text-xl font-bold text-primary mb-3">Get a Review Bonus!</h3>
+                    <p class="text-secondary mb-4">Get 50 bonus points for leaving us a review.</p>
+                    <a href="https://www.google.com/search?q=reviews+page" target="_blank" class="block w-full text-center bg-blue-500 text-white font-bold py-3 px-6 rounded-lg mb-3">
+                        1. Leave a Google Review
+                    </a>
+                    <button id="claim-review-btn" class="w-full bg-brand-secondary text-white font-bold py-3 px-6 rounded-lg">
+                        2. Claim My 50 Points
+                    </button>
+                </div>
+
+                <!-- Theme Switcher -->
+                <div class="bg-primary p-6 rounded-xl shadow-lg border border-default">
+                    <h3 class="text-xl font-bold text-primary mb-3">App Settings</h3>
+                    <div class="space-y-2">
+                        <div>
+                            <label for="brand-switcher" class="block text-secondary mb-1">Brand</label>
+                            <select id="brand-switcher" class="w-full p-3 rounded-lg border border-default bg-primary text-primary focus:outline-none focus:ring-2 focus:ring-[rgb(var(--brand-primary))]">
+                                <option value="bulb">Bulb Cafe</option>
+                                <option value="gulabi">Gulabi Thali</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="theme-switcher" class="block text-secondary mb-1">Theme</label>
+                            <select id="theme-switcher" class="w-full p-3 rounded-lg border border-default bg-primary text-primary focus:outline-none focus:ring-2 focus:ring-[rgb(var(--brand-primary))]">
+                                <option value="light">Light</option>
+                                <option value="dark">Dark</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
         </main>
-        
-        <!-- Bottom Navigation Bar -->
-        <nav id="bottom-nav" class="fixed bottom-0 left-1/2 -translate-x-1/2 max-w-lg w-full bg-primary border-t border-custom flex justify-around items-center h-16 z-30 hidden"></nav>
-    </div>
 
-    <!-- Modal Container -->
-    <div id="modal-container"></div>
-    
-    <!-- Toast Notification -->
-    <div id="toast" class="hidden fixed right-4 brand-bg py-3 px-5 rounded-lg shadow-xl z-50">
-        <p id="toast-message"></p>
-    </div>
-
-<script>
-// --- Utility Selectors ---
-const $ = (selector) => document.querySelector(selector);
-const $$ = (selector) => document.querySelectorAll(selector);
-
-// --- Set VH variable for mobile browsers ---
-function setAppHeight() {
-  document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
-}
-window.addEventListener('resize', setAppHeight);
-setAppHeight();
-
-// --- Define Page Structure ---
-// NEW: Added 'history' page
-const PAGES = ['home', 'order', 'cart', 'history', 'social', 'gulabi', 'more'];
-
-// --- Supabase Credentials ---
-const SUPABASE_URL = 'https://jdhdwzozhzdnyanrcfbw.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpkaGR3em96aHpkbnlhbnJjZmJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3MTgxNjksImV4cCI6MjA3NzI5NDE2OX0.BbshyXUGYu4Pf7tnSBqujat5gPpEjGxpYsrn5fnIjO4';
-
-
-// --- App Constants (Ported & Expanded) ---
-const CONSTANTS = {
-    taxes: { gst_percent: 5 },
-    loyalty: {
-        min_order_for_points: 350,
-        percent_earn: 0.10,
-        review_bonus: 10,
-        redeem_cost: 50
-    },
-    review_url: 'https://g.page/r/CKw9tE4jDk13EAE/review',
-    bulb_video_url: 'https://qioxrynqzbomcasfevkk.supabase.co/storage/v1/object/public/assets/WhatsApp%20Video%202025-10-28%20at%2011.27.11_9bbce8d0.mp4',
-    qr_code_url_base: 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://instagram.com/'
-};
-
-// --- Sound Engine ---
-const sound = {
-    audioContext: null,
-    init() {
-        if (this.audioContext) return;
-        try { this.audioContext = new (window.AudioContext || window.webkitAudioContext)(); }
-        catch (e) { console.error("Web Audio API is not supported."); }
-    },
-    play(type) {
-        if (!this.audioContext) return;
-        const o = this.audioContext.createOscillator(), g = this.audioContext.createGain();
-        o.connect(g); g.connect(this.audioContext.destination); g.gain.setValueAtTime(0, this.audioContext.currentTime);
-        const sounds = {
-            click: { type: 'sine', freq: 600, gain: 0.2, len: 0.1 },
-            add_to_cart: { type: 'triangle', freq: 440, gain: 0.3, len: 0.2 },
-            success: { type: 'sine', freq: 523.25, gain: 0.3, len: 0.3, secondFreq: 659.25 },
-            game_hit: { type: 'sine', freq: 800, gain: 0.2, len: 0.1 },
-            game_miss: { type: 'sawtooth', freq: 200, gain: 0.2, len: 0.2 },
-            game_over: { type: 'sawtooth', freq: 300, gain: 0.3, len: 0.5, secondFreq: 200 },
-        };
-        const s = sounds[type]; if (!s) return;
-        o.type = s.type; o.frequency.setValueAtTime(s.freq, this.audioContext.currentTime);
-        g.gain.linearRampToValueAtTime(s.gain, this.audioContext.currentTime + 0.01);
-        if (s.secondFreq) { o.frequency.setValueAtTime(s.secondFreq, this.audioContext.currentTime + (s.len / 2)); }
-        g.gain.linearRampToValueAtTime(0, this.audioContext.currentTime + s.len);
-        o.start(this.audioContext.currentTime); o.stop(this.audioContext.currentTime + s.len);
-    }
-};
-
-// --- Main Application Object ---
-const app = {
-    supabase: null,
-    state: {
-        currentPage: 'home',
-        currentBrand: 'bulb', // 'bulb' or 'gulabi'
-        theme: 'bulb', // 'bulb', 'gulabi', or 'dark'
-        cart: [],
-        currentUser: null, // Holds Supabase user object
-        customerProfile: null, // Holds profile from 'customers' table
-        menuData: [], 
-        allMenuItems: [],
-        orderHistory: [], // NEW: For history page
-        currentMenuCategory: null,
-        searchQuery: '',
-        recentSearches: [], // NEW
-        menuTab: 'all', // NEW: 'all' or 'favorites'
-        games: [
-            { id: 'quickLight', name: 'Quick Light', description: 'Test your reaction time.' },
-            { id: 'sequence', name: 'Sequence Test', description: 'Memory challenge. Good luck!' },
-        ],
-        menuSubscription: null,
-        profileSubscription: null, // NEW: For profile updates
-        orderSubscription: null // NEW: For order status updates
-    },
-
-    // --- Initialization ---
-    async init() {
-        document.body.addEventListener('click', () => sound.init(), { once: true });
-        window.addEventListener('popstate', (e) => this.handleHardwareBack(e));
-
-        try {
-            if (!window.supabase || !window.supabase.createClient) {
-                 throw new Error("Supabase client library not loaded.");
-            }
-            this.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            console.log("Supabase client initialized.");
-            
-            // Reverted: Call startAppFlow directly instead of listening for auth changes
-            await this.startAppFlow();
-
-        } catch (e) {
-            console.error("Failed to initialize Supabase", e);
-            document.getElementById('splash-text').innerText = "Connection Error";
-            return;
-        }
-    },
-
-    // NEW: Re-added startAppFlow from the original logic
-    async startAppFlow() {
-        // 1. Load brand/theme/cart/searches from localStorage
-        this.loadStateFromStorage();
-
-        // 2. Apply theme/brand
-        this.applyTheme();
-
-        // 3. Load or create customer profile (using anonymous auth)
-        await this.loadCustomerProfile(); // This function is now reverted
-
-        // 4. Load menu data
-        await this.loadMenuData();
-        
-        // 5. Load order history
-        await this.loadOrderHistory(); 
-
-        // 6. Subscribe to Realtime changes
-        this.subscribeToMenuChanges();
-        const userId = this.state.customerProfile?.id;
-        if (userId && !userId.startsWith('guest_user_fallback')) {
-            this.subscribeToProfileChanges(userId);
-            this.subscribeToOrderChanges(userId);
-        }
-
-        // 7. Hide splash, show app
-        if (!$('#app').classList.contains('flex')) {
-             setTimeout(() => {
-                const splash = $('#splash-screen');
-                if (splash) {
-                    splash.style.opacity = 0;
-                    setTimeout(() => splash.style.display = 'none', 1000);
-                }
-                $('#app').classList.remove('hidden');
-                $('#app').classList.add('flex');
-                
-                this.showMainInterface();
-            }, 2800);
-        }
-    },
-
-    // REMOVED: handleAuthStateChange function
-
-    loadStateFromStorage() {
-        try {
-            const brand = localStorage.getItem('bulb_gulabi_brand');
-            if (brand) this.state.currentBrand = brand;
-
-            // NEW: Load theme
-            const theme = localStorage.getItem('bulb_gulabi_theme');
-            if (theme) this.state.theme = theme;
-            else this.state.theme = this.state.currentBrand; // Default theme to brand
-
-            const cart = localStorage.getItem('bulb_gulabi_cart');
-            if (cart) this.state.cart = JSON.parse(cart);
-            
-            // NEW: Load recent searches
-            const searches = localStorage.getItem('bulb_gulabi_searches');
-            if (searches) this.state.recentSearches = JSON.parse(searches);
-
-        } catch (e) {
-            console.error('Failed to parse state from localStorage:', e);
-            localStorage.clear(); // Clear corrupted storage
-        }
-    },
-
-    saveCartAndBrandToStorage() {
-        localStorage.setItem('bulb_gulabi_brand', this.state.currentBrand);
-        localStorage.setItem('bulb_gulabi_theme', this.state.theme);
-        localStorage.setItem('bulb_gulabi_cart', JSON.stringify(this.state.cart));
-    },
-    
-    saveRecentSearches() {
-        localStorage.setItem('bulb_gulabi_searches', JSON.stringify(this.state.recentSearches));
-    },
-
-    // REVERTED: This function now handles its own anonymous auth
-    async loadCustomerProfile() {
-        if (!this.supabase) {
-            console.error("Supabase client not initialized in loadCustomerProfile.");
-            this.state.customerProfile = this.createFallbackProfile(true); // true for anonymous
-            ui.showToast('Error loading profile. Using guest mode.', 4000);
-            return;
-        }
-        try {
-            let { data: { user } } = await this.supabase.auth.getUser();
-            let isAnonymous = !user || user.is_anonymous;
-
-            if (!user) {
-                // Not logged in, sign in anonymously
-                console.log("No user session, signing in anonymously...");
-                const { data: signInData, error: signInError } = await this.supabase.auth.signInAnonymously();
-                if (signInError) throw signInError;
-                user = signInData.user;
-                isAnonymous = true;
-                console.log("Anonymous user signed in:", user.id);
-            } else {
-                 console.log("Existing user session found:", user.id);
-                 isAnonymous = user.is_anonymous;
-            }
-            
-            app.state.currentUser = user; // Set the user here
-
-            // User is available, try to fetch their profile
-            console.log("Fetching customer profile for user:", user.id);
-            const { data, error, status } = await this.supabase
-                .from('customers')
-                .select('*')
-                .eq('id', user.id)
-                .single();
-
-             console.log("Profile fetch status:", status, "Data:", data, "Error:", error);
-
-            if (data) {
-                // Profile exists
-                console.log("Profile found:", data);
-                // Ensure defaults
-                data.loyalty_points = data.loyalty_points ?? 0;
-                data.favorites = data.favorites ?? [];
-                this.state.customerProfile = data;
-            } else if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
-                 throw error; // Rethrow actual errors
-            } else {
-                 // No profile, create one
-                 console.log("No profile found, creating one for user:", user.id);
-                 const defaultName = isAnonymous ? 'Guest' : (user.email?.split('@')[0] || 'User');
-                 const { data: newProfile, error: insertError } = await this.supabase
-                    .from('customers')
-                    .insert({ 
-                        id: user.id, 
-                        name: defaultName, 
-                        loyalty_points: 0, 
-                        has_claimed_review: false, 
-                        is_claiming_review: false,
-                        favorites: []
-                    })
-                    .select()
-                    .single();
-
-                if (insertError) throw insertError;
-                console.log("New profile created:", newProfile);
-                this.state.customerProfile = newProfile;
-            }
-        } catch (e) {
-            console.error('Failed to load/create customer profile:', e);
-            this.state.customerProfile = this.createFallbackProfile(true); // true for anonymous
-            ui.showToast(`Error loading profile (${e.message || e.code || 'Unknown'}). Using guest mode.`, 5000);
-        }
-    },
-
-    createFallbackProfile(isAnonymous) {
-        return {
-            id: 'guest_user_fallback_' + Date.now(),
-            name: 'Guest', // Always 'Guest' for fallback
-            loyalty_points: 0,
-            has_claimed_review: false,
-            is_claiming_review: false,
-            favorites: []
-        };
-    },
-
-    async saveCustomerProfile() {
-        if (!this.supabase || !this.state.customerProfile || this.state.customerProfile.id.startsWith('guest_user_fallback')) {
-            console.warn("Cannot save fallback profile to DB.");
-            return;
-        }
-
-        try {
-            console.log("Saving profile update for user:", this.state.customerProfile.id);
-            const { error } = await this.supabase
-                .from('customers')
-                .update({
-                    // name: this.state.customerProfile.name, // REMOVED: Name is not editable
-                    loyalty_points: this.state.customerProfile.loyalty_points,
-                    has_claimed_review: this.state.customerProfile.has_claimed_review,
-                    is_claiming_review: this.state.customerProfile.is_claiming_review,
-                    favorites: this.state.customerProfile.favorites // NEW
-                 })
-                .eq('id', this.state.customerProfile.id);
-
-            if (error) throw error;
-            console.log("Profile saved successfully.");
-        } catch (e) {
-            console.error("Failed to save profile:", e);
-            ui.showToast(`Error saving profile.`, 3000);
-        }
-    },
-
-
-    async loadMenuData(showLoading = false) {
-        if (!this.supabase) return;
-        if (showLoading) ui.showLoadingSpinner();
-
-        try {
-            console.log(`Fetching menu for brand: ${this.state.currentBrand}`);
-            const { data, error } = await this.supabase
-                .from('products')
-                .select('*, product_variants!inner(*)')
-                .eq('brand', this.state.currentBrand)
-                .eq('is_available', true)
-                .eq('product_variants.is_available', true);
-
-            if (error) throw error;
-            console.log("Menu data fetched:", data);
-
-            let sortedData = (data || []).sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
-            
-            // NEW: Add mock prep time if not in DB
-            sortedData.forEach(item => {
-                if (!item.prep_time_minutes) {
-                    item.prep_time_minutes = Math.floor(Math.random() * 10) + 5; // Mock 5-15 mins
-                }
-            });
-
-            this.state.allMenuItems = sortedData;
-
-            const groupedMenu = sortedData.reduce((acc, item) => {
-                if (!item.product_variants || item.product_variants.length === 0) return acc;
-                let category = acc.find(c => c.category === item.category);
-                if (!category) {
-                    category = { category: item.category, items: [] };
-                    acc.push(category);
-                }
-                category.items.push(item);
-                return acc;
-            }, []);
-
-            this.state.menuData = groupedMenu;
-            console.log("Menu data processed:", this.state.menuData);
-
-        } catch (e) {
-            console.error("Failed to load menu data:", e);
-            ui.showToast(`Could not load menu.`, 3000);
-            this.state.allMenuItems = [];
-            this.state.menuData = [];
-        } finally {
-            if (showLoading) ui.hideLoadingSpinner();
-        }
-    },
-    
-    // NEW: Load Order History
-    async loadOrderHistory() {
-        if (!this.supabase || !this.state.customerProfile || this.state.customerProfile.id.startsWith('guest_user_fallback')) {
-             console.log("Cannot load history for guest.");
-             this.state.orderHistory = [];
-             return;
-        }
-        
-        try {
-            const { data, error } = await this.supabase
-                .from('orders')
-                .select('*, order_items(*, product_variants(name, products(name)))') // Nested select
-                .eq('customer_id', this.state.customerProfile.id)
-                .order('created_at', { ascending: false }); // Show newest first
-            
-            if (error) throw error;
-            
-            console.log("Order history fetched:", data);
-            this.state.orderHistory = data || [];
-        } catch (e) {
-            console.error("Failed to load order history:", e);
-            ui.showToast("Could not load order history.", 3000);
-            this.state.orderHistory = [];
-        }
-    },
-
-    // --- Realtime Subscriptions ---
-    subscribeToMenuChanges() {
-        if (!this.supabase) return;
-        if (this.state.menuSubscription) this.supabase.removeChannel(this.state.menuSubscription);
-
-        console.log("Subscribing to menu changes...");
-        this.state.menuSubscription = this.supabase
-            .channel('public:products_and_variants')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, (payload) => this.handleRealtimeUpdate('Menu', payload))
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'product_variants' }, (payload) => this.handleRealtimeUpdate('Menu', payload))
-            .subscribe((status, err) => this.logSubscriptionStatus('Menu', status, err));
-    },
-    
-    // NEW: Profile Subscription
-    subscribeToProfileChanges(userId) {
-        if (!this.supabase || userId.startsWith('guest_user_fallback')) return;
-        if (this.state.profileSubscription) this.supabase.removeChannel(this.state.profileSubscription);
-        
-        console.log("Subscribing to profile changes for user:", userId);
-        this.state.profileSubscription = this.supabase
-            .channel(`public:customers:id=eq.${userId}`)
-            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'customers', filter: `id=eq.${userId}` }, 
-                (payload) => {
-                    console.log('Profile change detected:', payload);
-                    const newProfile = payload.new;
-                    // Ensure defaults
-                    newProfile.loyalty_points = newProfile.loyalty_points ?? 0;
-                    newProfile.favorites = newProfile.favorites ?? [];
-                    this.state.customerProfile = newProfile;
-                    ui.showToast("Profile updated!", 2000);
-                    this.refreshPage(); // Refresh UI
-                }
-            )
-            .subscribe((status, err) => this.logSubscriptionStatus('Profile', status, err));
-    },
-    
-    // NEW: Order Subscription
-    subscribeToOrderChanges(userId) {
-        if (!this.supabase || userId.startsWith('guest_user_fallback')) return;
-        if (this.state.orderSubscription) this.supabase.removeChannel(this.state.orderSubscription);
-        
-        console.log("Subscribing to order changes for user:", userId);
-        this.state.orderSubscription = this.supabase
-            .channel(`public:orders:customer_id=eq.${userId}`)
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: `customer_id=eq.${userId}` }, 
-                (payload) => {
-                    console.log('Order change detected:', payload);
-                    
-                    if (payload.eventType === 'UPDATE' && payload.new.status) {
-                        ui.showToast(`Order #${payload.new.id.toString().slice(-4)} is now ${payload.new.status}!`, 4000);
-                    }
-                    
-                    // Reload order history if on that page
-                    if (this.state.currentPage === 'history') {
-                        this.loadOrderHistory().then(() => this.refreshPage());
-                    }
-                }
-            )
-            .subscribe((status, err) => this.logSubscriptionStatus('Orders', status, err));
-    },
-
-    async handleRealtimeUpdate(source, payload) {
-        console.log(`Realtime ${source} update received:`, payload);
-        ui.showToast(`${source} updated!`, 2000);
-        await this.loadMenuData(false);
-        if (this.state.currentPage === 'order') {
-            await this.refreshPage();
-        }
-    },
-    
-    logSubscriptionStatus(name, status, err) {
-         if (status === 'SUBSCRIBED') {
-            console.log(`Successfully subscribed to ${name} changes!`);
-         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-            console.error(`${name} subscription failed:`, status, err);
-         } else {
-            console.log(`${name} subscription status:`, status);
-         }
-    },
-
-    unsubscribeAll() {
-        if (this.supabase) {
-            this.supabase.removeAllChannels();
-            console.log("Unsubscribed from all channels.");
-        }
-    },
-
-    showMainInterface(){
-        $('#bottom-nav').classList.remove('hidden');
-        ui.renderBottomNav();
-
-        const initialHash = location.hash.substring(1);
-        if (PAGES.includes(initialHash)) {
-             this.state.currentPage = initialHash;
-        } else {
-             this.state.currentPage = 'home';
-             location.hash = 'home';
-        }
-        this.navigateTo(this.state.currentPage, false);
-    },
-
-    // --- Navigation & Brand Switching ---
-
-    async navigateTo(page, pushToHistory = true){
-         if (!PAGES.includes(page)) page = 'home';
-
-         if (page === this.state.currentPage && $(`#page-${page}`)) {
-            // Page already visible, do nothing
-             return;
-         }
-
-         if (page !== 'order') {
-             this.state.searchQuery = '';
-             this.state.menuTab = 'all';
-         }
-         
-         // NEW: Load data for history page
-         if (page === 'history') {
-             await this.loadOrderHistory();
-         }
-
-         sound.play('click');
-         
-         const oldPage = this.state.currentPage;
-         this.state.currentPage = page;
-
-         if (pushToHistory && location.hash.substring(1) !== page) {
-            location.hash = page;
-         } else if (!pushToHistory && location.hash.substring(1) !== page) {
-            history.replaceState(null, '', '#' + page);
-         }
-
-         await ui.renderHeader(page);
-         await ui.renderPage(page, oldPage); // NEW: Page transition logic
-         await ui.updateActiveNav(page);
-
-         if (window.lucide) {
-            window.lucide.createIcons();
-         }
-    },
-
-    handleHardwareBack(event) {
-         const currentHash = location.hash.substring(1);
-         const openModal = $('#modal-container').children[0];
-
-         if (openModal) {
-            if (openModal.id.includes('-game-modal')) {
-                GAMES.quickLight.stop();
-                GAMES.sequence.stop();
-            }
-            ui.closeModal(openModal.id);
-            event.preventDefault();
-            history.pushState(null, '', '#' + this.state.currentPage);
-            return;
-         }
-
-         if (PAGES.includes(currentHash) && currentHash !== this.state.currentPage) {
-            this.navigateTo(currentHash, false);
-         }
-         else if (this.state.currentPage !== 'home') {
-             event.preventDefault();
-             this.navigateTo('home');
-         }
-    },
-
-    applyTheme(){
-        document.body.dataset.theme = this.state.theme;
-        document.body.dataset.brand = this.state.currentBrand; // For dark mode branding
-    },
-
-    async switchBrand(brandName){
-        if (!['bulb', 'gulabi'].includes(brandName)) return;
-
-        this.state.currentBrand = brandName;
-        // If theme isn't dark, sync it to brand
-        if (this.state.theme !== 'dark') {
-            this.state.theme = brandName;
-        }
-        
-        this.saveCartAndBrandToStorage();
-        this.applyTheme();
-
-        await this.loadMenuData(true);
-        await ui.renderBottomNav();
-        await this.navigateTo(this.state.currentPage, false);
-    },
-    
-    // NEW: Switch Theme
-    switchTheme(themeName) {
-        if (!['bulb', 'gulabi', 'dark'].includes(themeName)) return;
-        
-        this.state.theme = themeName;
-        
-        // If theme is not dark, sync brand to theme
-        if (themeName !== 'dark') {
-            this.state.currentBrand = themeName;
-        }
-        
-        this.saveCartAndBrandToStorage();
-        this.applyTheme();
-        
-        // Full UI refresh
-        this.loadMenuData(false).then(() => {
-            ui.renderBottomNav();
-            this.navigateTo(this.state.currentPage, false);
-        });
-        ui.closeModal('theme-modal');
-    },
-
-    toggleAnimatedBulb() {
-        sound.play('click');
-        $('#app').classList.toggle('low-voltage');
-    },
-
-    // --- Search Function ---
-    performSearch(query) {
-        this.state.searchQuery = query.toLowerCase();
-        ui.renderMenuPage(); // Re-render content
-        const searchInput = $('#menu-search-input');
-        if (searchInput) {
-            searchInput.focus();
-            searchInput.selectionStart = searchInput.selectionEnd = searchInput.value.length;
-        }
-    },
-    
-    // NEW: Add search to recents
-    addRecentSearch(query) {
-        if (!query || query.length < 2) return;
-        let searches = this.state.recentSearches;
-        // Remove if exists
-        searches = searches.filter(s => s !== query);
-        // Add to front
-        searches.unshift(query);
-        // Keep only last 5
-        this.state.recentSearches = searches.slice(0, 5);
-        this.saveRecentSearches();
-    },
-    
-    // NEW: Toggle Favorite
-    async toggleFavorite(itemId) {
-        if (!this.state.customerProfile || this.state.customerProfile.id.startsWith('guest_user_fallback')) {
-             return ui.showToast("Could not save favorite. Please reload.", 3000); // Changed message
-        }
-        
-        const favorites = this.state.customerProfile.favorites || [];
-        const itemIndex = favorites.indexOf(itemId);
-        
-        if (itemIndex > -1) {
-            favorites.splice(itemIndex, 1); // Remove
-        } else {
-            favorites.push(itemId); // Add
-            sound.play('add_to_cart');
-        }
-        
-        this.state.customerProfile.favorites = favorites;
-        
-        // Optimistic UI update
-        this.refreshPage(); 
-        
-        // Save to DB
-        await this.saveCustomerProfile();
-    },
-
-    // --- Cart & Order Logic ---
-    addOrUpdateCart(itemId, variantId, quantityChange) {
-        if (this.state.currentBrand !== 'bulb') {
-            return ui.showToast('Ordering only available for Bulb Cafe.');
-        }
-        sound.play('click');
-
-        const item = this.state.allMenuItems.find(i => i.id === itemId);
-        if (!item) return;
-        const variant = item.product_variants.find(v => v.id === variantId);
-        if (!variant) return;
-
-        let cartItem = this.state.cart.find(i => i.itemId === itemId && i.variantId === variantId);
-        let newQuantity = (cartItem ? cartItem.quantity : 0) + quantityChange;
-
-        if (newQuantity <= 0) {
-            this.state.cart = this.state.cart.filter(i => !(i.itemId === itemId && i.variantId === variantId));
-        } else {
-            if (cartItem) {
-                cartItem.quantity = newQuantity;
-            } else {
-                this.state.cart.push({
-                    cartId: Date.now(),
-                    itemId: item.id,
-                    variantId: variant.id,
-                    name: item.name,
-                    variantName: variant.name,
-                    price: variant.price,
-                    quantity: newQuantity
-                });
-            }
-            if (quantityChange > 0) sound.play('add_to_cart');
-        }
-
-        this.saveCartAndBrandToStorage();
-        this.refreshPage();
-    },
-
-    handleMenuAddClick(itemId, variantId) {
-        this.addOrUpdateCart(itemId, variantId, 1);
-    },
-
-    calculateCartTotal(){
-        const subtotal = this.state.cart.reduce((t, i) => t + (i.price * i.quantity), 0);
-        const gst = subtotal * (CONSTANTS.taxes.gst_percent / 100);
-        const finalTotal = subtotal + gst;
-        return { subtotal, gst, finalTotal: Math.max(0, finalTotal) };
-    },
-
-    async refreshPage(){
-        await ui.refreshCartDependentUI();
-        // Re-render only the content of the current page
-        const pageContent = $(`#page-${this.state.currentPage} .page-content`);
-        if (pageContent) {
-            const renderer = ui.getPageRenderer(this.state.currentPage);
-            if (renderer) {
-                pageContent.innerHTML = await renderer.call(ui);
-                ui.runStaggerAnimation(pageContent);
-            }
-        }
-        // Always refresh header for profile icon
-        await ui.renderHeader(this.state.currentPage);
-        
-        if (window.lucide) {
-            window.lucide.createIcons();
-        }
-    },
-
-    async placeOrder(paymentMethod, btnElement){
-        if (this.state.cart.length === 0) return ui.showToast("Cart is empty.");
-        if (!this.state.customerProfile || this.state.customerProfile.id.startsWith('guest_user_fallback')) {
-             return ui.showToast("Cannot place order with guest profile. Please reload.", 4000); // Changed message
-        }
-
-        btnElement.disabled = true;
-        btnElement.innerHTML = `<span class="flex items-center justify-center"><div class="spinner mr-2"></div> Processing...</span>";
-
-        const { subtotal, finalTotal } = this.calculateCartTotal();
-        let pointsEarned = 0;
-
-        try {
-            if (finalTotal > CONSTANTS.loyalty.min_order_for_points) {
-                pointsEarned = Math.floor(finalTotal * CONSTANTS.loyalty.percent_earn);
-            }
-            const newTotalPoints = (this.state.customerProfile.loyalty_points || 0) + pointsEarned;
-
-            // 1. Create Order
-            const orderPayload = {
-                customer_id: this.state.customerProfile.id,
-                total_amount: Math.round(finalTotal),
-                points_earned: pointsEarned,
-                status: 'received'
-            };
-            const { data: order, error: orderError } = await this.supabase
-                .from('orders')
-                .insert(orderPayload)
-                .select()
-                .single();
-            if (orderError) throw orderError;
-
-            // 2. Create Order Items
-            const orderItemsPayload = this.state.cart.map(item => ({
-                order_id: order.id,
-                product_variant_id: item.variantId,
-                quantity: item.quantity,
-                price_at_order: item.price
-            }));
-            const { error: itemsError } = await this.supabase
-                .from('order_items')
-                .insert(orderItemsPayload);
-            if (itemsError) {
-                 await this.supabase.from('orders').delete().eq('id', order.id); // Rollback
-                 throw itemsError;
-            }
-
-            // 3. Update customer points
-             if (pointsEarned > 0) {
-                 this.state.customerProfile.loyalty_points = newTotalPoints;
-                 await this.saveCustomerProfile();
-             }
-
-            // 4. Clear local cart
-            this.state.cart = [];
-            this.saveCartAndBrandToStorage();
-
-            // 5. Show success
-            ui.closeModal('payment-modal');
-            sound.play('success');
-            const toastMessage = pointsEarned > 0
-                ? `Order placed! You earned ${pointsEarned} points.`
-                : 'Takeaway order placed!';
-            ui.showToast(toastMessage, 4000);
-            await this.refreshPage();
-
-        } catch (error) {
-            console.error("Place Order Failed:", error);
-            ui.showToast(`Order failed: ${error.message || 'Unknown error'}`, 5000);
-            this.state.customerProfile.loyalty_points -= pointsEarned; // Local rollback
-            btnElement.disabled = false;
-            btnElement.innerHTML = "Proceed to Payment"; // Reset button text
-        }
-    },
-    
-    // NEW: Re-order
-    async reOrder(orderId) {
-        if (this.state.currentBrand !== 'bulb') {
-            return ui.showToast('Ordering only available for Bulb Cafe.');
-        }
-        
-        const order = this.state.orderHistory.find(o => o.id === orderId);
-        if (!order || !order.order_items) {
-            return ui.showToast("Could not find order items.", 3000);
-        }
-        
-        // Check if all items are still available
-        let itemsAdded = 0;
-        for (const item of order.order_items) {
-            const product = this.state.allMenuItems.find(p => p.product_variants.some(v => v.id === item.product_variant_id));
-            if (product) {
-                const variant = product.product_variants.find(v => v.id === item.product_variant_id);
-                if (variant) {
-                    // Add to cart, replacing existing
-                    this.addOrUpdateCart(product.id, variant.id, item.quantity - (this.state.cart.find(ci => ci.variantId === variant.id)?.quantity || 0));
-                    itemsAdded++;
-                }
-            }
-        }
-        
-        if (itemsAdded > 0) {
-            ui.showToast(`Added ${itemsAdded} items to your cart!`, 3000);
-            this.navigateTo('cart');
-        } else {
-            ui.showToast("Could not add items. They may no longer be available.", 4000);
-        }
-    },
-
-
-    // --- Loyalty & Review Logic ---
-
-    claimReviewBonus() {
-        if (!this.state.customerProfile || this.state.customerProfile.id.startsWith('guest_user_fallback')) {
-             return ui.showToast("Could not find profile. Please reload.", 3000); // Changed message
-        }
-        if (this.state.customerProfile.has_claimed_review || this.state.customerProfile.is_claiming_review) return;
-        $('#review-screenshot-input')?.click();
-        if (!$('#review-screenshot-input')) {
-            console.error("File input not found");
-            ui.showToast("Error: File input missing.", 3000);
-        }
-    },
-
-    async handleScreenshotUpload(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        this.state.customerProfile.is_claiming_review = true;
-        // Save pending state to DB
-        await this.saveCustomerProfile();
-        await this.refreshPage();
-        ui.showToast('Screenshot received. Verification in progress...', 4000);
-
-        // Simulate verification (in a real app, this would be a backend process)
-        setTimeout(async () => {
-            if (file.size > 10000000 || !file.type.startsWith('image/')) {
-                ui.showToast('Verification failed: Invalid screenshot.', 4000);
-                this.state.customerProfile.is_claiming_review = false;
-                await this.saveCustomerProfile(); // Save failure
-                await this.refreshPage();
-                return;
-            }
-
-            // Success
-            this.state.customerProfile.loyalty_points += CONSTANTS.loyalty.review_bonus;
-            this.state.customerProfile.has_claimed_review = true;
-            this.state.customerProfile.is_claiming_review = false;
-            await this.saveCustomerProfile(); // Save success
-
-            ui.showToast(`+${CONSTANTS.loyalty.review_bonus} bonus points added!`, 3000);
-            await this.refreshPage();
-        }, 3000);
-    },
-
-    async redeemReward() {
-        if (!this.state.customerProfile || this.state.customerProfile.id.startsWith('guest_user_fallback')) {
-            return ui.showToast("Could not find profile. Please reload.", 3000); // Changed message
-        }
-        if (this.state.customerProfile.loyalty_points < CONSTANTS.loyalty.redeem_cost) {
-            return ui.showToast('Not enough points to redeem.', 3000);
-        }
-
-        this.state.customerProfile.loyalty_points -= CONSTANTS.loyalty.redeem_cost;
-        this.state.cart.push({
-            cartId: Date.now(),
-            itemId: 999, variantId: 999,
-            name: 'FREE REWARD ITEM', variantName: 'Loyalty Reward',
-            price: 0, quantity: 1
-        });
-
-        await this.saveCustomerProfile();
-        this.saveCartAndBrandToStorage();
-
-        ui.showToast(`Redeemed! Free item added to cart.`, 4000);
-        await this.refreshPage();
-    },
-    
-    // REMOVED: signUp, signIn, signOut
-
-    // --- Game Logic ---
-    showGame(gameId) {
-        ui.closeModal('games-modal');
-        if (gameId === 'quickLight') {
-            GAMES.quickLight.start();
-        } else if (gameId === 'sequence') {
-            GAMES.sequence.start();
-        } else {
-            ui.showToast(`Game "${gameId}" is coming soon!`, 2000);
-        }
-    }
-};
-
-// --- UI Rendering Object ---
-const ui = {
-    loadingSpinnerVisible: false,
-
-    showModal(id, content) {
-        location.hash = id;
-        const existingModal = $(`#${id}`);
-        if (existingModal) existingModal.remove();
-
-        const modalHTML = `
-            <div id="${id}" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-end justify-center z-50 p-4 pt-16">
-                <div class="modal-content bg-primary rounded-t-2xl shadow-xl p-6 w-full max-w-lg">
-                    ${content}
-                </div>
-            </div>`;
-        $('#modal-container').insertAdjacentHTML('beforeend', modalHTML);
-        if (window.lucide) {
-            window.lucide.createIcons();
-        }
-    },
-
-    closeModal(id) {
-        if (id.includes('-game-modal')) {
-            GAMES.quickLight.stop();
-            GAMES.sequence.stop();
-        }
-
-        const modal = $(`#${id}`);
-        if (modal) {
-            modal.remove();
-        }
-
-        if (location.hash.substring(1) === id) {
-            if (history.length > 1 && window.performance.navigation.type !== window.performance.navigation.TYPE_RELOAD) {
-                 history.back();
-            } else {
-                 history.replaceState(null, '', location.pathname + location.search + '#' + app.state.currentPage);
-            }
-        }
-    },
-
-    showToast(message, duration = 3000) {
-        const toast = $('#toast'), p = $('#toast-message');
-        if (!toast || !p) return;
-        p.textContent = message;
-        toast.classList.remove('hidden');
-        toast.style.animation = `toast-in 0.5s ease, toast-out 0.5s ease ${duration / 1000 - 0.5}s forwards`;
-        setTimeout(() => {
-            toast.classList.add('hidden');
-            toast.style.animation = '';
-        }, duration);
-    },
-
-    showLoadingSpinner() {
-        if (this.loadingSpinnerVisible) return;
-        this.loadingSpinnerVisible = true;
-        const spinnerHtml = `
-            <div id="loading-spinner-overlay" class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-[99]">
-                <div class="spinner !w-12 !h-12 !border-4 !border-[var(--brand-secondary)] !border-t-[var(--brand-primary)]"></div>
-            </div>
-        `;
-        document.body.insertAdjacentHTML('beforeend', spinnerHtml);
-    },
-
-    hideLoadingSpinner() {
-        this.loadingSpinnerVisible = false;
-        $('#loading-spinner-overlay')?.remove();
-    },
-
-    async renderHeader(page) {
-        const header = $('#page-header');
-        if (!header) return;
-        const pageConfigs = {
-            home: { title: 'Bulb & Gulabi' },
-            order: { title: 'Menu' },
-            cart: { title: 'My Cart' },
-            history: { title: 'Order History' },
-            social: { title: 'Social' },
-            gulabi: { title: 'Gulabi Thali' },
-            more: { title: 'Profile & More' }
-        };
-        const config = pageConfigs[page] || { title: 'Bulb & Gulabi' };
-
-        const switchButton = app.state.currentBrand === 'gulabi' ? `
-            <button onclick="app.switchBrand('bulb')" class="brand-bg-secondary brand-text text-xs font-bold py-1 px-2 rounded-lg shadow-sm">
-                Switch to Bulb 💡
+        <!-- 
+        ========================================
+        BOTTOM TAB BAR
+        ========================================
+        -->
+        <nav id="tab-bar" class="bg-primary">
+            <button class="tab-item active" data-page="home">
+                <svg class="icon-default text-secondary"><use href="#icon-home"></use></svg>
+                <svg class="icon-active text-brand"><use href="#icon-home-filled"></use></svg>
+                <span class="text-secondary">Home</span>
             </button>
-        ` : '';
-        
-        // REVERTED: Profile button logic
-        let profileButtonHTML = '';
-        const profile = app.state.customerProfile;
+            <button class="tab-item" data-page="order">
+                <svg class="icon-default text-secondary"><use href="#icon-menu"></use></svg>
+                <svg class="icon-active text-brand"><use href="#icon-menu-filled"></use></svg>
+                <span class="text-secondary">Order</span>
+            </button>
+            <button class="tab-item" data-page="cart">
+                <div class="relative">
+                    <svg class="icon-default text-secondary"><use href="#icon-cart"></use></svg>
+                    <svg class="icon-active text-brand"><use href="#icon-cart-filled"></use></svg>
+                    <span id="cart-badge" class="bg-brand-primary text-white">0</span>
+                </div>
+                <span class="text-secondary">Cart</span>
+            </button>
+            <button class="tab-item" data-page="history">
+                <svg class="icon-default text-secondary"><use href="#icon-history"></use></svg>
+                <svg class="icon-active text-brand"><use href="#icon-history-filled"></use></svg>
+                <span class="text-secondary">History</span>
+            </button>
+            <button class="tab-item" data-page="profile">
+                <svg class="icon-default text-secondary"><use href="#icon-profile"></use></svg>
+                <svg class="icon-active text-brand"><use href="#icon-profile-filled"></use></svg>
+                <span class="text-secondary">Profile</span>
+            </button>
+        </nav>
+    </div>
 
-        if (!profile) {
-            profileButtonHTML = `
-                <button class="brand-bg-secondary brand-text font-bold rounded-full h-10 w-10 flex items-center justify-center text-lg shadow-sm">
-                     G
-                </button>`;
-        } else {
-             profileButtonHTML = `
-                <button onclick="app.navigateTo('more')" class="brand-bg-secondary brand-text font-bold rounded-full h-10 w-10 flex items-center justify-center text-lg shadow-sm">
-                     ${profile.name.charAt(0).toUpperCase()}
-                </button>`;
-        }
+    <!-- 
+    ========================================
+    MODAL CONTAINER
+    ========================================
+    -->
+    <div id="modal-container" class="hidden">
+        <div id="modal-backdrop"></div>
+        <div id="modal-box" class="bg-primary">
+            <!-- Close button -->
+            <button id="modal-close-btn" class="absolute top-2 right-3 text-secondary text-3xl">&times;</button>
+            <!-- Modal Content Injected Here -->
+            <div id="modal-content" class="p-6 pt-10"></div>
+        </div>
+    </div>
+
+    <!-- 
+    ========================================
+    TOAST CONTAINER
+    ========================================
+    -->
+    <div id="toast-container"></div>
 
 
-        header.innerHTML = `
-            <div class="flex items-center space-x-2">
-                <!-- NEW: Theme Switcher -->
-                <button onclick="ui.showThemeSwitcherModal()" class="text-secondary p-1 rounded-full">
-                    <i data-lucide="${app.state.theme === 'dark' ? 'moon' : 'sun'}" class="w-6 h-6"></i>
-                </button>
-                ${switchButton}
-            </div>
-            
-            <h1 class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-xl font-bold brand-text ${app.state.currentBrand === 'bulb' ? 'glitch-text' : ''}">${config.title}</h1>
-            
-            <div class="text-right flex items-center space-x-2">
-                <button id="animated-bulb-button" onclick="app.toggleAnimatedBulb()" class="bulb-icon text-secondary">
-                    <i data-lucide="lightbulb" class="w-6 h-6"></i>
-                </button>
-                ${profileButtonHTML}
-            </div>`;
-    },
+    <!-- 
+    ================================================================
+    ================================================================
     
-    // NEW: Page rendering with transitions
-    async renderPage(pageId, oldPageId) {
-        const pageContainer = $('#page-container');
-        if (!pageContainer) return;
-        
-        // Find old page and animate out
-        const oldPage = $(`#page-${oldPageId}`);
-        if (oldPage) {
-            oldPage.classList.add('page-exit-active');
-            // Remove after animation
-            setTimeout(() => oldPage.remove(), 300);
-        }
-        
-        // Create new page
-        const pageElement = document.createElement('div');
-        pageElement.id = `page-${pageId}`;
-        pageElement.className = 'page page-enter-active';
-        
-        // Get content
-        const renderer = this.getPageRenderer(pageId);
-        let contentHTML = `<div class="p-4 text-center text-secondary">Page not found.</div>`;
-        if (renderer) {
-            try {
-                // Add a wrapper for scrolling and padding
-                contentHTML = `<div class="page-content space-y-6">${await renderer.call(this)}</div>`;
-            } catch (e) {
-                console.error(`Error rendering page ${pageId}:`, e);
-                contentHTML = `<div class="page-content p-4 text-center text-red-500">Error loading page content.</div>`;
-            }
-        }
-        
-        pageElement.innerHTML = contentHTML;
-        pageContainer.appendChild(pageElement);
-        
-        // Add spacer for bottom nav
-        const spacer = document.createElement('div');
-        spacer.className = 'h-20 flex-shrink-0';
-        pageElement.appendChild(spacer);
-        
-        // Run animations
-        this.runStaggerAnimation(pageElement);
-    },
+    JAVASCRIPT
     
-    getPageRenderer(pageId) {
-        const renderers = {
-            home: this.renderHomePage,
-            order: this.renderMenuPage,
-            cart: this.renderCartPage,
-            history: this.renderHistoryPage, // NEW
-            social: this.renderSocialPage,
-            gulabi: this.renderGulabiPage,
-            more: this.renderMorePage,
-        };
-        return renderers[pageId];
-    },
+    This is the core application logic.
     
-    // NEW: Stagger animation
-    runStaggerAnimation(container) {
-        const items = container.querySelectorAll('.stagger-child');
-        items.forEach((item, index) => {
-            item.style.animationDelay = `${index * 50}ms`;
-        });
-    },
+    ================================================================
+    ================================================================
+    -->
+    <script type="module">
+        /*
+        ========================================
+        SUPABASE SETUP
+        ========================================
+        */
+        const SUPABASE_URL = 'https://vrvlvvlfzbdqwfsdlrkv.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZydmx2dmxmemJkcXdmc2Rscmt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NzI2NzAsImV4cCI6MjA3NzU0ODY3MH0.yYnxeipLuO0DlTvGITI5ajHDeoWZ80N2PS3rPhuOyp8';
 
-    async renderBottomNav(){
-        const nav = $('#bottom-nav');
-        if (!nav) return;
-        const icons = {
-            home: 'home',
-            order: 'book-open',
-            cart: 'shopping-cart',
-            history: 'history', // NEW
-            social: 'users',
-            gulabi: 'heart',
-            more: 'menu'
-        };
-        // NEW: Filtered pages for nav
-        const navPages = ['home', 'order', 'cart', 'history', 'more'];
-
-        nav.innerHTML = navPages.map(p => `
-            <button onclick="app.navigateTo('${p}')" class="nav-item flex-1 p-2 text-secondary" data-page="${p}">
-                <div class="relative w-full flex justify-center">
-                    <i data-lucide="${icons[p]}" class="h-7 w-7 mx-auto"></i>
-                    ${p === 'cart' ? '<span id="cart-count" class="absolute -top-1 right-1/4 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>' : ''}
-                </div>
-                <span id="${p}-tab-label" class="text-xs font-bold capitalize">${p}</span>
-            </button>`).join('');
-    },
-
-    async updateActiveNav(page) {
-        await this.refreshCartDependentUI();
-        $$('.nav-item').forEach(item => {
-            const isActive = item.dataset.page === page;
-            item.classList.toggle('brand-text', isActive);
-            item.classList.toggle('text-secondary', !isActive);
-            item.style.transform = isActive ? 'scale(1.1)' : 'scale(1)';
-        });
-    },
-
-    async refreshCartDependentUI() {
-        const el = $('#cart-count');
-        if (!el) return;
-        const total = app.state.cart.reduce((s, i) => s + i.quantity, 0);
-        if (total > 0) {
-            el.textContent = total;
-            el.classList.remove('hidden');
-        } else {
-            el.classList.add('hidden');
+        if (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY') {
+            document.getElementById('page-home').innerHTML = `
+                <div class="p-4 bg-red-100 text-red-800 rounded-lg">
+                    <h1 class="font-bold text-lg">Configuration Needed</h1>
+                    <p>Please open this HTML file and replace 
+                    <code>YOUR_SUPABASE_URL</code> and <code>YOUR_SUPABASE_ANON_KEY</code> 
+                    with your project credentials from supabase.com.</p>
+                </div>`;
+            document.getElementById('splash-screen').classList.add('splash-hide');
+            document.getElementById('page-home').classList.add('page-active');
         }
-    },
 
-    // --- Page Specific Renderers (Return HTML string) ---
+        const { createClient } = supabase;
+        const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    async renderHomePage(){
-        const profile = app.state.customerProfile;
-        const brand = app.state.currentBrand;
-        // REMOVED: isAnonymous check
+        /*
+        ========================================
+        APPLICATION STATE
+        ========================================
+        */
+        const app = {
+            state: {
+                currentUser: null,
+                profile: { loyalty_points: 0, name: 'Guest' },
+                currentBrand: 'bulb',
+                currentTheme: 'light',
+                currentPage: 'home',
+                products: [],       // All products from DB
+                categories: [],     // Unique categories from products
+                cart: [],           // { id, name, price, image_url, quantity, variant: { name, price_modifier }, brand }
+                orders: [],         // User's past orders
+                recentSearches: [], // Last 5 search terms
+                lastPage: 'home',
+            },
 
-        const mediaHTML = brand === 'bulb' ? `
-            <div class="relative h-48 overflow-hidden rounded-b-2xl">
-                <video src="${CONSTANTS.bulb_video_url}" autoplay loop muted playsinline preload="metadata" class="absolute top-1/2 left-1/2 w-full h-full object-cover -translate-x-1/2 -translate-y-1/2"></video>
-                <div class="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white text-center p-4">
-                    <h1 class="text-3xl font-bold glitch-text">Bulb Cafe</h1>
-                    <p class="text-lg mt-1 font-light">Illuminating your day</p>
-                </div>
-            </div>` : `
-            <div class="relative h-48 overflow-hidden rounded-b-2xl">
-                <img src="https://placehold.co/600x400/EC4899/FFFFFF?text=Gulabi+Thali" class="absolute top-1/2 left-1/2 w-full h-full object-cover -translate-x-1/2 -translate-y-1/2" alt="Gulabi Thali Banner">
-                <div class="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white text-center p-4">
-                    <h1 class="text-3xl font-bold">Gulabi Thali</h1>
-                    <p class="text-lg mt-1 font-light">Authentic. Fresh. Delicious.</p>
-                </div>
-            </div>`;
-        
-        // REVERTED: loginPromptHTML
-        const loginPromptHTML = `
-            <div class="stagger-child text-center px-4">
-                <h2 class="text-2xl font-bold text-primary">Welcome, ${profile ? profile.name : 'Guest'}!</h2>
-                <p class="text-secondary">You are viewing: <strong class="brand-text capitalize">${brand}</strong></p>
-            </div>
-        `;
-
-        const loyaltyPromoHTML = `
-            <div class="stagger-child group relative bg-secondary rounded-xl p-6 overflow-hidden shadow-sm border border-custom">
-                <h2 class="text-2xl font-bold text-primary">💰 Earn 10% Loyalty Points!</h2>
-                <p class="mt-1 text-secondary">Get <strong>10%</strong> back in points on all Bulb orders over <strong>₹${CONSTANTS.loyalty.min_order_for_points}</strong>.</p>
-            </div>`;
-            
-        const reviewPromoHTML = `
-            <div onclick="app.navigateTo('more')" class="stagger-child cursor-pointer group relative bg-secondary rounded-xl p-6 overflow-hidden shadow-sm border border-custom">
-                <h2 class="text-2xl font-bold text-primary">⭐ Get ${CONSTANTS.loyalty.review_bonus} Bonus Points!</h2>
-                <p class="mt-1 text-secondary">Post a review, upload a screenshot, and claim your reward.</p>
-                <button class="font-semibold mt-3 text-sm brand-bg px-4 py-2 rounded-lg">Learn More &rarr;</button>
-            </div>`;
-            
-        // NEW: What's New
-        const whatsNewHTML = `
-            <div class="stagger-child bg-secondary rounded-xl p-6 shadow-sm border border-custom">
-                <h2 class="text-2xl font-bold text-primary mb-3">What's New</h2>
-                <div class="space-y-2">
-                    <div class="flex items-center">
-                        <span class="text-lg mr-3">🌶️</span>
-                        <p class="text-secondary"><strong class="text-primary">Spicy Paneer Wrap:</strong> Now available for a limited time!</p>
-                    </div>
-                    <div class="flex items-center">
-                        <span class="text-lg mr-3">☕</span>
-                        <p class="text-secondary"><strong class="text-primary">Hazelnut Cold Coffee:</strong> Our new crowd-pleaser.</p>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        return `
-            ${mediaHTML}
-            <div class="p-4 space-y-8">
-                ${loginPromptHTML}
+            // ===== APP INITIALIZATION =====
+            async init() {
+                console.log('App init...');
+                this.initTheme();
+                this.initCart();
+                this.initEventListeners();
                 
-                <button onclick="app.navigateTo('order')" class="stagger-child w-full brand-bg font-semibold py-4 px-6 rounded-lg text-lg">
-                    ${brand === 'bulb' ? 'Order from Bulb (Full Menu)' : 'View Gulabi Menu (View Only)'}
-                </button>
+                try {
+                    await this.authenticateUser();
+                    if (!this.state.currentUser) throw new Error("Authentication failed");
+                    
+                    console.log('User authenticated:', this.state.currentUser.id);
+
+                    // Fetch data in parallel
+                    await Promise.all([
+                        this.fetchUserProfile(this.state.currentUser.id),
+                        this.fetchProducts(),
+                        this.fetchOrders(this.state.currentUser.id)
+                    ]);
+                    
+                    this.setupRealtimeSubscriptions();
+                    this.renderAll();
+
+                } catch (error) {
+                    console.error("Error during app initialization:", error);
+                    this.showToast("Error connecting to server", "error");
+                } finally {
+                    // Hide splash screen
+                    setTimeout(() => {
+                        document.getElementById('splash-screen').classList.add('splash-hide');
+                        this.navigateTo('home', true); // Force navigate to home
+                    }, 1000); // Show splash for at least 1 sec
+                }
+            },
+
+            // ===== AUTHENTICATION & PROFILE =====
+            async authenticateUser() {
+                const { data, error } = await sb.auth.signInAnonymously();
+                if (error) {
+                    console.error("Error signing in anonymously:", error);
+                    return;
+                }
+                this.state.currentUser = data.user;
+            },
+
+            async fetchUserProfile(userId) {
+                try {
+                    let { data, error } = await sb.from('customers').select('*').eq('user_id', userId).single();
+                    
+                    if (error || !data) {
+                        console.log('No profile found, creating one...');
+                        const { data: newData, error: insertError } = await sb.from('customers')
+                            .insert({ user_id: userId, name: 'Guest', loyalty_points: 0 })
+                            .select()
+                            .single();
+                        
+                        if (insertError) throw insertError;
+                        this.state.profile = newData;
+                    } else {
+                        this.state.profile = data;
+                    }
+                    console.log('Profile loaded:', this.state.profile);
+                } catch (error) {
+                    console.error("Error fetching/creating profile:", error);
+                    this.showToast("Could not load user profile", "error");
+                }
+            },
+
+            // ===== DATA FETCHING =====
+            async fetchProducts() {
+                try {
+                    let { data, error } = await sb.from('products').select('*');
+                    if (error) throw error;
+                    
+                    this.state.products = data;
+                    // Get unique categories from all products
+                    const categorySet = new Set(data.map(p => p.category));
+                    this.state.categories = [...categorySet].sort();
+                    
+                    console.log('Products loaded:', this.state.products.length);
+                    this.renderMenu();
+                } catch (error) {
+                    console.error("Error fetching products:", error);
+                    this.showToast("Could not load menu", "error");
+                }
+            },
+
+            async fetchOrders(userId) {
+                try {
+                    // Fetch orders
+                    let { data: orders, error } = await sb.from('orders')
+                        .select('*')
+                        .eq('user_id', userId)
+                        .order('created_at', { ascending: false });
+                    if (error) throw error;
+
+                    // For each order, fetch its items
+                    for (let order of orders) {
+                        let { data: items, error: itemsError } = await sb.from('order_items')
+                            .select('*')
+                            .eq('order_id', order.id);
+                        
+                        if (itemsError) throw itemsError;
+                        order.items = items;
+                    }
+
+                    this.state.orders = orders;
+                    console.log('Orders loaded:', this.state.orders.length);
+                    this.renderHistory();
+                } catch (error) {
+                    console.error("Error fetching orders:", error);
+                }
+            },
+
+            // ===== REALTIME SUBSCRIPTIONS =====
+            setupRealtimeSubscriptions() {
+                console.log('Setting up realtime...');
+                // Channel for product changes
+                sb.channel('products-channel')
+                  .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, 
+                    (payload) => {
+                        console.log('Product change received!', payload);
+                        this.fetchProducts(); // Re-fetch all products
+                        this.showToast("Menu has been updated!");
+                    }
+                  )
+                  .subscribe();
+
+                // Channel for user's order changes
+                sb.channel('user-orders-channel')
+                  .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: `user_id=eq.${this.state.currentUser.id}` }, 
+                    (payload) => {
+                        console.log('Order change received!', payload);
+                        this.fetchOrders(this.state.currentUser.id); // Re-fetch orders
+                        if (payload.new && payload.new.status) {
+                            this.showToast(`Your order #${payload.new.id.toString().slice(0, 4)} is now ${payload.new.status}`);
+                        }
+                    }
+                  )
+                  .subscribe();
+            },
+
+            // ===== NAVIGATION =====
+            navigateTo(pageId, force = false) {
+                const newPage = document.getElementById(`page-${pageId}`);
+                if (!newPage) return;
+
+                const oldPageId = this.state.currentPage;
+                if (oldPageId === pageId && !force) return;
+
+                const oldPage = document.getElementById(`page-${oldPageId}`);
+
+                // Update tab bar
+                document.querySelectorAll('#tab-bar .tab-item').forEach(tab => {
+                    tab.classList.toggle('active', tab.dataset.page === pageId);
+                    // Update text color of tab label
+                    const label = tab.querySelector('span');
+                    if (label) {
+                        label.classList.toggle('text-brand', tab.dataset.page === pageId);
+                        label.classList.toggle('text-secondary', tab.dataset.page !== pageId);
+                    }
+                });
+
+                // Page Transition
+                if (oldPage && oldPage !== newPage) {
+                    oldPage.classList.remove('page-active');
+                    oldPage.classList.add('page-exit');
+                    
+                    newPage.classList.add('page-active');
+
+                    // Clean up after transition
+                    setTimeout(() => {
+                        oldPage.classList.remove('page-exit');
+                    }, 300);
+                } else {
+                    newPage.classList.add('page-active');
+                }
+
+                this.state.lastPage = oldPageId;
+                this.state.currentPage = pageId;
+
+                // Scroll to top of new page
+                document.getElementById('main-content').scrollTop = 0;
+            },
+
+            // ===== THEME & BRAND SWITCHING =====
+            initTheme() {
+                const brand = localStorage.getItem('appBrand') || 'bulb';
+                const theme = localStorage.getItem('appTheme') || 'light';
+                this.state.recentSearches = JSON.parse(localStorage.getItem('appRecentSearches')) || [];
                 
-                ${whatsNewHTML}
-                ${brand === 'bulb' ? loyaltyPromoHTML : ''}
-                ${brand === 'bulb' ? reviewPromoHTML : ''}
-            </div>
-        `;
-    },
+                this.switchTheme(brand, theme);
 
-    async renderMenuPage(){
-        const brand = app.state.currentBrand;
-        const favs = app.state.customerProfile?.favorites || [];
-        
-        // NEW: Search Bar
-        const searchBarHTML = `
-            <div class="p-4 sticky top-16 bg-primary z-10 border-b border-custom">
-                <form id="search-form" class="relative" onsubmit="event.preventDefault(); app.addRecentSearch(app.state.searchQuery);">
-                    <input type="text" id="menu-search-input" placeholder="Search menu..."
-                           class="w-full p-3 pl-10 border-2 border-custom rounded-lg bg-secondary text-primary text-lg"
-                           oninput="app.performSearch(this.value)" value="${app.state.searchQuery}">
-                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary"></i>
-                </form>
-            </div>
-        `;
-        
-        // NEW: Recent Searches
-        let recentSearchesHTML = '';
-        if (app.state.recentSearches.length > 0 && app.state.searchQuery.length === 0) {
-            recentSearchesHTML = `
-                <div class="px-4 pb-2">
-                    <h3 class="text-sm font-semibold text-secondary mb-2">Recent Searches</h3>
-                    <div class="flex flex-wrap gap-2">
-                        ${app.state.recentSearches.map(term => `
-                            <button onclick="app.performSearch('${term}')" class="bg-secondary text-primary px-3 py-1 rounded-full text-sm">${term}</button>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-        }
-        
-        // NEW: Menu Tabs
-        const menuTabsHTML = `
-            <div class="flex space-x-6 px-4 border-b border-custom">
-                <button class="menu-tab ${app.state.menuTab === 'all' ? 'active' : ''}" onclick="app.state.menuTab = 'all'; app.refreshPage();">
-                    All Items
-                </button>
-                <button class="menu-tab ${app.state.menuTab === 'favorites' ? 'active' : ''}" onclick="app.state.menuTab = 'favorites'; app.refreshPage();">
-                    Favorites (${favs.length})
-                </button>
-            </div>
-        `;
+                // Update dropdowns
+                document.getElementById('brand-switcher').value = brand;
+                document.getElementById('theme-switcher').value = theme;
+            },
 
-        let itemsHTML = '';
-        if (app.state.allMenuItems.length === 0) {
-             itemsHTML = `<div class="p-4 text-center text-secondary">Loading menu...</div>`;
-        } else {
-            let itemsToDisplay = [];
+            switchTheme(brand, theme) {
+                this.state.currentBrand = brand;
+                this.state.currentTheme = theme;
+
+                document.body.dataset.brand = brand;
+                document.body.dataset.theme = theme;
+
+                localStorage.setItem('appBrand', brand);
+                localStorage.setItem('appTheme', theme);
+                
+                // Re-render menu and cart for the new brand
+                this.renderMenu();
+                this.renderCart();
+                this.updateCartCount();
+
+                // Update brand-specific elements
+                const logoHome = document.getElementById('brand-logo-home');
+                const welcomeText = document.getElementById('brand-welcome-text');
+                
+                // Text-based logos using the new brand font
+                const bulbLogo = `<div class="flex items-center justify-center h-24 mx-auto mb-2"><span class="font-brand text-5xl font-bold" style="color: rgb(var(--brand-primary))">Bulb</span></div>`;
+                const gulabiLogo = `<div class="flex items-center justify-center h-24 mx-auto mb-2"><span class="font-brand text-5xl font-bold" style="color: rgb(var(--brand-primary))">Gulabi</span></div>`;
+
+                if (brand === 'bulb') {
+                    logoHome.innerHTML = bulbLogo;
+                    welcomeText.textContent = "Welcome to Bulb Cafe";
+                } else {
+                    logoHome.innerHTML = gulabiLogo;
+                    welcomeText.textContent = "Welcome to Gulabi Thali";
+                }
+            },
+
+            // ===== CART MANAGEMENT =====
+            initCart() {
+                const savedCart = localStorage.getItem('appCart');
+                if (savedCart) {
+                    this.state.cart = JSON.parse(savedCart);
+                }
+                this.updateCartCount();
+            },
+
+            saveCart() {
+                localStorage.setItem('appCart', JSON.stringify(this.state.cart));
+            },
+
+            addToCart(product, variant, quantity = 1) {
+                const existingItemIndex = this.state.cart.findIndex(
+                    item => item.id === product.id && item.variant.name === variant.name
+                );
+
+                if (existingItemIndex > -1) {
+                    this.state.cart[existingItemIndex].quantity += quantity;
+                } else {
+                    this.state.cart.push({
+                        id: product.id,
+                        name: product.name,
+                        price: product.price,
+                        image_url: product.image_url,
+                        quantity: quantity,
+                        variant: variant,
+                        brand: product.brand // <-- Add brand to cart item
+                    });
+                }
+                
+                this.saveCart();
+                this.updateCartCount();
+                this.renderCart();
+                this.showToast(`${product.name} (${variant.name}) added to cart`);
+            },
             
-            if (app.state.searchQuery.length > 1) {
-                // --- Search Results ---
-                itemsToDisplay = app.state.allMenuItems.filter(item =>
-                    item.name.toLowerCase().includes(app.state.searchQuery) ||
-                    (item.description && item.description.toLowerCase().includes(app.state.searchQuery))
+            updateCartQuantity(productId, variantName, newQuantity) {
+                const itemIndex = this.state.cart.findIndex(
+                    item => item.id === productId && item.variant.name === variantName
                 );
                 
-                if (itemsToDisplay.length > 0) {
-                    itemsHTML = `<div class="grid grid-cols-1 gap-4 px-4 pt-4">${this.renderMenuItemsList(itemsToDisplay)}</div>`;
-                } else {
-                    itemsHTML = `<p class="text-secondary text-center col-span-full mt-8">No items found for "${app.state.searchQuery}".</p>`;
+                if (itemIndex > -1) {
+                    if (newQuantity <= 0) {
+                        // Remove item
+                        this.state.cart.splice(itemIndex, 1);
+                    } else {
+                        this.state.cart[itemIndex].quantity = newQuantity;
+                    }
+                    this.saveCart();
+                    this.renderCart();
+                    this.updateCartCount();
                 }
-                
-            } else if (app.state.menuTab === 'favorites') {
-                // --- Favorites Tab ---
-                itemsToDisplay = app.state.allMenuItems.filter(item => favs.includes(item.id));
-                
-                if (itemsToDisplay.length > 0) {
-                    itemsHTML = `<div class="grid grid-cols-1 gap-4 px-4 pt-4">${this.renderMenuItemsList(itemsToDisplay)}</div>`;
+            },
+
+            updateCartCount() {
+                // Filter cart for current brand
+                const currentBrandCart = this.state.cart.filter(item => item.brand === this.state.currentBrand);
+                const totalItems = currentBrandCart.reduce((sum, item) => sum + item.quantity, 0);
+                const badge = document.getElementById('cart-badge');
+                if (totalItems > 0) {
+                    badge.textContent = totalItems;
+                    badge.classList.add('active');
                 } else {
-                    itemsHTML = `<p class="text-secondary text-center mt-8">You haven't favorited any items yet. Tap the ❤️ on the menu!</p>`;
+                    badge.classList.remove('active');
                 }
-                
-            } else {
-                // --- All Items (Category) View ---
-                if (app.state.menuData.length > 0) {
-                     itemsHTML = app.state.menuData.map(category => `
-                         <div class="category-section pt-4">
-                             <h2 class="text-2xl font-bold text-primary px-4 mb-3">${category.category}</h2>
-                             <div class="grid grid-cols-1 gap-4 px-4">
-                                 ${this.renderMenuItemsList(category.items)}
-                             </div>
-                         </div>
-                     `).join('');
-                 } else {
-                      itemsHTML = `<div class="p-4 text-center text-secondary">No menu items available for ${brand}.</div>`;
-                 }
-            }
-        }
-
-        return `
-            ${brand === 'gulabi' ? '<div class="p-4"><div class="brand-bg-secondary brand-text p-3 rounded-lg text-center font-bold">Gulabi Thali is for View Only. Ordering is disabled.</div></div>' : ''}
-            ${searchBarHTML}
-            ${recentSearchesHTML}
-            ${menuTabsHTML}
-            <div id="menu-items" class="pb-4">
-                ${itemsHTML}
-            </div>
-        `;
-    },
-
-    renderMenuItemsList(items) {
-        const isBulb = app.state.currentBrand === 'bulb';
-        const favs = app.state.customerProfile?.favorites || [];
-
-        return items.map((item, index) => {
-            if (!item.product_variants || item.product_variants.length === 0) return '';
-
-            const variant = item.product_variants[0];
-            const cartItem = item.product_variants.length === 1 ? app.state.cart.find(ci => ci.itemId === item.id && ci.variantId === variant.id) : null;
-            const isFavorite = favs.includes(item.id);
-
-            let actionButtonHTML = '';
-            if (isBulb) {
-                if (item.product_variants.length > 1) {
-                    actionButtonHTML = `<button class="add-to-cart-btn" style="font-size: 16px; line-height: 1;" onclick="event.stopPropagation(); ui.showItemDetailModal(${item.id})">...</button>`;
-                } else if (cartItem) {
-                    actionButtonHTML = `<div class="quantity-control" onclick="event.stopPropagation();">
-                           <button onclick="app.addOrUpdateCart(${item.id}, ${variant.id}, -1)">-</button>
-                           <span>${cartItem.quantity}</span>
-                           <button onclick="app.addOrUpdateCart(${item.id}, ${variant.id}, 1)">+</button>
-                       </div>`;
+            },
+            
+            clearCart(brandToClear = null) {
+                if (brandToClear) {
+                    this.state.cart = this.state.cart.filter(item => item.brand !== brandToClear);
                 } else {
-                    actionButtonHTML = `<button class="add-to-cart-btn" onclick="event.stopPropagation(); app.handleMenuAddClick(${item.id}, ${variant.id})">+</button>`;
+                    this.state.cart = [];
                 }
-            } else {
-                actionButtonHTML = `<span class="bg-gray-200 text-gray-600 px-3 py-1 rounded-full text-xs font-bold">View Only</span>`;
-            }
+                this.saveCart();
+                this.renderCart();
+                this.updateCartCount();
+            },
 
-            return `
-                <div class="stagger-child bg-secondary rounded-lg shadow-sm overflow-hidden relative" 
-                     style="animation-delay: ${index * 30}ms"
-                     onclick="${item.product_variants.length > 1 && isBulb ? `ui.showItemDetailModal(${item.id})` : 'void(0)'}">
+            // ===== CHECKOUT =====
+            async placeOrder() {
+                const checkoutButton = document.getElementById('checkout-button');
+                checkoutButton.disabled = true;
+                checkoutButton.textContent = 'Placing Order...';
+                
+                try {
+                    const { subtotal, gst, total } = this.calculateCartTotals();
                     
-                    <!-- NEW: Favorite Button -->
-                    <button class="fav-btn absolute top-2 right-2 p-1 text-secondary ${isFavorite ? 'favorited' : ''}"
-                            onclick="event.stopPropagation(); app.toggleFavorite(${item.id})">
-                        <i data-lucide="heart" class="w-5 h-5 fav-icon-outline" fill="none"></i>
-                        <i data-lucide="heart" class="w-5 h-5 fav-icon-filled" fill="currentColor"></i>
-                    </button>
-                     
-                    <div class="p-3 flex items-center justify-between">
-                        <img src="${item.image_url || 'https://placehold.co/64x64/eee/ccc?text=?'}" alt="${item.name}" class="w-16 h-16 rounded-lg object-cover mr-3">
-                        <div class="flex-1 pr-4 min-w-0">
-                            <h3 class="font-semibold text-base truncate text-primary">${item.name}</h3>
-                            <p class="text-sm text-secondary truncate">${item.description || ''}</p>
-                            <div class="flex items-center space-x-2 mt-1">
-                                <span class="font-bold text-sm text-secondary">₹${variant.price}</span>
-                                <!-- NEW: Prep Time -->
-                                <span class="text-xs text-secondary flex items-center"><i data-lucide="clock" class="w-3 h-3 mr-1"></i>${item.prep_time_minutes} min</span>
-                            </div>
-                        </div>
-                        <div class="flex-shrink-0">
-                            ${actionButtonHTML}
-                        </div>
-                    </div>
-                </div>`;
-        }).join('');
-    },
+                    // 1. Create 'orders' entry
+                    const { data: orderData, error: orderError } = await sb.from('orders').insert({
+                        user_id: this.state.currentUser.id,
+                        total_amount: total,
+                        status: 'Pending' // 'Pay at Counter'
+                    }).select().single();
+                    
+                    if (orderError) throw orderError;
+                    
+                    // 2. Create 'order_items' entries
+                    const currentBrandCart = this.state.cart.filter(item => item.brand === this.state.currentBrand);
+                    const orderItems = currentBrandCart.map(item => ({
+                        order_id: orderData.id,
+                        product_id: item.id,
+                        product_name: item.name,
+                        variant_name: item.variant.name,
+                        quantity: item.quantity,
+                        price: (item.price || 0) + item.variant.price_modifier
+                    }));
+                    
+                    const { error: itemsError } = await sb.from('order_items').insert(orderItems);
+                    if (itemsError) throw itemsError;
+                    
+                    // 3. Add loyalty points (e.g., 5 points for orders over 20)
+                    if (total > 20) {
+                        await this.addLoyaltyPoints(5, `Order #${orderData.id.toString().slice(0, 4)}`);
+                    }
+                    
+                    // 4. Clear cart FOR THE CURRENT BRAND
+                    this.clearCart(this.state.currentBrand);
+                    
+                    // 5. Feedback
+                    this.showToast('Order placed successfully!', 'success');
+                    this.navigateTo('history');
+                    
+                } catch (error) {
+                    console.error("Error placing order:", error);
+                    this.showToast("Failed to place order. Please try again.", "error");
+                } finally {
+                    checkoutButton.disabled = false;
+                    checkoutButton.textContent = 'Proceed to Payment';
+                }
+            },
 
-    async renderCartPage() {
-        if (app.state.cart.length === 0) {
-            return `
-            <div class="text-center p-10">
-                <h2 class="text-2xl font-bold text-primary">Your cart is empty</h2>
-                <p class="text-secondary mt-2">Add items from the Bulb Cafe menu to get started.</p>
-                <button onclick="app.navigateTo('order')" class="mt-6 brand-bg font-semibold py-3 px-6 rounded-lg">View Menu</button>
-            </div>`;
-        }
+            // ===== RENDER FUNCTIONS (UI) =====
+            
+            // Render all dynamic content
+            renderAll() {
+                this.renderProfile();
+                this.renderMenu();
+                this.renderCart();
+                this.renderHistory();
+                this.renderRecentSearches();
+            },
+            
+            renderMenu(searchTerm = '') {
+                const container = document.getElementById('menu-list-container');
+                const loading = document.getElementById('menu-loading');
+                const noResults = document.getElementById('menu-no-results');
+                
+                // Defensive null check
+                if (!container || !loading || !noResults) {
+                    console.warn("RenderMenu called, but DOM elements are not ready.");
+                    return;
+                }
 
-        const { subtotal, gst, finalTotal } = app.calculateCartTotal();
+                // Filter products
+                const lowerSearchTerm = searchTerm.toLowerCase();
+                // 1. Filter by current brand
+                const brandProducts = this.state.products.filter(p => p.brand === this.state.currentBrand);
+                
+                // 2. Filter by search term
+                const filteredProducts = brandProducts.filter(p => 
+                    p.name.toLowerCase().includes(lowerSearchTerm) ||
+                    (p.category && p.category.toLowerCase().includes(lowerSearchTerm))
+                );
+                
+                if (brandProducts.length === 0 && this.state.products.length > 0) {
+                    // Products are loaded, but none for this brand
+                    loading.classList.add('hidden');
+                    noResults.classList.add('hidden');
+                    container.innerHTML = `<div class="text-center py-10"><span class="text-secondary">Menu for ${this.state.currentBrand} is coming soon!</span></div>`;
+                    return;
+                }
+                
+                if (this.state.products.length === 0) {
+                    loading.classList.remove('hidden');
+                    container.innerHTML = ''; // Clear old categories
+                    noResults.classList.add('hidden');
+                    return;
+                }
+                
+                loading.classList.add('hidden');
+                
+                if (filteredProducts.length === 0) {
+                    noResults.classList.remove('hidden');
+                    container.innerHTML = ''; // Clear old categories
+                    return;
+                }
+                
+                noResults.classList.add('hidden');
+                
+                // Group by category
+                const productsByCategory = {};
+                // Get categories only from brand's products
+                const brandCategories = [...new Set(brandProducts.map(p => p.category))].sort();
 
-        return `
-            <div class="p-4 space-y-3">
-                ${app.state.cart.map((i, index) => `
-                    <div class="stagger-child bg-secondary p-3 rounded-xl flex items-center justify-between" style="animation-delay: ${index * 50}ms">
-                        <div>
-                            <p class="font-bold text-primary">${i.name} ${i.variantName !== 'Single Serving' && i.variantName !== 'Regular' ? `(${i.variantName})` : ''}</p>
-                            <p class="font-semibold text-secondary text-sm">${i.price === 0 ? 'FREE' : `₹${(i.price * i.quantity).toFixed(2)}`}</p>
-                        </div>
-                        ${i.price === 0 ? `
-                            <span class="font-bold brand-text">x ${i.quantity}</span>
-                        ` : `
-                            <div class="quantity-control" style="background-color: var(--bg-primary); color: var(--brand-primary); border: 1px solid var(--border-color);">
-                                <button onclick="app.addOrUpdateCart(${i.itemId}, ${i.variantId}, -1)">-</button>
-                                <span>${i.quantity}</span>
-                                <button onclick="app.addOrUpdateCart(${i.itemId}, ${i.variantId}, 1)">+</button>
-                            </div>
-                        `}
-                    </div>
-                `).join('')}
-            </div>
+                for (const category of brandCategories) {
+                    const productsInCategory = filteredProducts.filter(p => p.category === category);
+                    if (productsInCategory.length > 0) {
+                        productsByCategory[category] = productsInCategory;
+                    }
+                }
+                
+                let html = '';
+                for (const category in productsByCategory) {
+                    html += `<div class="menu-category">
+                        <h2 class="text-2xl font-bold font-brand text-primary mb-3">${category}</h2>
+                        <div class="space-y-4">`;
+                    
+                    productsByCategory[category].forEach(product => {
+                        // Show variants price range if they exist
+                        const basePrice = product.price || 0;
+                        let priceDisplay = `₹${basePrice.toFixed(2)}`;
+                        if (product.variants && product.variants.length > 0) {
+                            const minPrice = basePrice + Math.min(...product.variants.map(v => v.price_modifier));
+                            const maxPrice = basePrice + Math.max(...product.variants.map(v => v.price_modifier));
+                            if (minPrice !== maxPrice) {
+                                priceDisplay = `₹${minPrice.toFixed(2)} - ₹${maxPrice.toFixed(2)}`;
+                            } else {
+                                priceDisplay = `₹${minPrice.toFixed(2)}`;
+                            }
+                        }
 
-            <div class="p-4 bg-primary border-t-custom sticky bottom-16">
-                 <div id="cart-summary" class="mb-4 space-y-1 text-primary">
-                    <div class="flex justify-between items-center text-md"><span>Subtotal</span><span>₹${subtotal.toFixed(2)}</span></div>
-                    <div class="flex justify-between items-center text-md ${gst > 0 ? '' : 'hidden'}"><span>GST (5%)</span><span>₹${gst.toFixed(2)}</span></div>
-                    <div class="flex justify-between items-center text-xl font-bold pt-1 border-t border-custom"><span>To Pay</span><span>₹${finalTotal.toFixed(2)}</span></div>
-                 </div>
-                <button id="place-order-btn" onclick="ui.showPaymentModal()" class="w-full brand-bg font-bold py-4 rounded-lg">Proceed to Payment</button>
-            </div>`;
-    },
-    
-    // NEW: Render History Page
-    async renderHistoryPage() {
-        if (app.state.orderHistory.length === 0) {
-            return `
-            <div class="text-center p-10">
-                <h2 class="text-2xl font-bold text-primary">No Order History</h2>
-                <p class="text-secondary mt-2">You haven't placed any orders yet.</p>
-                <button onclick="app.navigateTo('order')" class="mt-6 brand-bg font-semibold py-3 px-6 rounded-lg">Start Ordering</button>
-            </div>`;
-        }
-        
-        return `
-            <div class="p-4 space-y-4">
-                ${app.state.orderHistory.map((order, index) => {
-                    const orderDate = new Date(order.created_at);
-                    return `
-                        <div class="stagger-child bg-secondary p-4 rounded-xl border border-custom" style="animation-delay: ${index * 50}ms">
-                            <div class="flex justify-between items-center pb-2 border-b border-custom">
-                                <div>
-                                    <p class="font-bold text-primary">Order #${order.id.toString().slice(-6)}</p>
-                                    <p class="text-xs text-secondary">${orderDate.toLocaleDateString()} at ${orderDate.toLocaleTimeString()}</p>
+                        html += `
+                            <div class="menu-item-card flex items-center gap-4 bg-primary p-4 rounded-xl shadow-lg border border-default">
+                                <img src="${product.image_url || 'https://placehold.co/100x100/e5e7eb/6b7280?text=Item'}" alt="${product.name}" class="w-20 h-20 rounded-md object-cover flex-shrink-0">
+                                <div class="flex-grow">
+                                    <h3 class="font-bold text-lg text-primary">${product.name}</h3>
+                                    <p class="text-sm text-secondary truncate">${product.description || ''}</p>
+                                    <span class="font-bold text-brand text-lg">${priceDisplay}</span>
                                 </div>
-                                <span class="font-bold text-lg text-primary">₹${order.total_amount.toFixed(2)}</span>
+                                ${product.is_orderable ? `
+                                <button class="add-to-cart-btn flex-shrink-0 bg-brand-primary text-white w-10 h-10 rounded-full text-2xl font-bold shadow-md" data-product-id="${product.id}">
+                                    +
+                                </button>
+                                ` : `
+                                <span class="text-sm text-secondary text-right px-2">View Only</span>
+                                `}
                             </div>
-                            <div class="py-2 space-y-1">
-                                ${order.order_items.map(item => {
-                                    const productName = item.products?.name || 'Item';
-                                    const variantName = item.product_variants?.name || 'Variant';
-                                    return `
-                                        <div class="flex justify-between text-sm text-secondary">
-                                            <span>${item.quantity} x ${productName} ${variantName !== 'Single Serving' ? `(${variantName})` : ''}</span>
-                                            <span>₹${(item.price_at_order * item.quantity).toFixed(2)}</span>
-                                        </div>
-                                    `;
-                                }).join('')}
+                        `;
+                    });
+                        
+                    html += `</div></div>`;
+                }
+                container.innerHTML = html;
+            },
+            
+            renderCart() {
+                const container = document.getElementById('cart-items-container');
+                const emptyMsg = document.getElementById('cart-empty-message');
+                const summary = document.getElementById('cart-summary-container');
+                
+                // Filter cart for current brand
+                const currentBrandCart = this.state.cart.filter(item => item.brand === this.state.currentBrand);
+
+                if (currentBrandCart.length === 0) {
+                    container.innerHTML = '';
+                    emptyMsg.classList.remove('hidden');
+                    summary.classList.add('hidden');
+                    
+                    // Check if there are items for *other* brands
+                    if (this.state.cart.length > 0) {
+                        document.querySelector('#cart-empty-message p.text-secondary').textContent = `You have items for another brand in your cart. Switch brands to see them.`;
+                    } else {
+                        document.querySelector('#cart-empty-message p.text-secondary').textContent = "Looks like you haven't added anything yet.";
+                    }
+                    return;
+                }
+                
+                emptyMsg.classList.add('hidden');
+                summary.classList.remove('hidden');
+                
+                let html = '';
+                currentBrandCart.forEach(item => {
+                    const itemTotal = ((item.price || 0) + item.variant.price_modifier) * item.quantity;
+                    html += `
+                        <div class="cart-item-card flex items-center gap-4 bg-primary p-4 rounded-lg shadow border border-default">
+                            <img src="${item.image_url || 'https://placehold.co/100x100/e5e7eb/6b7280?text=Item'}" class="w-20 h-20 rounded-md object-cover">
+                            <div class="flex-grow">
+                                <h3 class="font-bold text-primary">${item.name}</h3>
+                                <p class="text-sm text-secondary">Variant: ${item.variant.name}</p>
+                                <span class="font-bold text-brand">₹${itemTotal.toFixed(2)}</span>
                             </div>
-                            <div class="flex justify-between items-center pt-2 border-t border-custom">
-                                <span class="brand-bg-secondary brand-text text-xs font-bold py-1 px-2 rounded-lg capitalize">${order.status}</span>
-                                <button onclick="app.reOrder(${order.id})" class="brand-bg font-semibold py-2 px-3 rounded-lg text-sm">Re-order</button>
+                            <div class="flex items-center gap-2">
+                                <button class="quantity-btn bg-secondary text-primary w-7 h-7 rounded-full font-bold" data-product-id="${item.id}" data-variant-name="${item.variant.name}" data-action="decrease">
+                                    -
+                                </button>
+                                <span class="font-semibold text-primary w-5 text-center">${item.quantity}</span>
+                                <button class="quantity-btn bg-secondary text-primary w-7 h-7 rounded-full font-bold" data-product-id="${item.id}" data-variant-name="${item.variant.name}" data-action="increase">
+                                    +
+                                </button>
                             </div>
+                        </div> 
+                    `;
+                });
+                container.innerHTML = html;
+                
+                // Update totals
+                const { subtotal, gst, total } = this.calculateCartTotals();
+                document.getElementById('cart-subtotal').textContent = `₹${subtotal.toFixed(2)}`;
+                document.getElementById('cart-gst').textContent = `₹${gst.toFixed(2)}`;
+                document.getElementById('cart-total').textContent = `₹${total.toFixed(2)}`;
+            },
+            
+            calculateCartTotals() {
+                // Filter cart for current brand
+                const currentBrandCart = this.state.cart.filter(item => item.brand === this.state.currentBrand);
+                
+                const subtotal = currentBrandCart.reduce((sum, item) => {
+                    return sum + ((item.price || 0) + item.variant.price_modifier) * item.quantity;
+                }, 0);
+                const gst = subtotal * 0.05; // 5% GST
+                const total = subtotal + gst;
+                return { subtotal, gst, total };
+            },
+
+            renderHistory() {
+                const container = document.getElementById('order-history-container');
+                const emptyMsg = document.getElementById('history-empty-message');
+
+                if (this.state.orders.length === 0) {
+                    container.innerHTML = '';
+                    emptyMsg.classList.remove('hidden');
+                    return;
+                }
+                
+                emptyMsg.classList.add('hidden');
+                
+                let html = '';
+                this.state.orders.forEach(order => {
+                    const orderDate = new Date(order.created_at).toLocaleDateString();
+                    const itemsSummary = order.items.map(item => `${item.product_name} (${item.variant_name}) x ${item.quantity}`).join(', ');
+                    
+                    html += `
+                        <div class="order-history-card bg-primary p-4 rounded-lg shadow border border-default">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="font-bold text-primary">Order #${order.id.toString().slice(0, 8)}</span>
+                                <span class="text-sm text-secondary">${orderDate}</span>
+                            </div>
+                            <p class="text-secondary">Total: <span class="font-semibold text-brand">₹${order.total_amount.toFixed(2)}</span></p>
+                            <p class="text-secondary">Status: <span class="font-semibold text-green-500">${order.status}</span></p>
+                            <div class="mt-2 text-sm text-secondary truncate">
+                                ${itemsSummary}
+                            </div>
+                            <button class="re-order-btn mt-4 w-full bg-brand-secondary text-white font-semibold py-2 px-4 rounded-lg" data-order-id="${order.id}">
+                                Re-Order
+                            </button>
                         </div>
                     `;
-                }).join('')}
-            </div>
-        `;
-    },
+                });
+                container.innerHTML = html;
+            },
 
-    async renderSocialPage(){
-        const brand = app.state.currentBrand;
-        const socialData = {
-            bulb: { handle: '@a_bulbcafejaipur' },
-            gulabi: { handle: '@gulabithali_cloudkitchen' }
+            renderProfile() {
+                document.getElementById('profile-name').textContent = this.state.profile.name || 'Guest';
+                document.getElementById('profile-user-id').textContent = `user_id: ${this.state.currentUser?.id}`;
+                document.getElementById('profile-loyalty-points').textContent = this.state.profile.loyalty_points;
+                
+                // Enable/disable redeem button
+                document.getElementById('redeem-points-btn').disabled = this.state.profile.loyalty_points < 100;
+            },
+            
+            renderRecentSearches() {
+                const container = document.getElementById('recent-searches-container');
+                if (this.state.recentSearches.length === 0) {
+                    container.classList.add('hidden');
+                    return;
+                }
+                container.classList.remove('hidden');
+                container.innerHTML = this.state.recentSearches.map(term => 
+                    `<button class="recent-search-btn bg-primary text-secondary px-3 py-1 rounded-full text-sm border border-default">${term}</button>`
+                ).join('');
+            },
+            
+            addRecentSearch(term) {
+                if (!term) return;
+                // Remove existing
+                this.state.recentSearches = this.state.recentSearches.filter(s => s !== term);
+                // Add to front
+                this.state.recentSearches.unshift(term);
+                // Limit to 5
+                this.state.recentSearches = this.state.recentSearches.slice(0, 5);
+                localStorage.setItem('appRecentSearches', JSON.stringify(this.state.recentSearches));
+                this.renderRecentSearches();
+            },
+
+            // ===== LOYALTY & REWARDS =====
+            async addLoyaltyPoints(points, reason = "Bonus") {
+                try {
+                    const newPoints = (this.state.profile.loyalty_points || 0) + points;
+                    
+                    const { data, error } = await sb.from('customers')
+                        .update({ loyalty_points: newPoints })
+                        .eq('user_id', this.state.currentUser.id)
+                        .select()
+                        .single();
+                        
+                    if (error) throw error;
+                    
+                    this.state.profile = data;
+                    this.renderProfile();
+                    this.showToast(`+${points} points! (${reason})`, 'success');
+                    
+                } catch (error) {
+                    console.error("Error adding loyalty points:", error);
+                }
+            },
+            
+            redeemReward() {
+                if (this.state.profile.loyalty_points < 100) {
+                    this.showToast("Not enough points to redeem", "error");
+                    return;
+                }
+                
+                // Add a "Free Reward" item to the cart
+                // This is a "dummy" product
+                const rewardItem = {
+                    id: 'REWARD-001',
+                    name: 'Free Reward',
+                    price: 0,
+                    image_url: 'https://placehold.co/100x100/f59e0b/white?text=Reward!',
+                    variant: { name: 'Redeemed', price_modifier: 0 },
+                    brand: this.state.currentBrand // <-- Assign current brand to reward
+                };
+                
+                this.addToCart(rewardItem, rewardItem.variant);
+                
+                // Deduct points
+                this.addLoyaltyPoints(-100, "Redeemed Reward");
+                
+                this.navigateTo('cart');
+            },
+
+            // ===== UI FEEDBACK (TOASTS & MODALS) =====
+            showToast(message, type = 'info') {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                toast.className = 'toast-item';
+                toast.textContent = message;
+
+                if (type === 'success') {
+                    toast.style.backgroundColor = 'rgb(var(--brand-primary))';
+                } else if (type === 'error') {
+                    toast.style.backgroundColor = '#ef4444'; // red-500
+                } else {
+                    toast.style.backgroundColor = '#374151'; // gray-700
+                }
+
+                container.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.classList.add('exit');
+                    setTimeout(() => {
+                        container.removeChild(toast);
+                    }, 500);
+                }, 3000);
+            },
+
+            showModal(content) {
+                const container = document.getElementById('modal-container');
+                const contentBox = document.getElementById('modal-content');
+                
+                contentBox.innerHTML = content;
+                container.classList.remove('hidden');
+                setTimeout(() => container.classList.add('visible'), 10); // For transition
+            },
+
+            hideModal() {
+                const container = document.getElementById('modal-container');
+                container.classList.remove('visible');
+                setTimeout(() => container.classList.add('hidden'), 300); // Wait for transition
+            },
+            
+            showVariantModal(productId) {
+                const product = this.state.products.find(p => p.id === productId);
+                if (!product) return;
+                
+                // variants are expected to be JSON: [{"name": "Small", "price_modifier": 0}, {"name": "Large", "price_modifier": 2.50}]
+                // Handle base price for variants (e.g., Gulabi Thali takeaway)
+                const basePrice = product.price || 0;
+                const variants = product.variants || [{ name: 'Regular', price_modifier: 0 }];
+                
+                let content = `
+                    <h2 class="text-2xl font-bold text-primary font-brand mb-4">${product.name}</h2>
+                    <img src="${product.image_url || 'https://placehold.co/600x400'}" class="w-full h-48 object-cover rounded-lg mb-4">
+                    <p class="text-secondary mb-4">${product.description || ''}</p>
+                    <h3 class="text-lg font-semibold text-primary mb-2">Select an option:</h3>
+                    <div class="space-y-2">
+                `;
+                
+                variants.forEach(variant => {
+                    const finalPrice = (basePrice + variant.price_modifier).toFixed(2);
+                    
+                    // If the product is not orderable, just display, don't make it a button
+                    if (!product.is_orderable) {
+                        content += `
+                            <div class="w-full flex justify-between items-center p-4 border border-default rounded-lg bg-secondary">
+                                <span class="font-semibold text-primary">${variant.name}</span>
+                                <span class="font-bold text-brand">₹${finalPrice}</span>
+                            </div>
+                        `;
+                    } else {
+                        content += `
+                            <button class="variant-select-btn w-full flex justify-between items-center p-4 border border-default rounded-lg hover:bg-secondary"
+                                    data-product-id="${product.id}" 
+                                    data-variant-name="${variant.name}"
+                                    data-variant-price-mod="${variant.price_modifier}">
+                                <span class="font-semibold text-primary">${variant.name}</span>
+                                <span class="font-bold text-brand">₹${finalPrice}</span>
+                            </button>
+                        `;
+                    }
+                });
+                
+                content += `</div>`;
+                this.showModal(content);
+            },
+
+            // ===== EVENT LISTENERS =====
+            initEventListeners() {
+                // Tab Bar Navigation
+                document.getElementById('tab-bar').addEventListener('click', (e) => {
+                    const tab = e.target.closest('.tab-item');
+                    if (tab && tab.dataset.page) {
+                        this.navigateTo(tab.dataset.page);
+                    }
+                });
+                
+                // Brand/Theme Switchers
+                document.getElementById('brand-switcher').addEventListener('change', (e) => {
+                    this.switchTheme(e.target.value, this.state.currentTheme);
+                });
+                document.getElementById('theme-switcher').addEventListener('change', (e) => {
+                    this.switchTheme(this.state.currentBrand, e.target.value);
+                });
+                
+                // Search Bar
+                const searchBar = document.getElementById('search-bar');
+                searchBar.addEventListener('input', (e) => {
+                    this.renderMenu(e.target.value);
+                });
+                searchBar.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.addRecentSearch(e.target.value);
+                        searchBar.blur(); // Hide keyboard
+                    }
+                });
+                
+                // Recent Searches
+                document.getElementById('recent-searches-container').addEventListener('click', (e) => {
+                    if (e.target.classList.contains('recent-search-btn')) {
+                        const term = e.target.textContent;
+                        searchBar.value = term;
+                        this.renderMenu(term);
+                    }
+                });
+
+                // Add to Cart (from Menu) or View Variants
+                document.getElementById('menu-list-container').addEventListener('click', (e) => {
+                    const btn = e.target.closest('.add-to-cart-btn');
+                    if (btn) {
+                        const productId = btn.dataset.productId;
+                        const product = this.state.products.find(p => p.id == productId);
+                        if (product) {
+                            if (product.variants && product.variants.length > 0) {
+                                this.showVariantModal(product.id);
+                            } else {
+                                // Default/no variant
+                                const defaultVariant = { name: 'Regular', price_modifier: 0 };
+                                this.addToCart(product, defaultVariant);
+                            }
+                        }
+                    }
+                });
+
+                // Modal Clicks
+                document.getElementById('modal-backdrop').addEventListener('click', () => this.hideModal());
+                document.getElementById('modal-close-btn').addEventListener('click', () => this.hideModal());
+                document.getElementById('modal-content').addEventListener('click', (e) => {
+                    const btn = e.target.closest('.variant-select-btn');
+                    if (btn) {
+                        const productId = btn.dataset.productId;
+                        const product = this.state.products.find(p => p.id == productId);
+                        const variant = {
+                            name: btn.dataset.variantName,
+                            price_modifier: parseFloat(btn.dataset.variantPriceMod)
+                        };
+                        this.addToCart(product, variant);
+                        this.hideModal();
+                    }
+                });
+                
+                // Cart Quantity Buttons
+                document.getElementById('cart-items-container').addEventListener('click', (e) => {
+                    const btn = e.target.closest('.quantity-btn');
+                    if (btn) {
+                        const productId = btn.dataset.productId;
+                        const variantName = btn.dataset.variantName;
+                        const action = btn.dataset.action;
+                        
+                        const item = this.state.cart.find(i => i.id == productId && i.variant.name === variantName);
+                        if (!item) return;
+                        
+                        let newQuantity = item.quantity;
+                        if (action === 'increase') {
+                            newQuantity++;
+                        } else if (action === 'decrease') {
+                            newQuantity--;
+                        }
+                        
+                        this.updateCartQuantity(productId, variantName, newQuantity);
+                    }
+                });
+                
+                // Checkout Button
+                document.getElementById('checkout-button').addEventListener('click', () => {
+                    // Simple "Pay at Counter" confirmation
+                    const content = `
+                        <h2 class="text-2xl font-bold text-primary font-brand mb-4">Confirm Order</h2>
+                        <p class="text-secondary mb-6">You are placing a "Pay at Counter" order. Please confirm to proceed.</p>
+                        <button id="confirm-payment-btn" class="w-full bg-brand-primary text-white font-bold py-3 px-6 rounded-lg text-lg">
+                            Confirm & Place Order
+                        </button>
+                    `;
+                    this.showModal(content);
+                });
+                
+                // Confirm Payment in Modal
+                document.getElementById('modal-content').addEventListener('click', (e) => {
+                    if (e.target.id === 'confirm-payment-btn') {
+                        this.hideModal();
+                        this.placeOrder();
+                    }
+                });
+                
+                // Re-Order Button
+                document.getElementById('order-history-container').addEventListener('click', async (e) => {
+                    const btn = e.target.closest('.re-order-btn');
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.textContent = 'Adding...';
+                        const orderId = btn.dataset.orderId;
+                        const order = this.state.orders.find(o => o.id == orderId);
+                        
+                        if (order && order.items) {
+                            let itemsAdded = 0;
+                            for (const item of order.items) {
+                                // Find the *current* product details
+                                const product = this.state.products.find(p => p.id === item.product_id);
+                                
+                                // Check if product exists, is orderable, and matches current brand
+                                if (product && product.is_orderable && product.brand === this.state.currentBrand) {
+                                    // Find the *current* variant
+                                    const variants = product.variants || [{ name: 'Regular', price_modifier: 0 }];
+                                    const variant = variants.find(v => v.name === item.variant_name);
+                                    
+                                    if (variant) {
+                                        // Use current product data but old quantity
+                                        this.addToCart(product, variant, item.quantity);
+                                        itemsAdded++;
+                                    } else {
+                                        console.warn(`Variant ${item.variant_name} no longer exists for ${product.name}`);
+                                    }
+                                } else {
+                                    console.warn(`Product ${item.product_name} is no longer orderable or available for this brand.`);
+                                }
+                            }
+                            
+                            if(itemsAdded > 0) {
+                                this.showToast('Orderable items added to cart!');
+                                this.navigateTo('cart');
+                            } else {
+                                this.showToast('No items from this order are available for the current brand.', 'error');
+                            }
+                        } else {
+                            this.showToast('Could not re-order', 'error');
+                        }
+                        btn.disabled = false;
+                        btn.textContent = 'Re-Order';
+                    }
+                });
+                
+                // Profile Page Actions
+                document.getElementById('redeem-points-btn').addEventListener('click', () => this.redeemReward());
+                
+                document.getElementById('claim-review-btn').addEventListener('click', (e) => {
+                    // This is a simulation. In a real app, you'd check a server-side flag.
+                    this.addLoyaltyPoints(50, "Review Bonus");
+                    e.target.disabled = true;
+                    e.target.textContent = 'Bonus Claimed!';
+                });
+            },
         };
-        const handle = socialData[brand]?.handle || '@unknown_handle';
-        const qrUrl = CONSTANTS.qr_code_url_base + handle.substring(1);
 
-        return `
-            <div class="p-4 space-y-6 text-center flex flex-col justify-center items-center pt-10">
-                 <div class="stagger-child bg-secondary p-6 rounded-xl shadow-sm border border-custom w-full max-w-sm">
-                    <h2 class="text-2xl font-bold text-primary">Join Our Community!</h2>
-                    <p class="text-secondary mt-1">Follow us on Instagram for updates, offers, and good vibes.</p>
-                    <a href="https://instagram.com/${handle.substring(1)}" target="_blank" class="brand-text text-2xl font-bold my-4 block glitch-text">${handle}</a>
-                    <div class="flex justify-center">
-                         <img src="${qrUrl}" alt="Instagram QR Code" class="rounded-lg bg-white p-2">
-                    </div>
-                    <p class="text-xs text-secondary mt-2">Scan to follow!</p>
-                </div>
-            </div>
-        `;
-    },
-
-    async renderGulabiPage() {
-        return `
-            <div class="p-4 space-y-6">
-                 <div class="stagger-child bg-secondary p-8 rounded-xl shadow-lg border border-custom text-center">
-                    <img src="https://placehold.co/150x150/EC4899/FFFFFF?text=Gulabi+Thali" alt="Gulabi Thali Logo" class="w-32 h-32 rounded-full mx-auto mb-4 border-4 border-white shadow-lg">
-                    <h2 class="text-3xl font-bold text-primary mb-2">Gulabi Thali</h2>
-                    <p class="text-lg text-secondary mb-6">Authentic. Fresh. Delicious.</p>
-                    <ul class="text-left space-y-2 mb-8 list-disc list-inside text-secondary">
-                        <li><b>Thali Combos:</b> Complete, wholesome meals.</li>
-                        <li><b>Curries by Kilo:</b> Sabji by Kilo, perfect for family dinners.</li>
-                        <li><b>Fresh Breads & Accompaniments:</b> Everything you need for a feast.</li>
-                    </ul>
-                    <p class="text-primary font-semibold mb-4">Ordering for Gulabi Thali is not available in this app. You can browse the menu for viewing purposes.</p>
-                    <button onclick="app.switchBrand('gulabi'); app.navigateTo('order');" class="w-full mb-4 brand-bg font-semibold py-3 px-6 rounded-lg transition hover:opacity-90">
-                        View Gulabi Menu
-                    </button>
-                </div>
-            </div>
-        `;
-    },
-
-    async renderMorePage(){
-        const profile = app.state.customerProfile;
-        if (!profile) {
-             return `<div class="p-4 flex justify-center items-center"><div class="spinner !w-12 !h-12"></div></div>`;
-        }
-        
-        const loyaltyPoints = profile.loyalty_points ?? 0;
-
-        // --- Review Button Logic ---
-        const fileInputHtml = `<input type="file" id="review-screenshot-input" accept="image/*" class="hidden" onchange="app.handleScreenshotUpload(event)">`;
-        let claimButtonText = 'Step 2: Upload Screenshot & Claim';
-        if (profile.is_claiming_review) claimButtonText = 'Verification Pending...';
-        if (profile.has_claimed_review) claimButtonText = 'Points Claimed!';
-        const claimButtonDisabled = profile.is_claiming_review || profile.has_claimed_review;
-
-        // --- Redeem Button Logic ---
-        const redeemButtonDisabled = loyaltyPoints < CONSTANTS.loyalty.redeem_cost;
-        
-        // --- Auth Section ---
-        // REVERTED: authSectionHTML
-        let authSectionHTML = `
-            <div class="stagger-child w-full bg-secondary p-4 rounded-xl text-left border border-custom space-y-3">
-               <div class="flex items-center"><span class="text-2xl mr-4">👤</span><span class="font-semibold text-primary">Profile</span></div>
-               <p class="text-sm text-secondary">You are using a guest profile named: <strong class="text-primary">${profile.name}</strong></p>
-               <p class="text-xs text-secondary">Your data (favorites, points, history) is tied to this device. Clearing your browser data may reset your profile.</p>
-            </div>
-        `;
-
-        return `
-            <div class="p-4 space-y-4">
-                ${authSectionHTML}
-            
-                <!-- Loyalty Points Card -->
-                <div class="stagger-child w-full bg-secondary p-4 rounded-xl text-left border border-custom">
-                   <div class="flex items-center"><span class="text-2xl mr-4">⭐</span><span class="font-semibold text-primary">Loyalty Points: ${loyaltyPoints}</span></div>
-                   <p class="text-xs text-secondary mt-1">Earn 10% points on Bulb orders over ₹350. Redeem points for free items!</p>
-                   <button onclick="app.redeemReward()" class="brand-bg font-semibold py-2 px-4 rounded-lg text-sm mt-3 ${redeemButtonDisabled ? 'opacity-50 cursor-not-allowed' : ''}" ${redeemButtonDisabled ? 'disabled' : ''}>
-                        Redeem ${CONSTANTS.loyalty.redeem_cost} Points
-                   </button>
-                </div>
-
-                <!-- Review Bonus Card -->
-                <div class="stagger-child w-full bg-secondary p-4 rounded-xl text-left border border-custom space-y-3">
-                   <div class="flex items-center"><span class="text-2xl mr-4">📸</span><span class="font-semibold text-primary">Claim Review Bonus (+${CONSTANTS.loyalty.review_bonus} Pts)</span></div>
-
-                   <a href="${CONSTANTS.review_url}" target="_blank" class="block w-full brand-bg font-semibold py-3 px-4 rounded-lg text-center">
-                        Step 1: Write Google Review
-                   </a>
-
-                   ${fileInputHtml}
-                   <button onclick="app.claimReviewBonus()" class="w-full brand-bg-secondary brand-text font-semibold py-3 px-4 rounded-lg ${claimButtonDisabled ? 'opacity-50 cursor-not-allowed' : ''}" ${claimButtonDisabled ? 'disabled' : ''}>
-                        ${claimButtonText}
-                   </button>
-                </div>
-
-                <!-- Play Games Card -->
-                <button onclick="ui.showGamesModal()" class="stagger-child w-full flex items-center justify-between bg-secondary p-4 rounded-xl text-left border border-custom">
-                   <div class="flex items-center"><span class="text-2xl mr-4">🎮</span><span class="font-semibold text-primary">Play Games</span></div>
-                   <span class="text-secondary">&rarr;</span>
-                </button>
-
-                <!-- Brand Switcher Card (now just for brand, theme is separate) -->
-                <div class="stagger-child w-full bg-secondary p-4 rounded-xl text-left border border-custom">
-                   <div class="flex items-center"><span class="text-2xl mr-4">🔄</span><span class="font-semibold text-primary">Switch Brand View</span></div>
-                   <p class="text-xs text-secondary mt-1">Currently viewing: <strong class="brand-text capitalize">${app.state.currentBrand}</strong></p>
-                   <div class="flex space-x-2 mt-3">
-                        <button onclick="app.switchBrand('bulb')" class="flex-1 font-semibold py-2 px-4 rounded-lg text-sm ${app.state.currentBrand === 'bulb' ? 'brand-bg' : 'brand-bg-secondary brand-text'}">
-                            Bulb 💡
-                        </button>
-                        <button onclick="app.switchBrand('gulabi')" class="flex-1 font-semibold py-2 px-4 rounded-lg text-sm ${app.state.currentBrand === 'gulabi' ? 'brand-bg' : 'brand-bg-secondary brand-text'}">
-                            Gulabi 🌸
-                        </button>
-                   </div>
-                </div>
-            </div>`;
-    },
-
-
-
-    // --- Modal Renderers ---
-
-    showPaymentModal(){
-         ui.showModal('payment-modal', `
-            <h2 class="text-xl font-bold text-primary mb-4">Select Payment</h2>
-            <div class="space-y-3">
-                <button onclick="app.placeOrder('Pay at Counter', this)" class="payment-btn w-full flex items-center justify-center bg-secondary p-4 rounded-xl"><span class="text-2xl mr-4">💵</span><span class="font-semibold">Pay at Counter</span></button>
-            </div>
-            <button onclick="ui.closeModal('payment-modal')" class="w-full mt-6 bg-secondary font-semibold py-3 rounded-lg">Cancel</button>
-        `);
-    },
-
-    showItemDetailModal(itemId){
-        const item = app.state.allMenuItems.find(i => i.id === itemId); if (!item) return;
-         if (!item.product_variants || item.product_variants.length === 0) {
-             return ui.showToast("Error displaying item options.", 3000);
-         }
-
-        let optionsHTML = item.product_variants.map(variant => {
-            const cartItem = app.state.cart.find(ci => ci.itemId === item.id && ci.variantId === variant.id);
-            const currentQuantity = cartItem ? cartItem.quantity : 0;
-            return `
-                <div class="flex justify-between items-center bg-secondary p-3 rounded-lg">
-                    <div>
-                        <span class="font-semibold text-primary">${variant.name}</span>
-                        <span class="font-bold text-secondary ml-2">₹${variant.price}</span>
-                    </div>
-                    ${currentQuantity > 0 ? `
-                        <div class="quantity-control" onclick="event.stopPropagation();">
-                           <button onclick="app.addOrUpdateCart(${item.id}, ${variant.id}, -1); ui.showItemDetailModal(${item.id});">-</button>
-                           <span>${currentQuantity}</span>
-                           <button onclick="app.addOrUpdateCart(${item.id}, ${variant.id}, 1); ui.showItemDetailModal(${item.id});">+</button>
-                        </div>
-                    ` : `
-                        <button class="add-to-cart-btn" style="width: 36px; height: 36px; font-size: 20px;" onclick="event.stopPropagation(); app.handleMenuAddClick(${item.id}, ${variant.id}); ui.showItemDetailModal(${item.id});">+</button>
-                    `}
-                </div>
-            `;
-        }).join('');
-
-        ui.showModal('item-detail-modal', `
-            <div class="flex justify-between items-start">
-                <div>
-                    <h2 class="text-2xl font-bold text-primary">${item.name}</h2>
-                </div>
-                <img src="${item.image_url || 'https://placehold.co/80x80/eee/ccc?text=?'}" alt="${item.name}" class="w-20 h-20 rounded-lg object-cover">
-            </div>
-            <p class="text-secondary mt-2 mb-4">${item.description || 'A delicious choice.'}</p>
-            <div class="space-y-3">${optionsHTML}</div>
-            <div class="mt-6">
-                <button onclick="ui.closeModal('item-detail-modal')" class="w-full bg-secondary font-semibold py-3 rounded-lg">Done</button>
-            </div>`);
-    },
-
-    showGamesModal() {
-        ui.showModal('games-modal', `
-            <h2 class="text-xl font-bold text-center mb-4">Entertainment</h2>
-            <div class="space-y-3">
-                ${app.state.games.map(game => `
-                    <div class="bg-secondary p-4 rounded-xl">
-                        <h3 class="text-lg font-bold text-primary mb-1">${game.name}</h3>
-                        <p class="text-secondary text-sm mb-3">${game.description}</p>
-                        <button onclick="app.showGame('${game.id}')" class="brand-bg font-semibold py-2 px-4 rounded-lg text-sm">Play</button>
-                    </div>`).join("")}
-            </div>
-            <button onclick="ui.closeModal('games-modal')" class="w-full mt-6 bg-secondary font-semibold py-3 rounded-lg">Close</button>
-        `);
-    },
-
-    showGameModal_QuickLight() {
-        ui.showModal('quick-light-game-modal', `
-            <div class="text-center">
-                <h2 class="text-3xl font-bold brand-text glitch-text">Quick Light!</h2>
-                <p class="text-secondary mb-4">Click the lit bulb as fast as you can.</p>
-                <div class="flex justify-around mb-4 text-lg">
-                    <div class="text-primary">Score: <span id="ql-score" class="font-bold">0</span></div>
-                    <div class="text-primary">Time: <span id="ql-time" class="font-bold">30</span>s</div>
-                </div>
-                <div id="ql-grid" class="grid grid-cols-3 gap-4 max-w-sm mx-auto mb-4">
-                    ${Array.from({length: 9}).map((_, i) => `
-                        <div class="game-bulb w-full h-20 sm:h-24 rounded-full border-4 border-custom cursor-pointer" data-index="${i}"></div>
-                    `).join('')}
-                </div>
-                <button id="ql-start-button" class="brand-bg font-semibold py-3 px-6 rounded-lg w-full">Start Game</button>
-                <button onclick="ui.closeModal('quick-light-game-modal')" class="w-full mt-2 bg-secondary font-semibold py-3 rounded-lg">Close</button>
-            </div>
-        `);
-    },
-    
-    // NEW: Sequence Game Modal
-    showGameModal_Sequence() {
-        ui.showModal('sequence-game-modal', `
-            <div class="text-center">
-                <h2 class="text-3xl font-bold brand-text">Sequence</h2>
-                <p id="sq-message" class="text-secondary mb-4 h-5">Remember the pattern.</p>
-                <div class="flex justify-around mb-4 text-lg">
-                    <div class="text-primary">Score: <span id="sq-score" class="font-bold">0</span></div>
-                    <div class="text-primary">High Score: <span id="sq-high-score" class="font-bold">0</span></div>
-                </div>
-                <div id="sq-grid" class="grid grid-cols-3 gap-4 max-w-sm mx-auto mb-4 pointer-events-none">
-                    ${Array.from({length: 9}).map((_, i) => `
-                        <div class="game-tile w-full h-20 sm:h-24 rounded-lg border-4 border-custom cursor-pointer" data-index="${i}"></div>
-                    `).join('')}
-                </div>
-                <button id="sq-start-button" class="brand-bg font-semibold py-3 px-6 rounded-lg w-full">Start Game</button>
-                <button onclick="ui.closeModal('sequence-game-modal')" class="w-full mt-2 bg-secondary font-semibold py-3 rounded-lg">Close</button>
-            </div>
-        `);
-    },
-    
-    // REMOVED: showAuthModal, switchAuthTab, showEditProfileModal
-    
-    // NEW: Theme Switcher Modal
-    showThemeSwitcherModal() {
-        ui.showModal('theme-modal', `
-            <h2 class="text-xl font-bold text-primary mb-4">Select Theme</h2>
-            <div class="space-y-3">
-                <button onclick="app.switchTheme('bulb')" class="w-full flex items-center justify-center bg-secondary p-4 rounded-xl">
-                    <span class="text-2xl mr-4">💡</span>
-                    <span class="font-semibold">Bulb (Light)</span>
-                </button>
-                <button onclick="app.switchTheme('gulabi')" class="w-full flex items-center justify-center bg-secondary p-4 rounded-xl">
-                    <span class="text-2xl mr-4">🌸</span>
-                    <span class="font-semibold">Gulabi (Light)</span>
-                </button>
-                <button onclick="app.switchTheme('dark')" class="w-full flex items-center justify-center bg-secondary p-4 rounded-xl">
-                    <span class="text-2xl mr-4">🌙</span>
-                    <span class="font-semibold">Dark Mode</span>
-                </button>
-            </div>
-            <button onclick="ui.closeModal('theme-modal')" class="w-full mt-6 bg-secondary font-semibold py-3 rounded-lg">Cancel</button>
-        `);
-    }
-};
-
-// --- Game Logic Object ---
-const GAMES = {
-    quickLight: {
-        state: { score: 0, gameInterval: null, activeBulb: -1, timeLeft: 30, timerInterval: null, isRunning: false },
-        start() {
-            ui.showGameModal_QuickLight();
-            setTimeout(() => {
-                const startBtn = $('#ql-start-button');
-                if (startBtn) startBtn.onclick = () => this.runGame();
-                
-                const grid = $('#ql-grid');
-                if (grid) {
-                    $$('#ql-grid .game-bulb').forEach(bulb => {
-                         bulb.onclick = () => this.handleBulbClick(parseInt(bulb.dataset.index));
-                    });
-                }
-            }, 100);
-        },
-        runGame() {
-            if (this.state.isRunning) return;
-            this.state.isRunning = true;
-            const g = this.state;
-            g.score = 0; g.timeLeft = 30;
-            const qlScore = $('#ql-score');
-            const qlTime = $('#ql-time');
-            const startBtn = $('#ql-start-button');
-            
-            if (qlScore) qlScore.textContent = g.score;
-            if (qlTime) qlTime.textContent = g.timeLeft;
-            if (startBtn) {
-                startBtn.disabled = true;
-                startBtn.textContent = 'Go!';
+        // ===== START THE APP =====
+        // Wait for the DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            // Only init if Supabase credentials are set
+            if (SUPABASE_URL !== 'YOUR_SUPABASE_URL') {
+                app.init();
+                window.app = app; // Expose to global scope for inline onclicks
             }
-            clearInterval(g.timerInterval);
-            clearInterval(g.gameInterval);
-            g.timerInterval = setInterval(() => this.tick(), 1000);
-            this.nextRound();
-        },
-        stop() {
-            const g = this.state;
-            clearInterval(g.gameInterval);
-            clearInterval(g.timerInterval);
-            g.gameInterval = null;
-            g.timerInterval = null;
-            g.isRunning = false;
-            const oldBulb = $(`#ql-grid .game-bulb[data-index="${g.activeBulb}"]`);
-            if (oldBulb) oldBulb.classList.remove('lit');
-            g.activeBulb = -1;
-            const startBtn = $('#ql-start-button');
-            if (startBtn) {
-                startBtn.disabled = false;
-                startBtn.textContent = 'Play Again';
-            }
-            if (g.score > 0) {
-                 sound.play('game_over');
-                 ui.showToast(`Game Over! Final Score: ${g.score}`, 3000);
-            }
-            g.score = 0;
-        },
-        tick() {
-            const g = this.state;
-            if (!g.isRunning) return;
-            g.timeLeft--;
-            const qlTime = $('#ql-time');
-            if (qlTime) qlTime.textContent = g.timeLeft;
-            if (g.timeLeft <= 0) this.stop();
-        },
-        nextRound() {
-            const g = this.state;
-            if (g.gameInterval) clearInterval(g.gameInterval);
-            if (!g.isRunning) return;
-            const oldBulb = $(`#ql-grid .game-bulb[data-index="${g.activeBulb}"]`);
-            if (oldBulb) oldBulb.classList.remove('lit');
-            g.activeBulb = Math.floor(Math.random() * 9);
-            const newBulb = $(`#ql-grid .game-bulb[data-index="${g.activeBulb}"]`);
-            if (newBulb) newBulb.classList.add('lit');
-            g.gameInterval = setTimeout(() => this.nextRound(), 1500);
-        },
-        handleBulbClick(index) {
-            const g = this.state;
-            if (!g.isRunning || index !== g.activeBulb) return;
-            sound.play('game_hit');
-            g.score++;
-            const qlScore = $('#ql-score');
-            if (qlScore) qlScore.textContent = g.score;
-            this.nextRound();
-        }
-    },
-    
-    // NEW: Sequence Game
-    sequence: {
-        state: {
-            score: 0,
-            highScore: 0,
-            sequence: [],
-            playerSequence: [],
-            level: 1,
-            isRunning: false,
-            isPlayersTurn: false
-        },
-        
-        start() {
-            ui.showGameModal_Sequence();
-            this.state.highScore = parseInt(localStorage.getItem('sequence_high_score') || '0');
-            setTimeout(() => {
-                const sqHighScore = $('#sq-high-score');
-                if(sqHighScore) sqHighScore.textContent = this.state.highScore;
-                
-                const startBtn = $('#sq-start-button');
-                if(startBtn) startBtn.onclick = () => this.runGame();
-                
-                const grid = $('#sq-grid');
-                if (grid) {
-                    $$('#sq-grid .game-tile').forEach(tile => {
-                         tile.onclick = () => this.handleTileClick(parseInt(tile.dataset.index));
-                    });
-                }
-            }, 100);
-        },
-        
-        runGame() {
-            if (this.state.isRunning) return;
-            this.state.isRunning = true;
-            this.state.score = 0;
-            this.state.level = 1;
-            this.state.sequence = [];
-            const startBtn = $('#sq-start-button');
-            if(startBtn) {
-                startBtn.disabled = true;
-                startBtn.textContent = '...';
-            }
-            const sqScore = $('#sq-score');
-            if (sqScore) sqScore.textContent = '0';
-            this.nextRound();
-        },
-        
-        stop() {
-            this.state.isRunning = false;
-            this.state.isPlayersTurn = false;
-            const startBtn = $('#sq-start-button');
-            if (startBtn) {
-                startBtn.disabled = false;
-                startBtn.textContent = 'Play Again';
-            }
-            const grid = $('#sq-grid');
-            if (grid) grid.classList.add('pointer-events-none');
-        },
-        
-        async nextRound() {
-            this.state.isPlayersTurn = false;
-            this.state.playerSequence = [];
-            const grid = $('#sq-grid');
-            if(grid) grid.classList.add('pointer-events-none');
-            const sqMessage = $('#sq-message');
-            if(sqMessage) sqMessage.textContent = "Watch carefully...";
-            
-            // Add new tile to sequence
-            this.state.sequence.push(Math.floor(Math.random() * 9));
-            
-            // Play sequence
-            await this.sleep(1000);
-            for (const tileIndex of this.state.sequence) {
-                this.flashTile(tileIndex);
-                sound.play('game_hit');
-                await this.sleep(500);
-            }
-            
-            // Player's turn
-            this.state.isPlayersTurn = true;
-            if(grid) grid.classList.remove('pointer-events-none');
-            if(sqMessage) sqMessage.textContent = "Your turn!";
-        },
-        
-        handleTileClick(index) {
-            if (!this.state.isPlayersTurn) return;
-            
-            this.flashTile(index);
-            sound.play('game_hit');
-            this.state.playerSequence.push(index);
-            
-            const currentStep = this.state.playerSequence.length - 1;
-            
-            // Check if correct
-            if (this.state.playerSequence[currentStep] !== this.state.sequence[currentStep]) {
-                // Game Over
-                sound.play('game_over');
-                const sqMessage = $('#sq-message');
-                if(sqMessage) sqMessage.textContent = "Wrong! Game Over.";
-                ui.showToast(`Game Over! Final Score: ${this.state.score}`, 3000);
-                if (this.state.score > this.state.highScore) {
-                    this.state.highScore = this.state.score;
-                    localStorage.setItem('sequence_high_score', this.state.highScore);
-                    const sqHighScore = $('#sq-high-score');
-                    if(sqHighScore) sqHighScore.textContent = this.state.highScore;
-                    ui.showToast(`New High Score: ${this.state.highScore}!`, 3000);
-                }
-                this.stop();
-                return;
-            }
-            
-            // Check if level complete
-            if (this.state.playerSequence.length === this.state.sequence.length) {
-                this.state.score++;
-                this.state.level++;
-                const sqScore = $('#sq-score');
-                if (sqScore) sqScore.textContent = this.state.score;
-                sound.play('success');
-                this.nextRound();
-            }
-        },
-        
-        flashTile(index) {
-            const tile = $(`#sq-grid .game-tile[data-index="${index}"]`);
-            if (!tile) return;
-            tile.classList.add('active');
-            setTimeout(() => tile.classList.remove('active'), 300);
-        },
-        
-        sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
-    }
-};
+        });
 
-
-// --- Start the App ---
-document.addEventListener('DOMContentLoaded', () => {
-    app.init();
-    window.addEventListener('beforeunload', () => {
-         app.unsubscribeAll();
-    });
-});
-
-
-</script>
+    </script>
 </body>
 </html>
 
