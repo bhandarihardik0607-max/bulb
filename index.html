@@ -3,14 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <!-- Updated Title for Dual Brand -->
+    <!-- Title changed to match brand -->
     <title>Bulb Cafe & Gulabi Thali</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <!-- Fonts - Using Poppins for modern look -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,400..900&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
         :root {
             /* Theme Variables */
@@ -20,12 +26,11 @@
             --bg-primary-pink: #FFF5F7; --bg-secondary-pink: #FCE7F6; --text-primary-pink: #9D174D; --text-secondary-pink: #E94C8F; --border-pink: #FBCFE8; --brand-primary-pink: #DB2777;
             --app-height: 100vh;
         }
-        /* Theme Selection - Brand Themes */
+        /* Theme Selection - Reverted to Light/Dark + new Brand Themes */
         [data-theme="light"] { --bg-primary: var(--bg-primary-light); --bg-secondary: var(--bg-secondary-light); --text-primary: var(--text-primary-light); --text-secondary: var(--text-secondary-light); --border-color: var(--border-light); --brand-primary: var(--brand-primary-light); }
         [data-theme="dark"] { --bg-primary: var(--bg-primary-dark); --bg-secondary: var(--bg-secondary-dark); --text-primary: var(--text-primary-dark); --text-secondary: var(--text-secondary-dark); --border-color: var(--border-dark); --brand-primary: var(--brand-primary-dark); }
         [data-theme="bulb"] { --bg-primary: var(--bg-primary-yellow); --bg-secondary: var(--bg-secondary-yellow); --text-primary: var(--text-primary-yellow); --text-secondary: var(--text-secondary-yellow); --border-color: var(--border-yellow); --brand-primary: var(--brand-primary-yellow); }
         [data-theme="gulabi"] { --bg-primary: var(--bg-primary-pink); --bg-secondary: var(--bg-secondary-pink); --text-primary: var(--text-primary-pink); --text-secondary: var(--text-secondary-pink); --border-color: var(--border-pink); --brand-primary: var(--brand-primary-pink); }
-
 
         /* Base & Utility Styles */
         html, body { height: 100%; overflow: hidden; }
@@ -81,17 +86,6 @@
         .quantity-control button { width: 34px; height: 100%; font-size: 20px; line-height: 1; transition: background-color 0.2s ease; }
         .quantity-control button:hover { background-color: rgba(0,0,0,0.1); }
         .quantity-control span { font-size: 16px; }
-        
-        /* View Only Button for Gulabi Thali */
-        .view-only-btn { 
-            background-color: var(--bg-primary); 
-            color: var(--text-secondary); 
-            border: 2px solid var(--border-color); 
-            font-weight: 600; 
-            padding: 8px 12px;
-            border-radius: 9999px;
-            font-size: 0.8rem;
-        }
 
         /* Loyalty Slider */
         #loyalty-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 8px; background: var(--bg-secondary); outline: none; opacity: 0.7; transition: opacity .2s; border-radius: 4px; }
@@ -99,23 +93,12 @@
         #loyalty-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; background: var(--brand-primary); cursor: pointer; border-radius: 50%; }
         #loyalty-slider::-moz-range-thumb { width: 20px; height: 20px; background: var(--brand-primary); cursor: pointer; border-radius: 50%; border: none; }
 
-        /* Social/Instagram Card */
+        /* Social Card Gradient (used for visual appeal) */
         .social-card-gradient {
             background: radial-gradient(circle at 30% 107%, #FCD34D 0%, #F59E0B 45%, #DB2777 60%, #E94C8F 90%);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-        }
-        
-        /* Gulabi Thali Switch Button Style (Prominent) */
-        .gulabi-switch-btn {
-            background-color: var(--bg-secondary-pink);
-            color: var(--text-primary-pink);
-            border: 2px solid var(--brand-primary-pink);
-            transition: all 0.2s ease;
-        }
-        .gulabi-switch-btn:hover {
-            box-shadow: 0 4px 8px rgba(219, 39, 119, 0.3);
         }
 
     </style>
@@ -156,6 +139,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script type="module">
+    
     // FIX: Accessing createClient from the global window.supabase object.
     const $ = (selector) => document.querySelector(selector);
     const $$ = (selector) => document.querySelectorAll(selector);
@@ -179,7 +163,6 @@
         supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     } else {
         console.error("CRITICAL: Supabase client library not found on window.supabase. App cannot function.");
-        // Fallback for UI if Supabase fails to load
         document.addEventListener('DOMContentLoaded', () => {
              $('#splash-screen').innerHTML = `<div class="text-white text-center p-4">Error loading data components. Check Console.</div>`;
              $('#splash-screen').style.backgroundColor = '#FF0000';
@@ -190,15 +173,13 @@
 
     // --- STATIC DATA ---
     const STATIC_DATA = {
-        // Best sellers removed as per request. Placeholder maintained for future use.
-        bestSellers: [], 
+        // Placeholder IDs (These are just for structure and won't filter out items incorrectly now)
+        bestSellers: [1, 2, 3, 4], 
         captionIdeas: {
             cafe_vibes: [ "Fueling my day with the best coffee @bulbcafe! 💡☕️", "Cozy corners and great beans at Bulb Cafe. #CafeVibes" ],
             thali_time: [ "Feast mode ON! Enjoying the delicious thali at Gulabi Thali. 🍽️💖 #IndianFood", "Nothing beats a traditional thali! @gulabithali." ],
             friends: [ "Great food and great company! Cheers from Bulb Cafe. 🎉", "Lunch plans sorted! @bulbcafe" ]
-        },
-        // Updated Video URL
-        videoUrl: "https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/WhatsApp%20Video%202025-11-01%20at%2020.52.47_2473f7b8.mp4"
+        }
     };
     
     // --- SOUND EFFECTS ---
@@ -213,16 +194,13 @@
             if (!this.audioContext) return;
             const o = this.audioContext.createOscillator(), g = this.audioContext.createGain();
             o.connect(g); g.connect(this.audioContext.destination); g.gain.setValueAtTime(0, this.audioContext.currentTime);
-            
-            // Custom Bulb Sound: High frequency sine wave for a brief "ping"
             const sounds = {
-                click: { type: 'sine', freq: 800, gain: 0.15, len: 0.05 },
-                add_to_cart: { type: 'sine', freq: 900, gain: 0.2, len: 0.1 },
-                success: { type: 'sine', freq: 1000, gain: 0.3, len: 0.1, secondFreq: 1200 },
-                win: { type: 'sine', freq: 700, gain: 0.4, len: 0.2, secondFreq: 1000 },
-                draw: { type: 'sawtooth', freq: 250, gain: 0.2, len: 0.1 },
+                click: { type: 'sine', freq: 900, gain: 0.1, len: 0.05 }, // Higher pitch for "Bulb" effect
+                add_to_cart: { type: 'sine', freq: 700, gain: 0.2, len: 0.15 },
+                success: { type: 'sine', freq: 523, gain: 0.3, len: 0.2, secondFreq: 659 },
+                win: { type: 'sine', freq: 587, gain: 0.4, len: 0.3, secondFreq: 880 },
+                draw: { type: 'sawtooth', freq: 220, gain: 0.1, len: 0.1 },
             };
-
             const s = sounds[type]; if (!s) return;
             o.type = s.type; o.frequency.setValueAtTime(s.freq, this.audioContext.currentTime);
             g.gain.linearRampToValueAtTime(s.gain, this.audioContext.currentTime + 0.01);
@@ -247,7 +225,7 @@
             allMenuItems: [],
             appSettings: {},
             orderSubscription: null,
-            currentMenuCategory: 'All Menu', // Default category
+            currentMenuCategory: null,
             searchQuery: '',
             searchResults: [],
             pointsToRedeem: 0,
@@ -287,14 +265,12 @@
                 
                 this.state.user = session?.user;
                 if (!this.state.user) {
-                    console.log("No session found. Signing in anonymously...");
                     const { data: signInData, error } = await supabase.auth.signInAnonymously();
                     if (error) {
                         console.error("Anonymous sign-in failed:", error);
                         throw new Error(`Auth failed: ${error.message}`);
                     }
                     this.state.user = signInData.user;
-                    console.log("Signed in as anonymous user:", this.state.user.id);
                 }
 
                 // 2. FETCH OR CREATE PROFILE
@@ -333,30 +309,23 @@
             const userId = this.state.user.id;
 
             try {
-                // 1. Try fetching the existing profile
                 const { data, error } = await supabase.from('customers')
                     .select('*, loyalty_points')
                     .eq('id', userId)
                     .single();
 
-                // If no row found (PGRST116), we need to create it.
                 if (error && error.code === 'PGRST116') {
-                    console.log("Profile not found. Attempting to create profile...");
                     return this.createUserProfile(userId);
                 }
                 
-                // If a different error occurs (e.g., RLS blocking SELECT), throw the error
                 if (error) throw error;
                 
-                // 2. Profile found and successfully read
                 if (data) {
                     data.loyalty_points = data.loyalty_points || 0;
                     this.state.customerProfile = data;
-                    console.log("Profile loaded successfully.");
                     return data;
                 }
                 
-                // Should not happen if error checking is correct, but safe fallback:
                 return this.createUserProfile(userId);
 
             } catch (error) {
@@ -377,15 +346,11 @@
                 
                 if (error) throw error;
                 
-                console.log("New user profile created successfully.");
                 this.state.customerProfile = data;
                 return data;
                 
             } catch (error) {
-                // Handle potential race condition where profile was created just now by another call.
                 if (error.code === '23505') { // Unique violation
-                    console.warn("Profile creation failed due to duplicate entry. Re-fetching...");
-                    // Try to fetch again now that it exists
                     return this.fetchCustomerProfile();
                 }
                 console.error("Error creating profile:", error.message);
@@ -402,9 +367,10 @@
 
                 const groupedMenu = data.reduce((acc, item) => {
                     if (!item.is_available) return acc;
-                    let category = acc.find(c => c.category === item.category);
+                    const categoryName = item.category || 'Uncategorized';
+                    let category = acc.find(c => c.category === categoryName);
                     if (!category) {
-                        category = { category: item.category, items: [] };
+                        category = { category: categoryName, items: [] };
                         acc.push(category);
                     }
                     category.items.push(item);
@@ -412,18 +378,10 @@
                 }, []);
 
                 this.state.menuData = groupedMenu;
-                
-                // Set initial category state now that data is loaded
-                const activeBrand = document.body.dataset.theme === 'gulabi' ? 'Gulabi Thali' : 'Bulb Cafe';
-                
-                // FIX: Removed 'item' variable reference (typo)
-                const firstCategory = groupedMenu.find(c => c.items.some(i => i?.brand === activeBrand));
-                this.state.currentMenuCategory = firstCategory ? firstCategory.category : 'All Menu';
-
 
             } catch (error) {
                 console.error('Error fetching menu data:', error);
-                ui.showToast('Could not load the menu.');
+                ui.showToast('Could not load the menu: ' + error.message);
                 this.state.menuData = [];
                 this.state.allMenuItems = [];
             }
@@ -442,7 +400,7 @@
                 ? `<input type="number" id="table-number-input" class="w-full p-3 border border-custom rounded-lg bg-secondary text-primary" placeholder="Your Table Number" required>`
                 : '';
             ui.showModal('onboarding-modal', `
-                <h2 class="text-2xl font-bold text-primary mb-2">Welcome!</h2><p class="text-secondary mb-6">A few details to get you started.</p>
+                <h2 class="text-2xl font-bold text-primary mb-2">Welcome to Bulb!</h2><p class="text-secondary mb-6">A few details to get you started.</p>
                 <div class="space-y-4">
                     <input type="text" id="user-name-input" class="w-full p-3 border border-custom rounded-lg bg-secondary text-primary" placeholder="Your Name" required value="${this.state.customerProfile?.name || ''}">
                     <input type="tel" id="mobile-number-input" class="w-full p-3 border border-custom rounded-lg bg-secondary text-primary" placeholder="Mobile Number (for Loyalty Points)" required value="${this.state.customerProfile?.whatsapp_number || ''}">
@@ -468,55 +426,51 @@
 
             let finalProfileData;
             try {
-                const { data: existingByPhone, error: errorByPhone } = await supabase.from('customers').select('*, loyalty_points').eq('whatsapp_number', cleanPhone).maybeSingle();
+                // FIX: Reverted to Select-then-Update/Insert logic to avoid the ON CONFLICT error (42P10)
+                
+                // 1. Check if profile exists by phone number (for returning users)
+                let { data: existingProfile, error: selectError } = await supabase.from('customers')
+                    .select('*, loyalty_points')
+                    .eq('whatsapp_number', cleanPhone)
+                    .maybeSingle();
 
-                if (existingByPhone) {
-                     finalProfileData = existingByPhone;
-                     console.log(`Found existing customer by phone: ${finalProfileData.id}`);
-                     if (finalProfileData.name !== name || finalProfileData.id !== this.state.user.id) {
-                        const { error: updateError } = await supabase.from('customers')
-                            .update({ name: name, id: this.state.user.id })
-                            .eq('whatsapp_number', cleanPhone);
-                        if (updateError) {
-                            console.warn("Could not link user ID or update name:", updateError);
-                            finalProfileData.name = name; // Update local copy even if DB fails
-                        } else {
-                            finalProfileData.id = this.state.user.id;
-                            finalProfileData.name = name;
-                        }
-                     }
+                if (selectError && selectError.code !== 'PGRST116') throw selectError;
+
+                if (existingProfile) {
+                    // Profile found by phone number. Link the current auth ID to it.
+                    finalProfileData = existingProfile;
+                    const { error: updateError } = await supabase.from('customers')
+                        .update({ id: this.state.user.id, name: name })
+                        .eq('whatsapp_number', cleanPhone);
+                    if (updateError) console.warn("Failed to update ID/Name on existing profile:", updateError);
+                    finalProfileData.id = this.state.user.id; // Update local state immediately
+                    finalProfileData.name = name;
                 } else {
-                     const { data: existingById, error: errorById } = await supabase.from('customers').select('*, loyalty_points').eq('id', this.state.user.id).maybeSingle();
-                     if (existingById) {
-                         const { data: updatedData, error: updateDetailsError } = await supabase.from('customers')
-                            .update({ whatsapp_number: cleanPhone, name: name })
-                            .eq('id', this.state.user.id)
-                            .select('*, loyalty_points')
-                            .single();
-                         if (updateDetailsError) throw updateDetailsError;
-                         finalProfileData = updatedData;
-                         console.log(`Updated existing customer ${finalProfileData.id} with phone and name.`);
-                     } else {
-                         console.log("Inserting new customer profile.");
-                         const { data: insertedData, error: insertError } = await supabase.from('customers').insert({
-                             id: this.state.user.id,
-                             name,
-                             whatsapp_number: cleanPhone,
-                             loyalty_points: 0
-                         }).select('*, loyalty_points').single();
-                         if (insertError) throw insertError;
-                         finalProfileData = insertedData;
-                     }
+                    // Profile not found by phone. Create a new one using the current auth ID.
+                    const { data: insertedData, error: insertError } = await supabase.from('customers').insert({
+                        id: this.state.user.id,
+                        name: name,
+                        whatsapp_number: cleanPhone,
+                        loyalty_points: 0
+                    }).select('*, loyalty_points').single();
+                    
+                    if (insertError) throw insertError;
+                    finalProfileData = insertedData;
                 }
-
+                
+                // If loyalty_points is missing from DB response for any reason, default it.
+                finalProfileData.loyalty_points = finalProfileData.loyalty_points || 0;
+                
+                // END FIX: Reverted to Select-then-Update/Insert logic
+                
                 this.state.customerProfile = finalProfileData;
                 this.state.customerProfile.loyalty_points = this.state.customerProfile.loyalty_points || 0;
                 this.state.tableNumber = tableNumber;
                 
-                // FIX: Initialize main UI *before* closing the modal
-                await this.startSession(); // This calls showMainInterface()
-                ui.closeModal('onboarding-modal'); // Now close the modal
-                this.navigateTo('home', false); // Manually set the final state
+                // Call startSession/showMainInterface before closing modal
+                await this.startSession();
+                ui.closeModal('onboarding-modal');
+                this.navigateTo('home', false); // Ensure UI updates
 
             } catch (error) {
                 console.error("Onboarding/Linking Error:", error);
@@ -544,8 +498,9 @@
             const tableNumber = $('#table-number-input').value;
             if (!tableNumber) return ui.showToast("Please enter your table number.");
             this.state.tableNumber = parseInt(tableNumber);
-            ui.closeModal('table-number-modal');
             this.startSession();
+            ui.closeModal('table-number-modal');
+            this.navigateTo('home', false);
         },
 
         async startSession() {
@@ -557,43 +512,27 @@
             $('#main-interface').classList.remove('hidden');
             $('#bottom-nav').classList.remove('hidden');
             ui.renderBottomNav();
-            // Do not navigate here, let the calling function handle navigation
-            // to prevent the "double-click" tab issue.
+            // Initial navigation is handled by the caller (onboarding/table entry)
+            // or by init() when loading from hash
         },
 
         navigateTo(page, pushToHistory = true){
              if (!this.state.customerProfile) return;
-             
-             // If clicking the same tab, do nothing.
-             if (this.state.currentPage === page && !pushToHistory && location.hash.substring(1) === page) {
-                 return;
-             }
-             
              sound.play('click');
-             
-             // --- Robust Back/Forward/Modal Navigation Logic ---
+
              const currentHash = location.hash.substring(1);
-             const openModal = $('#modal-container').children[0];
+             
+             // Check if we are already on the target page (ignoring initial load false)
+             if (currentHash === page && pushToHistory) return;
 
-             // If a modal is open, treat the navigation attempt as a request to close the modal first.
-             if (openModal && pushToHistory && currentHash !== openModal.id) {
-                // If user clicks a tab while modal is open, close modal and navigate.
-                ui.closeModal(openModal.id); 
-                // Then, proceed with navigation logic below.
-             }
-
+             // Only update browser history if it's a new page or we're explicitly pushing state
              if (pushToHistory) {
-                if (currentHash !== page) {
-                    location.hash = page; // Pushes new state
-                }
-             } else {
-                 // This is a 'popstate' (back button) or internal navigation (modal close)
-                 if (currentHash !== page) {
-                     history.replaceState(null, '', '#' + page);
-                 }
+                location.hash = page;
+             } else if (currentHash !== page) {
+                // If not pushing history, just replace the current state to reflect the new page
+                history.replaceState(null, '', '#' + page);
              }
              
-             // Always update UI after determining history state
              this.state.currentPage = page;
              ui.renderHeader(page);
              ui.renderPageContent(page);
@@ -601,32 +540,43 @@
         },
 
         handleHardwareBack(event) {
+             const currentHash = location.hash.substring(1);
              const openModal = $('#modal-container').children[0];
 
+             // 1. Handle Modal Back
              if (openModal) {
-                // 1. Close open modal
                 ui.closeModal(openModal.id);
-                event.preventDefault(); // Stop browser default back
-                // We DON'T replace state here; closeModal will handle it.
+                event.preventDefault();
+                // Replace hash to current page after closing modal
+                history.replaceState(null, '', '#' + this.state.currentPage);
                 return;
              }
              
-             // 2. Prevent infinite back loop or sudden exit on mobile
-             if (this.state.currentPage !== 'home') {
-                 event.preventDefault();
-                 this.navigateTo('home', true); // Navigate back to home *and* push history
+             // 2. Handle Page Back (Prevent double back/exit from home)
+             if (this.state.currentPage === 'home') {
+                 // Already on home, allow default back behavior (or do nothing)
+                 return;
              }
-             // If already on 'home', allow default behavior (exit or app minimum navigation)
+
+             // If the current hash doesn't match the state (e.g., user used browser back/forward)
+             if (PAGES.includes(currentHash) && currentHash !== this.state.currentPage) {
+                 this.navigateTo(currentHash, false); // Sync state to the hash
+                 event.preventDefault();
+             }
+             // Navigate back to home
+             else if (this.state.currentPage !== 'home') {
+                 event.preventDefault(); 
+                 this.navigateTo('home');
+             }
         },
 
         applyTheme(){ document.body.dataset.theme = this.state.theme; },
-        toggleTheme(t){ this.state.theme = t; localStorage.setItem('brand-theme', t); this.applyTheme(); this.refreshPage(); },
+        toggleTheme(t){ ui.closeModal('brand-switcher-modal'); this.state.theme = t; localStorage.setItem('brand-theme', t); this.applyTheme(); this.refreshPage(); },
 
         addOrUpdateCart(itemId, quantityChange) {
-            // Check if the item belongs to Gulabi Thali (View Mode)
             const item = this.state.allMenuItems.find(i => i.id === itemId);
-            if (item && item.brand === 'Gulabi Thali') {
-                return ui.showToast("Gulabi Thali items are currently view-only for dine-in. Please select Bulb Cafe items or contact staff.", 'error');
+            if (item && item.brand?.toLowerCase() === 'gulabi thali') {
+                return ui.showToast("Gulabi Thali is view-only. Please select Bulb Cafe items.", 'error');
             }
 
             sound.play('click');
@@ -652,10 +602,9 @@
         setCartItemQuantity(itemId, quantity) {
             const item = this.state.allMenuItems.find(i => i.id === itemId);
             
-            // Check if the item belongs to Gulabi Thali (View Mode)
-            if (item && item.brand === 'Gulabi Thali' && quantity > 0) {
+            if (item && item.brand?.toLowerCase() === 'gulabi thali' && quantity > 0) {
                  ui.closeModal('item-detail-modal');
-                 return ui.showToast("Gulabi Thali items are currently view-only for dine-in. Please select Bulb Cafe items or contact staff.", 'error');
+                 return ui.showToast("Gulabi Thali is view-only. Please select Bulb Cafe items.", 'error');
             }
 
             if (!item) return;
@@ -683,30 +632,33 @@
              const searchContainer = $('#search-results-container');
              const menuContainer = $('#menu-items');
              const tabsContainer = $('#category-tabs-container');
-             this.state.searchQuery = query.toLowerCase();
+             const activeBrand = this.state.theme === 'bulb' ? 'Bulb Cafe' : 'Gulabi Thali';
+             this.state.searchQuery = query.toLowerCase().trim();
 
              if (this.state.searchQuery.length > 1) {
                 if (searchContainer) searchContainer.classList.remove('hidden');
                 if (menuContainer) menuContainer.classList.add('hidden');
                 if (tabsContainer) tabsContainer.classList.add('hidden');
                 
-                // Filter all items by brand first
-                const activeBrand = (document.body.dataset.theme === 'gulabi' ? 'Gulabi Thali' : 'Bulb Cafe').toLowerCase();
-                const brandItems = this.state.allMenuItems.filter(item => (item?.brand?.toLowerCase() || 'undefined') === activeBrand);
-                
-                this.state.searchResults = brandItems.filter(item =>
-                    item.name?.toLowerCase().includes(this.state.searchQuery) ||
-                    (item.description && item.description.toLowerCase().includes(this.state.searchQuery))
-                );
-                // FIX: Use ui.renderMenuItems directly with the search results
+                this.state.searchResults = this.state.allMenuItems.filter(item => {
+                    // Safe check for brand and null properties
+                    const itemBrand = item.brand?.toLowerCase();
+                    if (itemBrand !== activeBrand.toLowerCase()) return false;
+                    
+                    const itemName = item.name?.toLowerCase() || '';
+                    const itemDesc = item.description?.toLowerCase() || '';
+                    
+                    return itemName.includes(this.state.searchQuery) || itemDesc.includes(this.state.searchQuery);
+                });
                 ui.renderMenuItems(this.state.searchResults, 'search-results-container');
              } else {
                 if (searchContainer) searchContainer.classList.add('hidden');
                 if (menuContainer) menuContainer.classList.remove('hidden');
                 if (tabsContainer) tabsContainer.classList.remove('hidden');
                 this.state.searchResults = [];
+                
                 // Go back to the currently selected category when search is cleared
-                ui.filterMenuByCategory(this.state.currentMenuCategory, $(`.category-tab[data-category="${this.state.currentMenuCategory}"]`));
+                this.filterMenuByCategory(this.state.currentMenuCategory || 'All Menu', null);
              }
         },
 
@@ -724,7 +676,6 @@
 
             // 3. Update state if clamped
             if (this.state.pointsToRedeem !== actualPointsToRedeem) {
-                console.log("Clamping points to redeem:", actualPointsToRedeem);
                 this.state.pointsToRedeem = actualPointsToRedeem;
             }
             
@@ -749,6 +700,7 @@
         },
 
         refreshPage(){
+            this.applyTheme();
             ui.refreshCartDependentUI();
             if (PAGES.includes(this.state.currentPage)) {
                 ui.renderPageContent(this.state.currentPage);
@@ -759,21 +711,20 @@
             if (!supabase) return ui.showToast("Order failed: Supabase not initialized.");
             if (this.state.cart.length === 0 || !this.state.tableNumber) return ui.showToast("Cart empty or table missing.");
             if (!this.state.customerProfile || !this.state.customerProfile.id) {
-                console.error("Critical Error: Customer profile ID is missing.", this.state.customerProfile);
                 return ui.showToast("Error: Your profile is not loaded correctly. Please refresh.");
             }
 
             btnElement.disabled = true; const originalBtnHTML = btnElement.innerHTML;
             btnElement.innerHTML = `<span class="flex items-center justify-center"><div class="spinner mr-2"></div> Processing...</span>`;
 
-            const { subtotal, discountAmount, gst, finalTotal } = this.calculateCartTotal();
+            const { subtotal, discountAmount, finalTotal } = this.calculateCartTotal();
             const pointsToRedeem = this.state.pointsToRedeem;
 
             let orderData;
 
             try {
                 const { data: tableData, error: tableError } = await supabase.from('tables').select('id').eq('table_number', this.state.tableNumber).single();
-                if (tableError || !tableData) throw new Error(`Table #${this.state.tableNumber} invalid.`);
+                if (tableError || !tableData) throw new Error(`Table #${this.state.tableNumber} invalid or not found.`);
 
                 if (pointsToRedeem > 0) {
                     const { data: currentProfile, error: profileError } = await supabase.from('customers').select('loyalty_points').eq('id', this.state.customerProfile.id).single();
@@ -798,8 +749,7 @@
                 };
                 const { data: insertedOrder, error: orderError } = await supabase.from('orders').insert(orderPayload).select().single();
                 if (orderError) {
-                    console.error("Order Insert Error:", orderError);
-                    throw new Error(`Order placement failed. (Hint: Check RLS policies for 'orders' table. Customer ID: ${this.state.customerProfile.id})`);
+                    throw new Error(`Order placement failed. ${orderError.message}`);
                 }
                 orderData = insertedOrder;
 
@@ -811,26 +761,21 @@
                 }));
                 const { error: itemsError } = await supabase.from('order_items').insert(orderItems);
                 if (itemsError) {
-                    console.error("Order Items Insert Error:", itemsError);
                     await supabase.from('orders').delete().eq('id', orderData.id);
-                    throw new Error(`Order items failed. (Hint: Check RLS policies for 'order_items' table)`);
+                    throw new Error(`Order items failed. ${itemsError.message}`);
                 }
 
                 // Points transactions
                 try {
                     if (pointsToRedeem > 0) {
-                         const { error: redeemError } = await supabase.rpc('redeem_loyalty_points', { customer_id_input: this.state.customerProfile.id, points_to_redeem: pointsToRedeem });
-                         if (redeemError) throw new Error(`Redeem failed: ${redeemError.message}`);
+                         await supabase.rpc('redeem_loyalty_points', { customer_id_input: this.state.customerProfile.id, points_to_redeem: pointsToRedeem });
                          this.state.customerProfile.loyalty_points -= pointsToRedeem;
                     }
 
                     const pointsEarned = Math.floor(subtotal / 500) * 50;
                     if (pointsEarned > 0) {
-                         const { error: incrementError } = await supabase.rpc('increment_loyalty_points', { customer_id_input: this.state.customerProfile.id, points_to_add: pointsEarned });
-                         if (incrementError) console.error("Award points failed:", incrementError);
-                         else {
-                             this.state.customerProfile.loyalty_points += pointsEarned;
-                         }
+                         await supabase.rpc('increment_loyalty_points', { customer_id_input: this.state.customerProfile.id, points_to_add: pointsEarned });
+                         this.state.customerProfile.loyalty_points += pointsEarned;
                     }
                 } catch (pointsError) {
                     console.warn("Points transaction failed after order success:", pointsError.message);
@@ -849,7 +794,6 @@
                 this.navigateTo('cart');
 
             } catch (error) {
-                console.error("Place Order Failed:", error);
                 ui.showToast(`Order failed: ${error.message}`);
                 if (error.message.includes('points') || error.message.includes('profile')) {
                     await this.fetchCustomerProfile();
@@ -866,31 +810,25 @@
 
         async fetchActiveOrder(){
             if (!this.state.user || !this.state.customerProfile?.id) return;
-            try {
-                const { data, error } = await supabase.from('orders')
-                    .select(`*, order_items(*, products(name)), feedback_submitted`)
-                    .eq('customer_id', this.state.customerProfile.id)
-                    .in('status', ['received', 'preparing'])
-                    .order('created_at', { ascending: false })
-                    .limit(1).single();
+            const { data, error } = await supabase.from('orders')
+                .select(`*, order_items(*, products(name)), feedback_submitted`)
+                .eq('customer_id', this.state.customerProfile.id)
+                .in('status', ['received', 'preparing'])
+                .order('created_at', { ascending: false })
+                .limit(1).single();
 
-                if (error && error.code !== 'PGRST116') console.error('Fetch active order error:', error);
-                this.state.activeOrder = data || null;
-                if (this.state.activeOrder) {
-                    this.listenToOrderUpdates(this.state.activeOrder.id);
-                }
-            } catch (error) {
-                console.error("Error fetching active order:", error);
+            if (error && error.code !== 'PGRST116') console.error('Fetch active order error:', error);
+            this.state.activeOrder = data || null;
+            if (this.state.activeOrder) {
+                this.listenToOrderUpdates(this.state.activeOrder.id);
             }
         },
 
         listenToOrderUpdates(orderId){
-            if (!supabase) return;
             if (this.state.orderSubscription) {
                 supabase.removeChannel(this.state.orderSubscription);
                 this.state.orderSubscription = null;
             }
-            console.log(`Listening order: ${orderId}`);
             this.state.orderSubscription = supabase.channel(`public:orders:id=eq.${orderId}`)
                 .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders', filter: `id=eq.${orderId}` }, payload => {
                     if (!this.state.activeOrder || this.state.activeOrder.id !== payload.new.id) return;
@@ -911,7 +849,6 @@
                     if (['delivered', 'cancelled'].includes(updatedOrder.status)) {
                         supabase.removeChannel(this.state.orderSubscription);
                         this.state.orderSubscription = null;
-                        console.log("Order finished, unsubscribed.");
 
                         if (updatedOrder.status === 'delivered' && !updatedOrder.feedback_submitted) {
                              ui.showModal('review-modal', `
@@ -929,23 +866,14 @@
                         this.state.activeOrder = null;
                         uiNeedsRefresh = true;
                     }
-                    if(uiNeedsRefresh && this.state.currentPage === 'cart') {
+                    if(uiNeedsRefresh) {
                          this.refreshPage();
-                    } else if (uiNeedsRefresh && this.state.currentPage === 'home') {
-                        this.refreshPage();
                     }
-                }).subscribe((status, err) => {
-                    if (status === 'SUBSCRIBED') {
-                        console.log(`Subscribed to order ${orderId}`);
-                    } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-                        console.error(`Subscription failed:`, status, err);
-                    }
-                });
+                }).subscribe();
         },
 
 
         async submitFeedback(orderId){
-            if (!supabase) return ui.showToast("Feedback failed: Supabase not initialized.");
             if (!this.state.customerProfile || !this.state.customerProfile.id) return ui.showToast("Error: Profile not loaded.");
             const content = $('#feedback-text').value.trim();
             if (!content) return ui.showToast("Please enter your feedback.");
@@ -980,7 +908,6 @@
                 // 3. Award loyalty points
                 const { error: incrementError } = await supabase.rpc('increment_loyalty_points', { customer_id_input: this.state.customerProfile.id, points_to_add: 10 });
                 if (incrementError) {
-                    console.error("Feedback points award failed:", incrementError);
                     ui.showToast("Feedback submitted, but points award failed.");
                 }
                 else {
@@ -992,29 +919,8 @@
                 this.refreshPage();
 
             } catch (error) {
-                 console.error("Feedback submission error:", error);
                  ui.showToast(`Feedback failed: ${error.message}`);
                  if (submitBtn) submitBtn.disabled = false;
-            }
-        },
-
-        async sendStaffCall(callType = 'assistance') {
-            if (!supabase) return ui.showToast("Call failed: Supabase not initialized.");
-            if (!this.state.tableNumber) return ui.showToast('Table number not set.');
-            if (!this.state.customerProfile || !this.state.customerProfile.id) return ui.showToast("Error: Profile not loaded.");
-            const { data: tableData } = await supabase.from('tables').select('id').eq('table_number', this.state.tableNumber).single();
-            if (!tableData) return ui.showToast('Invalid table number.');
-
-            const { error } = await supabase.from('staff_calls').insert({
-                table_id: tableData.id,
-                customer_id: this.state.customerProfile.id,
-                call_type: callType
-            });
-
-            if (error) {
-                ui.showToast(`Error calling staff: ${error.message}`);
-            } else {
-                ui.showToast(`Staff have been notified! They'll be right over.`, 5000);
             }
         },
 
@@ -1032,13 +938,12 @@
                 if (successful) ui.showToast('Copied!');
                 else ui.showToast('Copy failed.');
             } catch (err) {
-                console.error('Fallback copy failed', err);
                 ui.showToast('Copy failed.');
             }
             document.body.removeChild(textArea);
         }
     };
-    
+
     // --- UI RENDERING ---
     const ui = {
         showModal(id, content) {
@@ -1059,10 +964,16 @@
             const modal = $(`#${id}`);
             if (modal) modal.remove();
             
-            // Navigate back to the current page without pushing a new history entry
+            // Check if we are closing the modal that corresponds to the current hash
             if (location.hash.substring(1) === id) {
-                 // We only replace state, app.navigateTo will be handled by the caller
-                 history.replaceState(null, '', '#' + app.state.currentPage);
+                // FIX: Use manual hash assignment instead of history.replaceState to avoid SecurityError
+                location.hash = '#' + app.state.currentPage;
+                
+                // Use a slight delay to ensure the browser registers the hash change before the navigation logic runs
+                setTimeout(() => {
+                    // Call navigateTo with pushToHistory=false to ensure UI update without history change
+                    app.navigateTo(app.state.currentPage, false);
+                }, 0);
             }
         },
 
@@ -1070,7 +981,6 @@
             const toast = $('#toast'), p = $('#toast-message');
             p.textContent = message;
             toast.classList.remove('hidden');
-            // Re-apply styles on toast for dynamic theming
             toast.style.backgroundColor = 'var(--brand-primary)';
             toast.style.color = 'var(--bg-primary)';
 
@@ -1083,21 +993,19 @@
 
         renderHeader(page) {
             const header = $('#page-header');
-            const brandLogo = document.body.dataset.theme === 'gulabi' ? '💖 THALI' : '💡 CAFÉ';
-            
+            const currentBrandName = app.state.theme === 'bulb' ? 'BULB CAFE' : 'GULABI THALI';
             const pageConfigs = {
-                home: { title: brandLogo },
+                home: { title: currentBrandName},
                 order: { title: 'Menu'},
                 cart: { title: app.state.activeOrder ? 'Track Order' : 'My Cart'},
-                social: { title: 'Post & Win'},
-                cowork: { title: 'GULABI THALI KITCHEN'}, // Updated tab title
-                more: { title: 'Options'}
+                social: { title: 'Social'},
+                cowork: { title: 'Gulabi Thali Kitchen'},
+                more: { title: 'More Options'}
             };
-            const config = pageConfigs[page] || { title: brandLogo };
+            const config = pageConfigs[page] || { title: currentBrandName };
             header.innerHTML = `
                 <div class="flex items-center space-x-2">
-                    <!-- Adjusted font size to prevent overflow, added truncate -->
-                    <h1 class="text-xl font-bold brand-text truncate">${config.title}</h1> 
+                    <h1 class="text-2xl font-bold brand-text">${config.title}</h1>
                 </div>
                 <div class="text-right">
                     <p class="font-semibold text-primary text-sm">${app.state.customerProfile?.name || 'Guest'}</p>
@@ -1113,7 +1021,7 @@
                 order: this.renderMenuPage,
                 cart: this.renderCartPage,
                 social: this.renderSocialPage,
-                cowork: this.renderCoworkPage,
+                cowork: this.renderGulabiThaliKitchenPage, // Renamed renderer
                 more: this.renderMorePage,
             };
             content.classList.remove('fade-in');
@@ -1127,30 +1035,24 @@
                 home: `<svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>`,
                 order: `<svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>`,
                 cart: `<div class="relative"><svg id="cart-icon-svg" xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg><span id="cart-count" class="absolute -top-1 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden">0</span></div>`,
-                social: `<svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-2-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>`,
-                cowork: `<svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h-4v-4h-2v4H7M4 11l8-8 8 8M4 20h16a1 1 0 001-1V9.5a1 1 0 00-1-1h-2a1 1 0 00-1 1V14a1 1 0 01-1 1H8a1 1 0 01-1-1v-4.5a1 1 0 00-1-1H4a1 1 0 00-1 1V19a1 1 0 001 1z" /></svg>`, // Custom home/kitchen icon
+                social: `<svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>`,
+                cowork: `<svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v2a2 2 0 01-2 2h-4m-12 0h4m-4 0a2 2 0 00-2 2v2a2 2 0 002 2h12a2 2 0 002-2v-2a2 2 0 00-2-2h-4m-6-6V4a2 2 0 012-2h4a2 2 0 012 2v4" /></svg>`,
                 more: `<svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16m-7 6h7" /></svg>`
             };
 
-            const labels = { home: 'Home', order: 'Menu', cart: 'Cart', social: 'Social', cowork: 'Thali Kitchen', more: 'More' }; // Updated tab label
-            // FIX: Add onClick handler to buttons
+            const labels = { home: 'Home', order: 'Menu', cart: 'Cart', social: 'Social', cowork: 'Kitchen', more: 'More' };
             $('#bottom-nav').innerHTML = PAGES.map(p => `<button onclick="app.navigateTo('${p}')" class="nav-item flex-1 p-2 text-secondary" data-page="${p}">${icons[p]}<span id="${p}-tab-label" class="text-xs font-bold capitalize">${labels[p]}</span></button>`).join('');
         },
 
         updateActiveNav(page) {
-            // FIX: Check for element existence before trying to set properties
             const cartLabel = $('#cart-tab-label'), cartIcon = $('#cart-icon-svg');
-            
-            if (cartLabel && cartIcon) { // Ensure elements exist
-                if (app.state.activeOrder) {
-                    cartLabel.textContent = 'Track';
-                    cartIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />`;
-                } else {
-                    cartLabel.textContent = 'Cart';
-                    cartIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />`;
-                }
+            if (app.state.activeOrder) {
+                cartLabel.textContent = 'Track';
+                cartIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />`;
+            } else {
+                cartLabel.textContent = 'Cart';
+                cartIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />`;
             }
-            
             $$('.nav-item').forEach(item => {
                 const isActive = item.dataset.page === page;
                 item.classList.toggle('brand-text', isActive);
@@ -1163,118 +1065,83 @@
         refreshCartDependentUI() {
             const el = $('#cart-count');
             const total = app.state.cart.reduce((s, i) => s + i.quantity, 0);
-            if (el) { // Add null check
-                if (total > 0 && !app.state.activeOrder) {
-                    el.textContent = total;
-                    el.classList.remove('hidden');
-                } else {
-                    el.classList.add('hidden');
-                }
+            if (total > 0 && !app.state.activeOrder) {
+                el.textContent = total;
+                el.classList.remove('hidden');
+            } else {
+                el.classList.add('hidden');
             }
         },
 
         renderHomePage(){
-            const settings = app.state.appSettings;
-            const activeOrderHTML = app.state.activeOrder ? `<div class="bg-blue-500/10 border-2 border-blue-500/20 rounded-xl p-4 text-center"> <h2 class="font-bold text-primary">Your order is ${app.state.activeOrder.status}!</h2> <p class="text-secondary text-sm">Order ID: #${app.state.activeOrder.id.slice(0,6)}</p> <button onclick="app.navigateTo('cart')" class="mt-2 text-sm font-semibold text-blue-600 hover:underline">View Details &rarr;</button> </div>` : '';
-            const loyaltyBannerHTML = `
-                <div class="bg-yellow-100 border border-yellow-200 text-yellow-800 p-4 rounded-xl text-center shadow-sm">
-                    <h2 class="font-bold text-lg">✨ Earn 10% Back! ✨</h2>
-                    <p class="mt-1">Get <strong class="font-semibold">50 Loyalty Points</strong> (worth ₹50) for every ₹500 spent.</p>
-                    <p class="text-xs mt-1">Redeem points in your cart!</p>
-                </div>`;
-            
-            const activeBrand = document.body.dataset.theme === 'gulabi' ? 'Gulabi Thali' : 'Bulb Cafe';
-            const bulbBtnClass = document.body.dataset.theme === 'bulb' ? 'brand-bg font-bold' : 'bg-secondary text-secondary font-semibold';
-            
-            // Prominent Gulabi Thali button
-            const gulabiButtonHTML = `
-                <button onclick="app.toggleTheme('gulabi')" class="gulabi-switch-btn w-full p-4 rounded-xl text-center shadow-lg transition duration-300">
-                    <div class="text-3xl">💖</div>
-                    <p class="font-extrabold text-2xl mt-1" style="color: var(--text-primary-pink);">GULABI THALI</p>
-                    <p class="text-sm mt-1" style="color: var(--text-secondary-pink);">CLICK TO SWITCH VIEW</p>
-                </button>
-            `;
-            
-            const bulbButtonHTML = `
-                 <button onclick="app.toggleTheme('bulb')" class="w-full p-3 rounded-xl text-center ${bulbBtnClass}">
-                    <div class="text-3xl">💡</div>
-                    <p class="font-bold text-lg mt-1 ${document.body.dataset.theme === 'bulb' ? '' : 'brand-text'}">BULB CAFÉ</p>
-                    <p class="text-sm ${document.body.dataset.theme === 'bulb' ? 'text-primary' : 'text-secondary'}">CLICK TO SWITCH VIEW</p>
-                </button>
-            `;
+            const currentBrandName = app.state.theme === 'bulb' ? 'BULB CAFE' : 'GULABI THALI';
+            const switchTheme = app.state.theme === 'bulb' ? 'gulabi' : 'bulb';
+            const switchBrandName = switchTheme === 'bulb' ? 'BULB CAFE' : 'GULABI THALI';
+            const switchButtonColor = switchTheme === 'bulb' ? 'bg-yellow-500' : 'bg-pink-500';
 
+            const activeOrderHTML = app.state.activeOrder ? `<div class="bg-blue-500/10 border-2 border-blue-500/20 rounded-xl p-4 text-center"> <h2 class="font-bold text-primary">Your order is ${app.state.activeOrder.status}!</h2> <p class="text-secondary text-sm">Order ID: #${app.state.activeOrder.id.slice(0,6)}</p> <button onclick="app.navigateTo('cart')" class="mt-2 text-sm font-semibold text-blue-600 hover:underline">View Details &rarr;</button> </div>` : '';
 
             $('#page-content').innerHTML = `
                 <div class="space-y-6">
-                    <!-- Video Hero Area -->
+                    <!-- Video Hero Section -->
                     <div class="relative h-48 overflow-hidden rounded-b-2xl">
-                        <video src="${STATIC_DATA.videoUrl}" 
-                               autoplay loop muted playsinline preload="metadata" 
-                               class="absolute top-1/2 left-1/2 w-full h-full object-cover -translate-x-1/2 -translate-y-1/2"></video>
+                        <video src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/WhatsApp%20Video%202025-11-01%20at%2020.52.47_2473f7b8.mp4" autoplay loop muted playsinline preload="metadata" class="absolute top-1/2 left-1/2 w-full h-full object-cover -translate-x-1/2 -translate-y-1/2"></video>
                         <div class="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white text-center p-4">
-                            <!-- Removed branding text from video -->
+                            <h1 class="text-4xl font-bold font-brand">${currentBrandName}</h1>
                         </div>
                     </div>
                     <div class="p-4 space-y-8">
-                        
-                        <!-- BRAND SWITCHER (Prominent) -->
-                        <div class="grid grid-cols-1 gap-4">
-                            ${activeBrand === 'Bulb Cafe' ? gulabiButtonHTML : bulbButtonHTML}
+                        ${activeOrderHTML ? `<div class="mt-8">${activeOrderHTML}</div>` : ''}
+
+                        <!-- Brand Switcher -->
+                        <div class="mt-8 text-center">
+                            <h2 class="text-2xl font-bold text-primary mb-4 px-1">You are viewing the ${currentBrandName} menu.</h2>
+                            <button onclick="app.toggleTheme('${switchTheme}')" class="w-full ${switchButtonColor} text-white font-extrabold py-4 px-6 rounded-xl shadow-lg transition transform hover:scale-[1.02] text-lg">
+                                CLICK TO SWITCH TO ${switchBrandName}
+                            </button>
                         </div>
                         
-                        ${loyaltyBannerHTML}
-                        ${activeOrderHTML ? `<div class="mt-8">${activeOrderHTML}</div>` : ''}
-                        
-                        
-                        <button onclick="app.navigateTo('order')" class="w-full brand-bg font-semibold py-4 px-6 rounded-lg text-lg"> View Full Menu </button>
-                        
+                        <!-- Call Staff - Simplified -->
+                        <div class="grid grid-cols-1 gap-4">
+                            <button onclick="ui.showCallStaffModal()" class="bg-secondary rounded-xl p-4 text-center flex flex-col items-center justify-center h-28 border border-custom"><span class="text-3xl">🛎</span><p class="font-semibold mt-2 text-primary">Call Assistance</p></button>
+                        </div>
+
                     </div>
                 </div>`;
         },
-        
-        showBrandSwitcherModal() {
-            const currentTheme = document.body.dataset.theme;
-            // Removed Light/Dark themes from the modal
-            ui.showModal('brand-switcher-modal', `
-                <h2 class="text-xl font-bold mb-4">Select Active Brand</h2>
-                <div class="grid grid-cols-2 gap-4">
-                    <button onclick="app.toggleTheme('bulb')" class="p-4 rounded-xl text-center border-2 ${currentTheme === 'bulb' ? 'brand-border' : 'border-secondary'}" style="background-color: var(--bg-secondary-yellow); color: var(--text-primary-yellow);">
-                        <span class="text-3xl">💡</span><p class="font-semibold mt-1">Bulb Cafe</p>
-                    </button>
-                    <button onclick="app.toggleTheme('gulabi')" class="p-4 rounded-xl text-center border-2 ${currentTheme === 'gulabi' ? 'brand-border' : 'border-secondary'}" style="background-color: var(--bg-secondary-pink); color: var(--text-primary-pink);">
-                        <span class="text-3xl">💖</span><p class="font-semibold mt-1">Gulabi Thali</p>
-                    </button>
-                </div>
-                <button onclick="ui.closeModal('brand-switcher-modal')" class="w-full mt-6 bg-secondary font-semibold py-3 rounded-lg">Close</button>
-            `);
-        },
-
 
         renderMenuPage(){
             const content = $('#page-content');
-            
-            // 1. Filter menu data based on active brand (theme)
-            const activeBrand = document.body.dataset.theme === 'gulabi' ? 'Gulabi Thali' : 'Bulb Cafe';
-            
-            // Filter categories based on which ones contain items for the active brand
-            const filteredMenuData = app.state.menuData
-                .map(categoryObj => {
-                    // Filter items *within* each category
-                    const items = categoryObj.items.filter(item => (item?.brand || '').toLowerCase() === activeBrand.toLowerCase());
-                    return { ...categoryObj, items };
-                })
-                .filter(categoryObj => categoryObj.items.length > 0); // Remove categories with no items for this brand
-            
-            let allCategories = [{ category: 'All Menu' }, ...filteredMenuData];
-            
-            // Set initial category if not set or if the current one is filtered out
-            if (!app.state.currentMenuCategory || !allCategories.some(c => c.category === app.state.currentMenuCategory)) {
-                app.state.currentMenuCategory = 'All Menu';
-            }
-            
-            if (filteredMenuData.length === 0 && app.state.allMenuItems.length === 0) {
+            const activeBrand = app.state.theme === 'bulb' ? 'Bulb Cafe' : 'Gulabi Thali';
+
+            if (app.state.allMenuItems.length === 0) {
                 content.innerHTML = `<div class="p-4 text-center text-secondary">Loading menu...</div>`;
                 return;
+            }
+            
+            // Filter products by active brand
+            const brandItems = app.state.allMenuItems.filter(item => item.brand?.toLowerCase() === activeBrand.toLowerCase());
+
+            if (brandItems.length === 0) {
+                 content.innerHTML = `<p class="p-4 text-center text-secondary">No items found for this selection.</p>`;
+                 return;
+            }
+
+            // Group filtered items by category for tab creation
+            const categoryMap = brandItems.reduce((acc, item) => {
+                const category = item.category || 'Uncategorized';
+                if (!acc[category]) {
+                    acc[category] = [];
+                }
+                acc[category].push(item);
+                return acc;
+            }, {});
+            
+            // Build tab list (All Menu + Categories)
+            const allCategories = [{ category: 'All Menu' }, ...Object.keys(categoryMap).map(c => ({ category: c }))];
+
+            if (!app.state.currentMenuCategory || !allCategories.some(c => c.category === app.state.currentMenuCategory)) {
+                 app.state.currentMenuCategory = 'All Menu';
             }
 
             content.innerHTML = `
@@ -1302,25 +1169,24 @@
                         <button onclick="app.navigateTo('cart')" class="mt-2 text-sm font-semibold text-blue-600 hover:underline">View Details &rarr;</button>
                     </div>`;
             }
-
+            
+            // Initial render call after DOM is built
             if (app.state.searchQuery.length > 1) {
                 app.performSearch(app.state.searchQuery);
             } else {
-                this.filterMenuByCategory(app.state.currentMenuCategory, $(`.category-tab[data-category="${app.state.currentMenuCategory}"]`));
+                ui.filterMenuByCategory(app.state.currentMenuCategory, $(`.category-tab[data-category="${app.state.currentMenuCategory}"]`));
             }
         },
 
         filterMenuByCategory(category, tabElement) {
-            const categoryToUse = category || 'All Menu';
-            app.state.currentMenuCategory = categoryToUse;
+            const activeBrand = app.state.theme === 'bulb' ? 'Bulb Cafe' : 'Gulabi Thali';
+            app.state.currentMenuCategory = category;
             
-            // Only clear search if it's not a search result render
-            if (tabElement) {
-                app.state.searchQuery = '';
-                const searchInput = $('#menu-search-input');
-                if (searchInput) searchInput.value = '';
-            }
-            
+            // Clear search input on category switch
+            const searchInput = $('#menu-search-input');
+            if (searchInput) searchInput.value = '';
+            app.state.searchQuery = '';
+
             $('#search-results-container')?.classList.add('hidden');
             $('#menu-items')?.classList.remove('hidden');
             $('#category-tabs-container')?.classList.remove('hidden');
@@ -1333,67 +1199,57 @@
                 tabElement.classList.add('brand-text', 'border-b-2', 'border-current');
             }
 
-            let itemsToShow = [];
-            const activeBrand = (document.body.dataset.theme === 'gulabi' ? 'Gulabi Thali' : 'Bulb Cafe').toLowerCase();
+            let itemsToShow = app.state.allMenuItems.filter(item => 
+                (item.brand?.toLowerCase() === activeBrand.toLowerCase())
+            );
             
-            const categoryToLower = categoryToUse.toLowerCase();
-
-            // Filter all items that match the current active brand
-            const brandItems = app.state.allMenuItems.filter(item => (item?.brand?.toLowerCase() || 'undefined') === activeBrand);
-
-            if (categoryToUse === 'All Menu') {
-                itemsToShow = brandItems;
-            } else {
-                // Filter by category, ensuring category is present before calling toLowerCase
-                itemsToShow = brandItems.filter(item => (item?.category?.toLowerCase() || 'undefined') === categoryToLower);
+            if (category !== 'All Menu') {
+                itemsToShow = itemsToShow.filter(item => 
+                    item.category?.toLowerCase() === category.toLowerCase()
+                );
             }
             
-            this.renderMenuItems(itemsToShow, 'menu-items');
+            ui.renderMenuItems(itemsToShow, 'menu-items');
         },
 
         renderMenuItems(items, containerId) {
             const container = $(`#${containerId}`);
             if (!container) return;
             
-            // Determine if the current view is Gulabi Thali (View Only)
-            const isGulabiView = document.body.dataset.theme === 'gulabi';
-
+            const isViewOnly = app.state.theme === 'gulabi';
+            
             if (!items || items.length === 0) {
-                container.innerHTML = `<p class="text-secondary text-center col-span-full mt-8">No items found for this selection.</p>`;
+                container.innerHTML = `<p class="text-secondary text-center col-span-full mt-8">${isViewOnly ? 'Gulabi Thali menu is view-only.' : 'No items found for this selection.'}</p>`;
                 return;
             }
-            
             container.innerHTML = items.map(item => {
                 const cartItem = app.state.cart.find(ci => ci.id === item.id);
-                let actionButtonHTML = '';
+                const currentPrice = item.price || 0;
                 
-                if (isGulabiView) {
-                     // GULABI THALI: Always show View Only button
-                    actionButtonHTML = `<div class="view-only-btn">View Only</div>`;
+                let actionButtonHTML;
+
+                if (isViewOnly) {
+                    actionButtonHTML = `<button class="add-to-cart-btn bg-secondary text-secondary" disabled title="View Only">
+                        <svg xmlns="http://www.w3.org/2300/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.575 3.01 9.963 7.182.074.207.074.441 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.575-3.01-9.963-7.182Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
+                    </button>`;
                 } else if (cartItem) {
-                    // BULB CAFE: Item is in cart (Show quantity control)
-                    actionButtonHTML = `
-                        <div class="quantity-control" onclick="event.stopPropagation();">
-                            <button onclick="app.addOrUpdateCart(${item.id}, -1)">-</button>
-                            <span>${cartItem.quantity}</span>
-                            <button onclick="app.addOrUpdateCart(${item.id}, 1)">+</button>
-                        </div>
-                    `;
+                    actionButtonHTML = `<div class="quantity-control" onclick="event.stopPropagation();">
+                           <button onclick="app.addOrUpdateCart(${item.id}, -1)">-</button>
+                           <span>${cartItem.quantity}</span>
+                           <button onclick="app.addOrUpdateCart(${item.id}, 1)">+</button>
+                       </div>`;
                 } else {
-                    // BULB CAFE: Item not in cart (Show Add button)
-                    actionButtonHTML = `
-                        <button class="add-to-cart-btn" onclick="event.stopPropagation(); app.addOrUpdateCart(${item.id}, 1)">
-                            +
-                        </button>
-                    `;
+                    actionButtonHTML = `<button class="add-to-cart-btn" onclick="event.stopPropagation(); app.addOrUpdateCart(${item.id}, 1)">
+                           +
+                       </button>`;
                 }
 
                 return `
                     <div class="bg-secondary rounded-lg shadow-sm overflow-hidden cursor-pointer" onclick="ui.showItemDetailModal(${item.id})">
                         <div class="p-3 flex items-center justify-between">
                             <div class="flex-1 pr-4">
-                                <h3 class="font-semibold text-base truncate text-primary">${item.name}</h3>
-                                <p class="font-bold text-sm text-secondary mt-1">₹${item.price}</p>
+                                <h3 class="font-semibold text-base truncate text-primary">${item.name || 'Untitled Item'}</h3>
+                                <p class="font-bold text-sm text-secondary mt-1">₹${currentPrice.toFixed(2)}</p>
                             </div>
                             <div class="flex-shrink-0">
                                 ${actionButtonHTML}
@@ -1418,12 +1274,8 @@
         renderCart(container){
             const { subtotal, discountAmount, gst, finalTotal, maxRedeemableForOrder } = app.calculateCartTotal();
             const loyaltyPoints = app.state.customerProfile?.loyalty_points || 0;
-            
-            app.state.pointsToRedeem = Math.min(app.state.pointsToRedeem, maxRedeemableForOrder);
-            const currentDiscount = app.state.pointsToRedeem;
+            const currentDiscount = app.state.pointsToRedeem; 
 
-            let promoMessage = '';
-            
             const loyaltyExplanation = `<p class="text-xs text-secondary mt-1 mb-3">Earn 50 points (worth ₹50) for every ₹500 spent on subtotal. Redeemable points = 80% of balance.</p>`;
 
             let loyaltySectionHTML = '';
@@ -1464,14 +1316,13 @@
                         </div>
                     `).join('')}
                 </div>
-                ${promoMessage}
                 ${loyaltySectionHTML}
                 <div class="p-4"><textarea id="special-instructions" class="w-full p-3 border-custom rounded-lg bg-secondary" placeholder="Add special instructions..."></textarea></div>
                 <div class="p-4 bg-primary border-t-custom sticky bottom-16">
                      <div id="cart-summary" class="mb-4 space-y-1 text-primary"></div>
                     <button id="place-order-btn" onclick="ui.showPaymentModal()" class="w-full brand-bg font-bold py-4 rounded-lg">Proceed to Payment</button>
                 </div>`;
-            this.updateCartSummary();
+            this.updateCartSummary(); // Initial render of summary
         },
 
         updateCartSummary() {
@@ -1512,10 +1363,10 @@
             const statuses = ['received', 'preparing', 'delivered'];
             const icons = { received: '📝', preparing: '🍳', delivered: '😊' };
             const currentIndex = statuses.indexOf(order.status);
-            const progressPercentage = currentIndex > 0 ? (currentIndex / (statuses.length - 1)) * 100 : 0;
+            const progressPercentage = currentIndex >= 0 ? (currentIndex / (statuses.length - 1)) * 100 : 0;
             container.innerHTML = `
                 <div class="p-6 flex flex-col items-center justify-center h-full">
-                    <h2 class="text-3xl font-bold text-center capitalize">Your Order is ${order.status}</h2>
+                    <h2 class="text-3xl font-bold text-center capitalize">Your Order is ${order.status}!</h2>
                     <p class="text-secondary text-center mb-10">Order ID: #${order.id.slice(0,6)}</p>
                     <div class="tracker-container my-12 w-full max-w-sm">
                         <div class="tracker-line-container">
@@ -1528,58 +1379,66 @@
                             </div>`).join('')}
                     </div>
                     <div class="mt-auto pt-10 text-center">
-                        <p class="text-secondary mb-4">While you wait, why not play a game?</p>
-                        <button onclick="app.navigateTo('more')" class="brand-bg font-semibold py-3 px-8 rounded-lg">View Games</button>
+                        <p class="text-secondary mb-4">You can play a quick game while you wait!</p>
+                        <button onclick="ui.showGamesModal()" class="brand-bg font-semibold py-3 px-8 rounded-lg">Play Games</button>
                     </div>
                 </div>`;
         },
 
         renderSocialPage(){
-            const currentBrand = document.body.dataset.theme === 'gulabi' ? '@gulabithali' : '@bulbcafe';
-            const promoTitle = 'Post a story tagging us to win a prize!';
-            const promoSubtitle = `Tag ${currentBrand} in your story and show it at the counter for a special prize!`;
-            
-            const vibes = Object.entries(STATIC_DATA.captionIdeas).map(([key, _]) => ({
-                name: key, icon: { cafe_vibes: '☕', thali_time: '🍛', friends: '🎉' }[key]
-            }));
+            const currentBrandName = app.state.theme === 'bulb' ? 'Bulb Cafe' : 'Gulabi Thali';
+            const switchTheme = app.state.theme === 'bulb' ? 'gulabi' : 'bulb';
+            const switchBrandName = switchTheme === 'bulb' ? 'BULB CAFE' : 'GULABI THALI';
+            const switchButtonColor = switchTheme === 'bulb' ? 'bg-yellow-500' : 'bg-pink-500';
+
+            const socialCaption = currentBrandName === 'Bulb Cafe' 
+                ? "Post your coffee pics! Tag us for a shoutout." 
+                : "Share your thali feast! Tag us to be featured.";
+
             $('#page-content').innerHTML = `
                 <div class="p-4 space-y-6 text-center">
-                     <div class="bg-secondary p-6 rounded-xl shadow-sm">
+                     <div class="bg-secondary p-6 rounded-xl shadow-sm border border-custom">
                         <h2 class="text-2xl font-bold text-primary">Join Our Community!</h2>
-                        <p class="text-secondary mt-1">Follow us on Instagram for updates and offers.</p>
-                        <a href="https://instagram.com/bulbcafe" target="_blank" class="text-2xl font-bold my-4 block brand-text">${currentBrand}</a>
-                        <div class="flex justify-center">
-                             <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://instagram.com/bulbcafe" alt="Instagram QR Code" class="rounded-lg bg-white p-2">
-                        </div>
-                        <p class="text-xs text-secondary mt-2">Scan to follow!</p>
+                        <p class="text-secondary mt-1">${socialCaption}</p>
+                        
+                        <a href="https://instagram.com/gulabithali" target="_blank" class="social-card-gradient text-2xl font-bold my-4 block">@gulabithali</a>
+                        <p class="text-xs text-secondary mt-2">Scan to follow the official account!</p>
                     </div>
 
-                    <div onclick="ui.showInstagramPromo()" class="cursor-pointer group relative bg-secondary rounded-xl p-6 overflow-hidden shadow-sm text-left">
-                         <h2 class="text-2xl font-bold text-primary">${promoTitle}</h2>
-                        <p class="mt-1 text-secondary">${promoSubtitle}</p>
-                        <!-- Removed caption ideas button -->
-                        <a href="https://instagram.com/stories/create" target="_blank" class="font-semibold mt-3 text-sm brand-bg px-4 py-2 rounded-lg group-hover:opacity-90 transition inline-block">Post Story &rarr;</a>
+                    <div class="bg-secondary p-6 rounded-xl shadow-sm border border-custom">
+                        <h2 class="text-2xl font-bold text-primary">Switch Brand View</h2>
+                        <p class="text-secondary mt-1 mb-4">View the menu of the other brand quickly.</p>
+                        <button onclick="app.toggleTheme('${switchTheme}')" class="w-full ${switchButtonColor} text-white font-extrabold py-3 px-6 rounded-xl shadow-lg transition transform hover:scale-[1.02]">
+                            View ${switchBrandName} Menu
+                        </button>
                     </div>
                 </div>
             `;
         },
 
-        renderCoworkPage() {
-            // Updated page content to reflect Gulabi Thali Kitchen
+        renderGulabiThaliKitchenPage() {
+            const switchTheme = 'bulb';
+            const switchBrandName = 'BULB CAFE';
+            const switchButtonColor = 'bg-yellow-500';
+
             $('#page-content').innerHTML = `
                 <div class="p-6 space-y-6 text-center">
                      <div class="bg-secondary p-8 rounded-xl shadow-lg border border-custom">
-                        <span class="text-5xl mb-4 block">🥘</span>
+                        <span class="text-5xl mb-4 block">🍛</span>
                         <h2 class="text-3xl font-bold text-primary mb-2">GULABI THALI KITCHEN</h2>
-                        <p class="text-lg text-secondary mb-6">Our dedicated kitchen for preparing authentic Indian cuisine. Available for dine-in at Bulb Cafe.</p>
-                        <button onclick="app.toggleTheme('bulb')" class="w-full mb-4 gulabi-switch-btn font-semibold py-3 px-6 rounded-lg transition hover:opacity-90">
-                            CLICK TO SWITCH BACK TO CAFÉ MENU
-                        </button>
+                        <p class="text-lg text-secondary mb-6">
+                            Gulabi Thali operates as our specialized Dine-In Kitchen inside Bulb Cafe.
+                        </p>
                         <ul class="text-left space-y-2 mb-8 list-disc list-inside text-secondary">
-                            <li>View our full Thali menu on the 'Menu' tab when switched to Gulabi Thali.</li>
-                            <li>All thali and mini-meal items are prepared here.</li>
-                            <li>Authentic taste guaranteed.</li>
+                            <li>Authentic Indian Cuisine</li>
+                            <li>Dine-In Thali Specials Only</li>
+                            <li>View menu on 'Menu' tab and order via staff.</li>
+                            <li>All orders are placed through our service counter.</li>
                         </ul>
+                        <p class="text-primary font-semibold mb-4">Ready to order quick bites and coffee?</p>
+                        <button onclick="app.toggleTheme('${switchTheme}')" class="w-full ${switchButtonColor} text-white font-extrabold py-3 px-6 rounded-lg transition hover:opacity-90">
+                            CLICK TO SWITCH TO ${switchBrandName}
+                        </button>
                     </div>
                 </div>
             `;
@@ -1588,24 +1447,22 @@
         renderMorePage(){
             const loyaltyPoints = app.state.customerProfile?.loyalty_points ?? 0;
             const loyaltyExplanation = `<p class="text-xs text-secondary mt-1">Earn 50 pts (₹50) per ₹500 spent. 1 pt = ₹1 discount (redeem in Cart).</p>`;
-            
-            // Removed staff call button and generic theme switch
             const options = [
                 { icon: "🪙", text: `Loyalty Points: ${loyaltyPoints}`, action: "", explanation: loyaltyExplanation },
-                { icon: "🎨", text: "Change Brand/Theme", action: "ui.showBrandSwitcherModal()" },
+                { icon: "🛎", text: "Call Staff for Assistance", action: "ui.showCallStaffModal()" },
+                { icon: "🔄", text: "Switch Brand View", action: "ui.showBrandSwitcherModal()" },
                 { icon: "🎮", text: "Play Games", action: "ui.showGamesModal()" },
-                { icon: "📶", text: "View Wi-Fi Details", action: "ui.showWifiModal()" },
                 { icon: "📜", text: "Order History", action: "ui.showOrderHistoryModal()" },
             ];
             $('#page-content').innerHTML = `
                 <div class="p-4 space-y-3">
                     ${options.map(opt =>
                         opt.action
-                        ? `<button onclick="${opt.action}" class="w-full flex items-center justify-between bg-secondary p-4 rounded-xl text-left">
+                        ? `<button onclick="${opt.action}" class="w-full flex items-center justify-between bg-secondary p-4 rounded-xl text-left border border-custom">
                                <div class="flex items-center"><span class="text-2xl mr-4">${opt.icon}</span><span class="font-semibold text-primary">${opt.text}</span></div>
                                <span class="text-secondary">&rarr;</span>
                            </button>`
-                        : `<div class="w-full bg-secondary p-4 rounded-xl text-left">
+                        : `<div class="w-full bg-secondary p-4 rounded-xl text-left border border-custom">
                                <div class="flex items-center"><span class="text-2xl mr-4">${opt.icon}</span><span class="font-semibold text-primary">${opt.text}</span></div>
                                ${opt.explanation || ''}
                            </div>`
@@ -1613,11 +1470,40 @@
                 </div>`;
         },
 
+        showCallStaffModal() {
+            ui.showModal('staff-modal', `
+                 <h2 class="text-2xl font-bold text-center mb-4">Call Assistance</h2>
+                 <p class="text-secondary text-center mb-6">Need assistance with your order, payment, or finding Gulabi Thali?</p>
+                 <div class="space-y-3">
+                    <button onclick="app.sendStaffCall('assistance'); ui.closeModal('staff-modal')" class="w-full flex items-center justify-center bg-secondary p-4 rounded-xl brand-text border brand-border"><span class="text-2xl mr-4">🛎</span><span class="font-semibold">General Help</span></button>
+                    <button onclick="app.sendStaffCall('payment'); ui.closeModal('staff-modal')" class="w-full flex items-center justify-center bg-secondary p-4 rounded-xl brand-text border brand-border"><span class="text-2xl mr-4">💵</span><span class="font-semibold">Help with Payment</span></button>
+                 </div>
+                 <button onclick="ui.closeModal('staff-modal')" class="w-full mt-6 bg-secondary font-semibold py-3 rounded-lg">Cancel</button>
+            `);
+        },
+        
+        showBrandSwitcherModal(){
+            const currentBrand = app.state.theme === 'bulb' ? 'Bulb Cafe' : 'Gulabi Thali';
+            const switchTheme = app.state.theme === 'bulb' ? 'gulabi' : 'bulb';
+            const switchBrandName = switchTheme === 'bulb' ? 'BULB CAFE' : 'GULABI THALI';
+            const switchButtonColor = switchTheme === 'bulb' ? 'bg-yellow-500' : 'bg-pink-500';
+
+            ui.showModal('brand-switcher-modal', `
+                <h2 class="text-2xl font-bold text-center mb-4">Switch Menu View</h2>
+                <p class="text-secondary text-center mb-6">You are currently viewing the **${currentBrand}** menu.</p>
+                
+                <button onclick="app.toggleTheme('${switchTheme}')" class="w-full ${switchButtonColor} text-white font-extrabold py-4 px-6 rounded-xl shadow-lg transition transform hover:scale-[1.02]">
+                    SWITCH TO ${switchBrandName}
+                </button>
+                <button onclick="ui.closeModal('brand-switcher-modal')" class="w-full mt-4 bg-secondary font-semibold py-3 rounded-lg">Close</button>
+            `);
+        },
+
         showPaymentModal(){
              ui.showModal('payment-modal', `
                 <h2 class="text-xl font-bold text-primary mb-4">Select Payment</h2>
                 <div class="space-y-3">
-                    <button onclick="app.placeOrder('Pay at Counter', this)" class="payment-btn w-full flex items-center justify-center bg-secondary p-4 rounded-xl"><span class="text-2xl mr-4">💵</span><span class="font-semibold">Pay at Counter</span></button>
+                    <button onclick="app.placeOrder('Pay at Counter', this)" class="payment-btn w-full flex items-center justify-center bg-secondary p-4 rounded-xl border border-custom"><span class="text-2xl mr-4">💵</span><span class="font-semibold">Pay at Counter</span></button>
                 </div>
                 <button onclick="ui.closeModal('payment-modal')" class="w-full mt-6 bg-secondary font-semibold py-3 rounded-lg">Cancel</button>
             `);
@@ -1626,92 +1512,39 @@
         showItemDetailModal(itemId){
             const item = app.state.allMenuItems.find(i => i.id === itemId); if (!item) return;
             const cartItem = app.state.cart.find(ci => ci.id === itemId);
-            const currentQuantity = cartItem ? cartItem.quantity : 1;
-            
-            // Check for Gulabi View Mode
-            const isGulabiView = document.body.dataset.theme === 'gulabi';
-            
-            let actionButtonHTML = '';
-            let selectHTML = '';
-            let optionsHTML = Array.from({ length: 10 }, (_, i) => `<option value="${i + 1}" ${i + 1 === currentQuantity ? 'selected' : ''}>${i + 1}</option>`).join('');
-            optionsHTML = `<option value="0" ${!cartItem && !isGulabiView ? 'selected' : ''}>0 (Remove)</option>` + optionsHTML;
+            const currentQuantity = cartItem ? cartItem.quantity : 0;
+            const isViewOnly = app.state.theme === 'gulabi';
 
-            if (isGulabiView) {
-                 actionButtonHTML = `<div class="w-full text-center py-3 view-only-btn" style="border: 2px solid var(--brand-primary-pink); color: var(--text-primary-pink);">View Only: Cannot Add to Cart</div>`;
-                 selectHTML = `<p class="text-sm text-secondary">Ordering unavailable in this view.</p>`;
-            } else {
-                 actionButtonHTML = `<button onclick="app.setCartItemQuantity(${item.id}, parseInt($('#modal-quantity-select').value))" class="w-full brand-bg font-semibold py-3 rounded-lg">${cartItem ? 'Update Quantity' : 'Add to Cart'}</button>`;
-                 selectHTML = `
-                    <label for="modal-quantity-select" class="font-semibold text-primary">Quantity:</label>
-                    <select id="modal-quantity-select" class="bg-primary border border-custom text-primary font-semibold rounded-lg p-2">${optionsHTML}</select>
-                 `;
-            }
+            let optionsHTML = Array.from({ length: 10 }, (_, i) => `<option value="${i + 1}" ${i + 1 === currentQuantity ? 'selected' : ''}>${i + 1}</option>`).join('');
+            optionsHTML = `<option value="0" ${!cartItem ? 'selected' : ''}>0 (Remove)</option>` + optionsHTML;
 
             ui.showModal('item-detail-modal', `
                 <div class="flex justify-between items-start">
                     <div>
-                        <h2 class="text-2xl font-bold text-primary">${item.name}</h2>
-                        <p class="text-xl font-semibold text-secondary">₹${item.price}</p>
+                        <h2 class="text-2xl font-bold text-primary">${item.name || 'Item Detail'}</h2>
+                        <p class="text-xl font-semibold text-secondary">₹${item.price.toFixed(2)}</p>
                     </div>
-                    <div class="text-5xl">${item.image_url || '🥘'}</div>
+                    <div class="text-5xl">☕️</div>
                 </div>
-                <p class="text-secondary mt-2">${item.description || 'A delicious choice.'}</p>
-                
+                <p class="text-secondary mt-2">${item.description || 'No description available.'}</p>
                 <div class="flex items-center justify-between my-6 bg-secondary p-3 rounded-lg">
-                    ${selectHTML}
+                    <label for="modal-quantity-select" class="font-semibold text-primary">Quantity:</label>
+                    <select id="modal-quantity-select" class="bg-primary border border-custom text-primary font-semibold rounded-lg p-2" ${isViewOnly ? 'disabled' : ''}>${optionsHTML}</select>
                 </div>
-
                 <div class="mt-6 grid grid-cols-2 gap-4">
                     <button onclick="ui.closeModal('item-detail-modal')" class="w-full bg-secondary font-semibold py-3 rounded-lg">Back</button>
-                    ${actionButtonHTML}
+                    <button ${isViewOnly ? 'disabled' : ''} onclick="app.setCartItemQuantity(${item.id}, parseInt($('#modal-quantity-select').value))" class="w-full ${isViewOnly ? 'bg-gray-400' : 'brand-bg'} font-semibold py-3 rounded-lg">
+                        ${isViewOnly ? 'VIEW ONLY' : (cartItem ? 'Update Quantity' : 'Add to Cart')}
+                    </button>
                 </div>`);
         },
 
-        showInstagramPromo(){
-            const currentBrand = document.body.dataset.theme === 'gulabi' ? '@gulabithali' : '@bulbcafe';
-            const promoTitle = 'Post a story tagging us to win a prize!';
-            const promoSubtitle = `Tag ${currentBrand} in your story and show it at the counter for a special prize!`;
-            
-            const vibes = Object.entries(STATIC_DATA.captionIdeas).map(([key, _]) => ({
-                name: key, icon: { cafe_vibes: '☕', thali_time: '🍛', friends: '🎉' }[key]
-            }));
-            ui.showModal('insta-modal', `
-                <h2 class="text-2xl font-bold">Post and Win!</h2>
-                <p class="text-secondary mt-1 mb-6">${promoSubtitle}</p>
-                <div class="grid grid-cols-2 gap-4">${vibes.map(v => `
-                    <button onclick="ui.showCaptionIdeas('${v.name}')" class="bg-secondary p-4 rounded-xl text-center">
-                        <span class="text-3xl">${v.icon}</span><p class="font-semibold mt-2 capitalize">${v.name.replace('_', ' ')}</p>
-                    </button>`).join("")}
-                </div>
-                <button onclick="ui.closeModal('insta-modal')" class="w-full mt-6 bg-secondary font-semibold py-3 rounded-lg">Cancel</button>
-            `);
-        },
-
-        showCaptionIdeas(category){
-            ui.closeModal('insta-modal');
-            const currentBrand = document.body.dataset.theme === 'gulabi' ? '@gulabithali' : '@bulbcafe';
-            const captions = STATIC_DATA.captionIdeas[category]; 
-
-            ui.showModal('caption-modal', `
-                <h2 class="text-2xl font-bold">Caption Ideas</h2>
-                <p class="text-secondary mt-1 mb-4">Tap to copy. Tag us <span class="font-bold brand-text">${currentBrand}</span>!</p>
-                <div class="space-y-2 max-h-48 overflow-y-auto">${captions.map(c => `
-                    <div onclick="app.copyCaption('${c.replace(/'/g, "\\'")}')" class="bg-secondary p-3 rounded-lg text-sm font-medium cursor-pointer flex justify-between items-center">
-                        <span>${c}</span><span class="text-xs font-bold brand-text">COPY</span>
-                    </div>`).join('')}
-                </div>
-                <a href="https://instagram.com/stories/create" target="_blank" class="block w-full text-center mt-6 bg-gradient-to-r from-yellow-400 via-red-500 to-pink-500 text-white font-semibold py-3 rounded-lg">Open Instagram Story</a>
-                <button onclick="ui.closeModal('caption-modal')" class="w-full mt-2 bg-secondary font-semibold py-3 rounded-lg">Close</button>
-            `);
-        },
-
         showGamesModal() {
-            // Simplified games modal for the quick access in 'More'
             ui.showModal('games-modal', `
-                <h2 class="text-xl font-bold text-center mb-4">Entertainment</h2>
+                <h2 class="text-2xl font-bold text-center mb-4">Entertainment</h2>
                 <div class="space-y-3">
                     ${Object.values(GAMES).map(game => `
-                        <div class="bg-secondary p-4 rounded-xl">
+                        <div class="bg-secondary p-4 rounded-xl border border-custom">
                             <h3 class="text-lg font-bold text-primary mb-1">${game.title}</h3>
                             <p class="text-secondary text-sm mb-3">${game.description}</p>
                             <button onclick="GAMES['${game.id}'].start()" class="brand-bg font-semibold py-2 px-4 rounded-lg text-sm">Play</button>
@@ -1721,42 +1554,28 @@
             `);
         },
 
-        showWifiModal() {
-            ui.showModal('wifi-modal', `
-                <div class="text-center">
-                    <h2 class="text-xl font-bold mb-2">Wi-Fi Network</h2>
-                    <p class="text-secondary mb-4">Connect and enjoy!</p>
-                    <div class="bg-secondary p-4 rounded-lg">
-                        <p class="text-xs">Network Name</p><p class="font-bold text-lg">BULB-GUEST</p>
-                        <hr class="border-custom my-3">
-                        <p class="text-xs">Password</p><p class="font-bold text-lg">12345678</p>
-                    </div>
-                    <button onclick="ui.closeModal('wifi-modal')" class="w-full mt-6 bg-secondary font-semibold py-3 rounded-lg">Close</button>
-                </div>
-            `);
-        },
-
         async showOrderHistoryModal() {
-            if (!supabase) return ui.showToast("History failed: Supabase not initialized.");
-            if (!app.state.customerProfile || !this.state.customerProfile.id) return ui.showToast("Error: Profile not loaded.");
-            // Fetch order history
-            const { data } = await supabase.from('orders').select(`*, order_items (products(name), quantity), discount_amount, discount_points_redeemed`).eq('customer_id', app.state.customerProfile.id).order('created_at', { ascending: false });
+            if (!app.state.customerProfile || !app.state.customerProfile.id) return ui.showToast("Error: Profile not loaded.");
+            const { data } = await supabase.from('orders').select(`*, order_items (product_name, quantity), discount_amount, discount_points_redeemed`).eq('customer_id', app.state.customerProfile.id).order('created_at', { ascending: false });
             
-            const historyHTML = data?.length > 0 ? data.map(o => `
-                <div class="bg-secondary p-3 rounded-lg">
-                    <div class="flex justify-between">
-                        <div>
-                            <p class="font-bold">Order #${o.id.slice(0, 6)}</p>
-                            <p class="text-xs text-secondary">${new Date(o.created_at).toLocaleString()}</p>
+            const historyHTML = data?.length > 0 ? data.map(o => {
+                const itemsList = o.order_items?.length > 0 ? o.order_items.map(i => `${i.product_name} (x${i.quantity})`).join(', ') : 'No items found';
+                return `
+                    <div class="bg-secondary p-3 rounded-lg border border-custom">
+                        <div class="flex justify-between">
+                            <div>
+                                <p class="font-bold">Order #${o.id.slice(0, 6)}</p>
+                                <p class="text-xs text-secondary">${new Date(o.created_at).toLocaleString()}</p>
+                            </div>
+                            <p class="font-semibold">₹${(o.final_amount ?? o.total_amount).toFixed(2)}</p>
                         </div>
-                        <p class="font-semibold">₹${(o.final_amount ?? o.total_amount).toFixed(2)}</p>
-                    </div>
-                    <div class="text-sm text-secondary mt-2">${o.order_items.length > 0 ? o.order_items.map(i => `${i.products.name} (x${i.quantity})`).join(', ') : 'No items found'}</div>
-                    ${o.discount_amount > 0 ? `<p class="text-xs text-green-600 mt-1">Discount: -₹${o.discount_amount.toFixed(2)} (${o.discount_points_redeemed} points)</p>` : ''}
-                </div>`).join('') : '<p class="text-secondary text-center">No past orders found.</p>';
+                        <div class="text-sm text-secondary mt-2">${itemsList}</div>
+                        ${o.discount_amount > 0 ? `<p class="text-xs text-green-600 mt-1">Discount: -₹${o.discount_amount.toFixed(2)} (${o.discount_points_redeemed} points)</p>` : ''}
+                    </div>`;
+            }).join('') : '<p class="text-secondary text-center">No past orders found.</p>';
 
             ui.showModal('history-modal', `
-                <h2 class="text-xl font-bold text-center mb-4">Order History</h2>
+                <h2 class="text-2xl font-bold text-center mb-4">Order History</h2>
                 <div class="space-y-3 max-h-60 overflow-y-auto">${historyHTML}</div>
                 <button onclick="ui.closeModal('history-modal')" class="w-full mt-6 bg-secondary font-semibold py-3 rounded-lg">Close</button>
             `);
@@ -1777,7 +1596,7 @@
                     <p id="ttt-status" class="font-semibold text-secondary mb-4 text-center">Player X's turn</p>
                     <div class="w-full max-w-[250px] mx-auto">
                         <div id="ttt-board" class="grid grid-cols-3 gap-2 my-4">
-                            ${this.board.map((_, i) => `<div class="aspect-square bg-secondary flex items-center justify-center text-5xl sm:text-6xl font-bold rounded-lg cursor-pointer" onclick="GAMES.ticTacToe.play(${i})"></div>`).join("")}
+                            ${this.board.map((_, i) => `<div class="aspect-square bg-secondary flex items-center justify-center text-5xl sm:text-6xl font-bold rounded-lg cursor-pointer border border-custom" onclick="GAMES.ticTacToe.play(${i})"></div>`).join("")}
                         </div>
                     </div>
                     <button onclick="GAMES.ticTacToe.start()" class="w-full mt-2 brand-bg font-semibold py-3 rounded-lg">New Game</button>
@@ -1813,7 +1632,7 @@
             updateUI() {
                 $$("#ttt-board > div").forEach((cell, i) => {
                     cell.textContent = this.board[i];
-                    cell.style.color = this.board[i] === "X" ? "#3b82f6" : "#ef4444";
+                    cell.style.color = this.board[i] === "X" ? "var(--brand-primary)" : "var(--text-secondary)";
                 });
                 $("#ttt-status").textContent = this.winner ? (this.winner === "Draw" ? "It's a Draw!" : `Player ${this.winner} wins!`) : `Player ${this.currentPlayer}'s turn`;
             },
@@ -1824,25 +1643,26 @@
             }
         },
         coffeeTrivia: {
-            id: 'coffeeTrivia', title: 'Food Trivia', description: 'Test your general food knowledge!',
+            id: 'coffeeTrivia', title: 'Coffee Trivia', description: 'Test your coffee knowledge!',
             currentQuestion: null,
             trivia: [
-                { q: "What is the primary spice used in Indian Masala Chai?", o: ["Ginger", "Cinnamon", "Cardamom", "Clove"], a: 2 },
-                { q: "Which pink city is Gulabi Thali's namesake?", o: ["Udaipur", "Jaipur", "Jodhpur", "Mumbai"], a: 1 },
-                { q: "What is the main ingredient in hummus?", o: ["Lentils", "Chickpeas", "Beans", "Peanuts"], a: 1 },
-                { q: "What fruit is used to make guacamole?", o: ["Lime", "Tomato", "Avocado", "Chili"], a: 2 }
+                { q: "Which country is the largest coffee producer?", o: ["Brazil", "Vietnam", "Colombia", "Ethiopia"], a: 0 },
+                { q: "What does 'espresso' mean in Italian?", o: ["Fast", "Forced Out", "Dark", "Strong"], a: 1 },
+                { q: "What is a 'Flat White'?", o: ["Espresso with milk foam", "Espresso with steamed milk", "Black coffee variant", "Milkshake"], a: 1 },
+                { q: "What color are coffee cherries when ripe?", o: ["Green", "Blue", "Red", "Yellow"], a: 2 }
             ],
             start() {
                 this.currentQuestion = this.trivia[Math.floor(Math.random() * this.trivia.length)];
                 const item = this.currentQuestion;
                 ui.showModal('trivia-modal', `
                     <div class="text-center">
-                        <h2 class="text-xl font-bold mb-2">Food Trivia</h2>
+                        <h2 class="text-xl font-bold mb-2">Coffee Trivia</h2>
                         <p class="text-secondary mb-6 h-12">${item.q}</p>
                         <div id="trivia-options" class="space-y-3">
-                            ${item.o.map((opt, index) => `<button class="trivia-option w-full bg-secondary font-semibold p-3 rounded-lg text-left" onclick="GAMES.coffeeTrivia.checkAnswer(${index}, ${item.a})">${opt}</button>`).join('')}
+                            ${item.o.map((opt, index) => `<button class="trivia-option w-full bg-secondary font-semibold p-3 rounded-lg text-left border border-custom" onclick="GAMES.coffeeTrivia.checkAnswer(${index}, ${item.a})">${opt}</button>`).join('')}
                         </div>
                         <button onclick="ui.closeModal('trivia-modal')" class="w-full mt-6 bg-secondary py-3 rounded-lg">Close</button>
+                    </div>
                 `);
             },
             checkAnswer(selectedIndex, correctIndex) {
@@ -1864,83 +1684,20 @@
                     sound.play('draw');
                 }
 
-                setTimeout(() => this.start(), 2000);
+                setTimeout(() => GAMES.coffeeTrivia.start(), 2000);
             }
-        },
-        coffeeArt: {
-            id: 'coffeeArt', title: 'Latte Art Studio', description: 'Unleash your inner barista and create some latte art.',
-            canvas: null, ctx: null, painting: false,
-            start() {
-                ui.showModal('art-modal', `
-                    <div class="text-center">
-                        <h2 class="text-2xl font-bold mb-2">Latte Art Studio</h2>
-                        <div class="relative w-full aspect-square mx-auto my-4 rounded-full bg-[#c4a484] overflow-hidden cursor-crosshair" id="canvas-container">
-                            <canvas id="coffee-art-canvas"></canvas>
-                        </div>
-                        <div class="flex justify-center items-center space-x-2">
-                            <button onclick="GAMES.coffeeArt.changeColor('#ffffff')" class="w-8 h-8 rounded-full bg-white border-2 border-custom"></button>
-                            <button onclick="GAMES.coffeeArt.changeColor('#5a3825')" class="w-8 h-8 rounded-full bg-[#5a3825] border-2 border-custom"></button>
-                            <button onclick="GAMES.coffeeArt.clearCanvas()" class="bg-secondary font-semibold py-1 px-3 rounded-lg text-sm">Clear</button>
-                        </div>
-                        <button onclick="ui.closeModal('art-modal')" class="w-full mt-6 bg-secondary font-semibold py-3 rounded-lg">Done</button>
-                    </div>`);
-                this.initCanvas();
-            },
-            initCanvas() {
-                this.canvas = $("#coffee-art-canvas");
-                const container = $('#canvas-container');
-                if (!this.canvas || !container) return;
-                this.ctx = this.canvas.getContext("2d");
-                const size = container.clientWidth;
-                this.canvas.width = size;
-                this.canvas.height = size;
-                this.ctx.strokeStyle = "#ffffff"; this.ctx.lineWidth = 5; this.ctx.lineCap = "round";
-                this.canvas.addEventListener("pointerdown", this.startPosition.bind(this));
-                this.canvas.addEventListener("pointerup", this.finishedPosition.bind(this));
-                this.canvas.addEventListener("pointermove", this.draw.bind(this));
-                this.canvas.addEventListener("touchstart", this.startPosition.bind(this), { passive: false });
-                this.canvas.addEventListener("touchend", this.finishedPosition.bind(this));
-                this.canvas.addEventListener("touchmove", this.draw.bind(this), { passive: false });
-            },
-            getEventPosition(e) {
-                const rect = this.canvas.getBoundingClientRect();
-                if (e.touches && e.touches.length > 0) {
-                    return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
-                }
-                return { x: e.clientX - rect.left, y: e.clientY - rect.top };
-            },
-            startPosition(e) { this.painting = true; this.draw(e); },
-            finishedPosition() { this.painting = false; this.ctx.beginPath(); },
-            draw(e) {
-                if (!this.painting) return;
-                e.preventDefault();
-                const { x, y } = this.getEventPosition(e);
-                this.ctx.lineTo(x, y); this.ctx.stroke();
-                this.ctx.beginPath(); this.ctx.moveTo(x, y);
-            },
-            changeColor(c) { if(this.ctx) this.ctx.strokeStyle = c; },
-            clearCanvas() { if(this.ctx) this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); }
         },
     };
-    
-    // EXPOSE GLOBAL OBJECTS FOR INLINE HTML HANDLERS (THE FIX)
+
+    // --- START APP ---
+    document.addEventListener('DOMContentLoaded', () => {
+        app.init();
+    });
+
+    // CRITICAL FIX: Move global exposure to the end of the script
     window.app = app;
     window.ui = ui;
-    window.GAMES = GAMES;
-
-    document.addEventListener('DOMContentLoaded', () => {
-        if (supabase) {
-            app.init();
-        } else {
-            console.error("Supabase failed to initialize. App cannot start.");
-            // Display an error to the user on the splash screen
-            const splash = $('#splash-screen');
-            if (splash) {
-                splash.innerHTML = `<div class_
-="text-red-500 text-center p-4">Could not connect to services. Please check your internet connection and refresh.</div>`;
-            }
-        }
-    });
+    window.GAMES = GAMES; 
 
 </script>
 </body>
