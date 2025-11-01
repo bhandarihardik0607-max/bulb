@@ -135,10 +135,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script type="module">
-    // FIX: The error occurs because we are trying to destructure 'supabase' at the module's top level.
-    // Instead, we will define 'createClient' inside the global scope checker, or define supabase globally here
-    // and access its method later. The safest way is to wrap the global access in a function call.
-
+    // FIX: Accessing createClient from the global window.supabase object.
     const $ = (selector) => document.querySelector(selector);
     const $$ = (selector) => document.querySelectorAll(selector);
 
@@ -152,7 +149,7 @@
     const SUPABASE_URL = 'https://ttdnlatylcqrevzlyrru.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0ZG5sYXR5bGNxcmV2emx5cnJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxNzAyMDEsImV4cCI6MjA3NTc0NjIwMX0.aiQ1_viA1JrugEyMWxA2e5f2Aqrao9BNgCTb70NWyCc';
     
-    // FIX: Accessing createClient from the global window.supabase object.
+    // Check for the global variable exposed by the CDN
     const createClient = window.supabase ? window.supabase.createClient : null;
     let supabase = null;
     
@@ -160,7 +157,7 @@
     if (createClient) {
         supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     } else {
-        console.error("CRITICAL: Supabase client library not found on window.supabase. Check CDN script tag.");
+        console.error("CRITICAL: Supabase client library not found on window.supabase. App cannot function.");
         // Fallback for UI if Supabase fails to load
         document.addEventListener('DOMContentLoaded', () => {
              $('#splash-screen').innerHTML = `<div class="text-white text-center p-4">Error loading data components. Check Console.</div>`;
@@ -170,7 +167,7 @@
 
     const PAGES = ['home', 'order', 'cart', 'social', 'cowork', 'more'];
 
-    // --- STATIC DATA (Updated for Bulb/Gulabi context) ---
+    // --- STATIC DATA ---
     const STATIC_DATA = {
         bestSellers: [1, 2, 7, 10], // Mapping to common cafe items or Thali items
         captionIdeas: {
@@ -254,7 +251,7 @@
             this.getTableNumberFromURL();
 
             try {
-                // Ensure auth is handled
+                // 1. ANONYMOUS SIGN-IN
                 let session = null;
                 try {
                     const { data } = await supabase.auth.getSession();
@@ -263,14 +260,23 @@
                 
                 this.state.user = session?.user;
                 if (!this.state.user) {
+                    console.log("No session found. Signing in anonymously...");
                     const { data: signInData, error } = await supabase.auth.signInAnonymously();
-                    if (error) throw new Error(`Anonymous sign-in failed: ${error.message}`);
+                    if (error) {
+                        console.error("Anonymous sign-in failed:", error);
+                        throw new Error(`Auth failed: ${error.message}`);
+                    }
                     this.state.user = signInData.user;
+                    console.log("Signed in as anonymous user:", this.state.user.id);
                 }
 
+                // 2. FETCH OR CREATE PROFILE (CRITICAL FIX APPLIED HERE)
                 await this.fetchCustomerProfile();
+                
+                // 3. LOAD REMAINING DATA
                 await Promise.all([ this.fetchMenuData(), this.fetchAppSettings() ]);
 
+                // 4. START UI
                 $('#splash-screen').style.display = 'none';
                 $('#app').classList.remove('hidden');
                 $('#app').classList.add('flex');
@@ -284,8 +290,8 @@
                 }
 
             } catch (error) {
-                console.error("CRITICAL: Initialization failed.", error);
-                $('#splash-screen').innerHTML = `<div class="text-primary text-center p-4">Could not load. Please check connection.</div>`;
+                console.error("CRITICAL: App Initialization failed.", error);
+                $('#splash-screen').innerHTML = `<div class="text-primary text-center p-4">Could not load app: ${error.message}</div>`;
             }
         },
 
@@ -295,28 +301,72 @@
             if (tableNum && !isNaN(parseInt(tableNum))) this.state.tableNumber = parseInt(tableNum);
         },
 
+        // FIX: Adjusted fetch logic to aggressively check for and create a profile.
         async fetchCustomerProfile() {
             if (!this.state.user) return;
+            const userId = this.state.user.id;
+
             try {
+                // 1. Try fetching the existing profile
                 const { data, error } = await supabase.from('customers')
                     .select('*, loyalty_points')
-                    .eq('id', this.state.user.id)
+                    .eq('id', userId)
                     .single();
 
-                if (error && error.code !== 'PGRST116') throw error;
-
+                // If no row found (PGRST116), we need to create it.
+                if (error && error.code === 'PGRST116') {
+                    console.log("Profile not found. Attempting to create profile...");
+                    return this.createUserProfile(userId);
+                }
+                
+                // If a different error occurs (e.g., RLS blocking SELECT), throw the error
+                if (error) throw error;
+                
+                // 2. Profile found and successfully read
                 if (data) {
                     data.loyalty_points = data.loyalty_points || 0;
                     this.state.customerProfile = data;
-                } else {
-                     this.state.customerProfile = { id: this.state.user.id, name: null, loyalty_points: 0, whatsapp_number: null };
+                    console.log("Profile loaded successfully.");
+                    return data;
                 }
+                
+                // Should not happen if error checking is correct, but safe fallback:
+                return this.createUserProfile(userId);
+
             } catch (error) {
-                console.error('Error fetching profile:', error);
-                ui.showToast('Could not fetch your profile.');
-                this.state.customerProfile = { id: this.state.user?.id || 'unknown', name: 'Guest', loyalty_points: 0, whatsapp_number: null };
+                console.error('Error fetching/creating profile:', error.message);
+                ui.showToast('Could not load user profile.');
+                this.state.customerProfile = { id: userId, name: 'Guest', loyalty_points: 0, whatsapp_number: null };
             }
         },
+        
+        async createUserProfile(userId) {
+            try {
+                const newProfile = { id: userId, name: 'Guest', loyalty_points: 0, whatsapp_number: null };
+                const { data, error } = await supabase
+                    .from('customers')
+                    .insert(newProfile)
+                    .select()
+                    .single();
+                
+                if (error) throw error;
+                
+                console.log("New user profile created successfully.");
+                this.state.customerProfile = data;
+                return data;
+                
+            } catch (error) {
+                // Handle potential race condition where profile was created just now by another call.
+                if (error.code === '23505') { // Unique violation
+                    console.warn("Profile creation failed due to duplicate entry. Re-fetching...");
+                    // Try to fetch again now that it exists
+                    return this.fetchCustomerProfile();
+                }
+                console.error("Error creating profile:", error.message);
+                throw new Error(`Profile creation failed: ${error.message}`);
+            }
+        },
+        // --- END FIX ---
 
         async fetchMenuData() {
             try {
@@ -514,7 +564,7 @@
         },
 
         applyTheme(){ document.body.dataset.theme = this.state.theme; },
-        toggleTheme(t){ this.state.theme = t; localStorage.setItem('brand-theme', t); this.applyTheme(); this.navigateTo('more'); },
+        toggleTheme(t){ ui.closeModal('brand-switcher-modal'); this.state.theme = t; localStorage.setItem('brand-theme', t); this.applyTheme(); this.refreshPage(); },
 
         addOrUpdateCart(itemId, quantityChange) {
             sound.play('click');
@@ -914,7 +964,7 @@
             document.body.removeChild(textArea);
         }
     };
-
+    
     // --- UI RENDERING ---
     const ui = {
         showModal(id, content) {
@@ -1061,6 +1111,11 @@
                     <h3 class="font-bold text-primary text-sm flex-grow">${item.name}</h3>
                     <p class="font-semibold text-secondary text-sm mt-1">₹${item.price}</p>
                 </div>`).join('');
+                
+            const activeBrand = document.body.dataset.theme === 'gulabi' ? 'Gulabi Thali' : 'Bulb Cafe';
+            const switchBrand = document.body.dataset.theme === 'gulabi' ? 'bulb' : 'gulabi';
+            const switchBrandName = document.body.dataset.theme === 'gulabi' ? 'Bulb Cafe' : 'Gulabi Thali';
+            const switchBrandIcon = document.body.dataset.theme === 'gulabi' ? '💡' : '💖';
 
             $('#page-content').innerHTML = `
                 <div class="space-y-6">
@@ -1070,7 +1125,14 @@
                         <div class="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white text-center p-4">
                             <h1 class="text-3xl font-bold">${settings.welcome_title || 'BULB & THALI'}</h1>
                             <p class="text-lg mt-1 font-light">${settings.welcome_subtitle || 'FOOD & HOSPITALITY'}</p>
-                            <button onclick="ui.showBrandSwitcherModal()" class="mt-3 text-sm font-semibold py-1 px-3 bg-white text-gray-900 rounded-full">Switch Brand</button>
+                            
+                            <!-- QUICK BRAND SWITCHER -->
+                            <div class="mt-3">
+                                <span class="text-xs font-semibold text-gray-300 block mb-1">Active: ${activeBrand}</span>
+                                <button onclick="app.toggleTheme('${switchBrand}')" class="text-sm font-semibold py-1 px-3 bg-white text-gray-900 rounded-full flex items-center mx-auto">
+                                    ${switchBrandIcon} Switch to ${switchBrandName}
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="p-4 space-y-8">
@@ -1084,7 +1146,7 @@
                         <div onclick="app.navigateTo('social')" class="cursor-pointer group relative bg-secondary rounded-xl p-6 overflow-hidden shadow-sm">
                             <h2 class="text-2xl font-bold text-primary">${promoTitle}</h2>
                             <p class="mt-1 text-secondary">${promoSubtitle}</p>
-                            <button class="font-semibold mt-3 text-sm brand-bg px-4 py-2 rounded-lg group-hover:opacity-90 transition">Learn More &rarr;</button>
+                            <button onclick="app.navigateTo('social')" class="font-semibold mt-3 text-sm brand-bg px-4 py-2 rounded-lg group-hover:opacity-90 transition">Learn More &rarr;</button>
                         </div>
                         <div class="grid grid-cols-1 gap-4">
                             <button onclick="app.sendStaffCall()" class="bg-secondary rounded-xl p-4 text-center flex flex-col items-center justify-center h-28"><span class="text-3xl">🛎</span><p class="font-semibold mt-2 text-primary">Call Staff</p></button>
@@ -1118,18 +1180,48 @@
 
         renderMenuPage(){
             const content = $('#page-content');
-            if (app.state.menuData.length === 0 && app.state.allMenuItems.length === 0) {
+            
+            // 1. Filter menu data based on active brand (theme)
+            const activeBrand = app.state.theme;
+            const categoryMapping = {
+                'Cafe Drinks': activeBrand === 'bulb' ? true : false,
+                'Snacks': activeBrand === 'bulb' ? true : false,
+                'Desserts': true, // Always show desserts
+                'Thali': activeBrand === 'gulabi' ? true : false,
+                'Mains': activeBrand === 'gulabi' ? true : false,
+                'Breads': activeBrand === 'gulabi' ? true : false,
+                'Sides': activeBrand === 'gulabi' ? true : false,
+                // Add more logic here if needed
+            };
+            
+            const filteredMenuData = app.state.menuData.reduce((acc, categoryObj) => {
+                const category = categoryObj.category;
+                // Only include categories relevant to the active brand/theme
+                if (categoryMapping[category]) {
+                    acc.push(categoryObj);
+                } else if (activeBrand === 'bulb' && ['Cafe Drinks', 'Snacks'].includes(category)) {
+                    acc.push(categoryObj);
+                } else if (activeBrand === 'gulabi' && ['Thali', 'Mains', 'Breads', 'Sides'].includes(category)) {
+                     acc.push(categoryObj);
+                } else if (['light', 'dark'].includes(activeBrand)) {
+                    // Show all when in light/dark mode (general overview)
+                     acc.push(categoryObj);
+                }
+                return acc;
+            }, []);
+            
+            let allCategories = [{ category: 'All Items' }];
+            filteredMenuData.forEach(c => allCategories.push(c));
+            
+            // Set initial category if not set or if the current one is filtered out
+            if (!app.state.currentMenuCategory || !allCategories.some(c => c.category === app.state.currentMenuCategory)) {
+                app.state.currentMenuCategory = 'All Items';
+            }
+            
+            if (filteredMenuData.length === 0 && app.state.allMenuItems.length === 0) {
                 content.innerHTML = `<div class="p-4 text-center text-secondary">Loading menu...</div>`;
                 return;
             }
-
-            if (!app.state.currentMenuCategory && app.state.menuData.length > 0) {
-                app.state.currentMenuCategory = app.state.menuData[0].category;
-            } else if (!app.state.currentMenuCategory) {
-                app.state.currentMenuCategory = 'All Items';
-            }
-
-            const allCategories = [{ category: 'All Items' }, ...app.state.menuData];
 
             content.innerHTML = `
                 <div id="active-order-banner" class="p-4 hidden"></div>
@@ -1140,7 +1232,7 @@
                     ${allCategories.map(c => `
                         <button class="category-tab whitespace-nowrap font-semibold py-2 px-1 ${app.state.currentMenuCategory === c.category ? 'brand-text border-b-2 border-current' : 'text-secondary'}"
                                 data-category="${c.category}"
-                                onclick="ui.filterMenuByCategory('${c.category}', this)">
+                                onclick="ui.filterMenuByCategory('${c.category}', this, ${filteredMenuData.length > 0 ? true : false})">
                             ${c.category}
                         </button>`).join('')}
                 </div>
@@ -1160,17 +1252,20 @@
             if (app.state.searchQuery.length > 1) {
                 app.performSearch(app.state.searchQuery);
             } else {
-                const validCategory = allCategories.some(c => c.category === app.state.currentMenuCategory) ? app.state.currentMenuCategory : 'All Items';
-                this.filterMenuByCategory(validCategory, $(`.category-tab[data-category="${validCategory}"]`));
+                this.filterMenuByCategory(app.state.currentMenuCategory, $(`.category-tab[data-category="${app.state.currentMenuCategory}"]`), true, filteredMenuData);
             }
         },
 
-        filterMenuByCategory(category, tabElement) {
+        filterMenuByCategory(category, tabElement, isInitialRender = false, filteredMenuData = app.state.menuData) {
             app.state.currentMenuCategory = category;
-            app.state.searchQuery = '';
-            const searchInput = $('#menu-search-input');
-            if (searchInput) searchInput.value = '';
-
+            
+            // Only clear search if it's not a search result render
+            if (tabElement) {
+                app.state.searchQuery = '';
+                const searchInput = $('#menu-search-input');
+                if (searchInput) searchInput.value = '';
+            }
+            
             $('#search-results-container')?.classList.add('hidden');
             $('#menu-items')?.classList.remove('hidden');
             $('#category-tabs-container')?.classList.remove('hidden');
@@ -1185,7 +1280,16 @@
 
             let itemsToShow = [];
             if (category === 'All Items') {
-                itemsToShow = app.state.allMenuItems;
+                 // Determine which subset of allMenuItems is relevant based on the current theme/brand
+                const activeBrand = app.state.theme;
+                if (activeBrand === 'bulb') {
+                    itemsToShow = app.state.allMenuItems.filter(item => ['Cafe Drinks', 'Snacks', 'Desserts'].includes(item.category));
+                } else if (activeBrand === 'gulabi') {
+                    itemsToShow = app.state.allMenuItems.filter(item => ['Thali', 'Mains', 'Breads', 'Sides', 'Desserts'].includes(item.category));
+                } else {
+                    // light/dark mode shows everything
+                    itemsToShow = app.state.allMenuItems;
+                }
             } else {
                 const data = app.state.menuData.find(d => d.category === category);
                 itemsToShow = data ? data.items : [];
@@ -1197,7 +1301,7 @@
             const container = $(`#${containerId}`);
             if (!container) return;
             if (!items || items.length === 0) {
-                container.innerHTML = `<p class="text-secondary text-center col-span-full mt-8">No items found.</p>`;
+                container.innerHTML = `<p class="text-secondary text-center col-span-full mt-8">No items found for this selection.</p>`;
                 return;
             }
             container.innerHTML = items.map(item => {
@@ -1359,7 +1463,7 @@
                     </div>
                     <div class="mt-auto pt-10 text-center">
                         <p class="text-secondary mb-4">While you wait, why not play a game?</p>
-                        <button onclick="ui.showGamesModal()" class="brand-bg font-semibold py-3 px-8 rounded-lg">Play Games</button>
+                        <button onclick="app.navigateTo('more')" class="brand-bg font-semibold py-3 px-8 rounded-lg">View Games</button>
                     </div>
                 </div>`;
         },
@@ -1384,7 +1488,7 @@
                     <div onclick="ui.showInstagramPromo()" class="cursor-pointer group relative bg-secondary rounded-xl p-6 overflow-hidden shadow-sm text-left">
                          <h2 class="text-2xl font-bold text-primary">${promoTitle}</h2>
                         <p class="mt-1 text-secondary">${promoSubtitle}</p>
-                        <button class="font-semibold mt-3 text-sm brand-bg px-4 py-2 rounded-lg group-hover:opacity-90 transition">Get Caption Ideas &rarr;</button>
+                        <button onclick="ui.showInstagramPromo()" class="font-semibold mt-3 text-sm brand-bg px-4 py-2 rounded-lg group-hover:opacity-90 transition">Get Caption Ideas &rarr;</button>
                     </div>
                 </div>
             `;
@@ -1727,6 +1831,11 @@
             clearCanvas() { if(this.ctx) this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); }
         },
     };
+    
+    // EXPOSE GLOBAL OBJECTS FOR INLINE HTML HANDLERS (THE FIX)
+    window.app = app;
+    window.ui = ui;
+    window.GAMES = GAMES;
 
     document.addEventListener('DOMContentLoaded', () => app.init());
 
