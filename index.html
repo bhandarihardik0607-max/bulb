@@ -649,7 +649,6 @@
         const { createClient } = supabase;
 
         // --- SUPABASE & APP CONFIG ---
-        // !!! CORRECTED SUPABASE CREDENTIALS !!!
         const SUPABASE_URL = 'https://vrvlvvlfzbdqwfsdlrkv.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZydmx2dmxmemJkcXdmc2Rscmt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NzI2NzAsImV4cCI6MjA3NzU0ODY3MH0.yYnxeipLuO0DlTvGITI5ajHDeoWZ80N2PS3rPhuOyp8';
 
@@ -935,10 +934,11 @@
             async fetchUserProfile() {
                 if (!AppState.currentUser) throw new Error("User not authenticated.");
 
+                // FIX: Query using 'user_id' not 'id'
                 const { data, error } = await supabaseClient
                     .from('customers')
                     .select('*')
-                    .eq('id', AppState.currentUser.id)
+                    .eq('user_id', AppState.currentUser.id) // Use user_id
                     .single();
                 
                 if (error && error.code === 'PGRST116') {
@@ -946,7 +946,7 @@
                     console.warn("No profile found, creating one...");
                     const { data: newProfile, error: createError } = await supabaseClient
                         .from('customers')
-                        .insert({ id: AppState.currentUser.id, loyalty_points: 0 })
+                        .insert({ user_id: AppState.currentUser.id, loyalty_points: 0 }) // Use user_id
                         .select()
                         .single();
                     
@@ -973,10 +973,11 @@
             async updateUserProfile(updates) {
                 if (!AppState.userProfile) return;
 
+                // FIX: Update using 'user_id' not 'id'
                 const { data, error } = await supabaseClient
                     .from('customers')
                     .update(updates)
-                    .eq('id', AppState.userProfile.id)
+                    .eq('user_id', AppState.userProfile.user_id) // Use user_id
                     .select()
                     .single();
                 
@@ -1031,9 +1032,10 @@
                     AppState.realtimeChannels.push(orderChannel);
 
                     // Watch for changes to THIS user's profile
+                    // FIX: Filter using 'user_id'
                     const profileChannel = supabaseClient
-                        .channel(`public:customers:id=eq.${AppState.currentUser.id}`)
-                        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'customers', filter: `id=eq.${AppState.currentUser.id}` },
+                        .channel(`public:customers:user_id=eq.${AppState.currentUser.id}`)
+                        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'customers', filter: `user_id=eq.${AppState.currentUser.id}` },
                             (payload) => {
                                 console.log('Profile change detected!', payload);
                                 const oldPoints = AppState.userProfile.loyalty_points;
@@ -1246,7 +1248,14 @@
                     html += `<h2 class="font-brand text-2xl font-semibold mt-6 mb-4" style="font-style: italic;">${category}</h2>`;
                     html += productsByCategory[category].map(product => {
                         const hasVariants = product.variants && product.variants.length > 0;
-                        const price = hasVariants ? product.variants[0].price : product.base_price;
+                        
+                        // FIX: Add check for product.base_price and variant.price
+                        let price = 0;
+                        if (hasVariants) {
+                            price = product.variants[0]?.price || 0; // Default to 0 if variant or price is missing
+                        } else {
+                            price = product.base_price || 0; // Default to 0 if base_price is missing
+                        }
                         
                         // Gulabi Thali is "View Only"
                         const isOrderable = AppState.currentBrand === 'bulb' && product.is_orderable;
@@ -1323,7 +1332,7 @@
                 if (hasVariants) {
                     this.showVariantModal(product);
                 } else {
-                    this.addItemToCart(product, null, product.base_price);
+                    this.addItemToCart(product, null, product.base_price || 0);
                     this.showToast(`${product.name} added to cart!`, "success");
                 }
             },
@@ -1603,7 +1612,6 @@
              * Claims the 100-point review bonus.
              */
             async claimReviewBonus() {
-                // FIX: Add guard clause
                 if (!AppState.userProfile) {
                     this.showToast("Profile not loaded. Please wait.", "error");
                     return;
@@ -1628,7 +1636,6 @@
              * Redeems 500 points for a free reward.
              */
             async redeemPoints() {
-                // FIX: Add guard clause
                 if (!AppState.userProfile) {
                     this.showToast("Profile not loaded. Please wait.", "error");
                     return;
@@ -1672,21 +1679,27 @@
                 DOM.variantModalTitle.textContent = product.name;
                 DOM.variantModalDesc.textContent = product.description || 'Select an option';
                 
-                DOM.variantModalOptions.innerHTML = product.variants.map((variant, index) => `
-                    <label class="flex items-center justify-between p-3 rounded-lg" style="background-color: var(--bg-secondary);">
-                        <div>
-                            <span class="font-semibold">${variant.name}</span>
-                            <span class="ml-2" style="color: var(--text-secondary);">+₹${variant.price.toFixed(2)}</span>
-                        </div>
-                        <input type="radio" name="variant" value="${index}" ${index === 0 ? 'checked' : ''} class="form-radio" style="color: var(--brand-accent); border-color: var(--border);">
-                    </label>
-                `).join('');
+                DOM.variantModalOptions.innerHTML = product.variants.map((variant, index) => {
+                    // FIX: Check for variant.price
+                    const price = variant.price || 0;
+                    return `
+                        <label class="flex items-center justify-between p-3 rounded-lg" style="background-color: var(--bg-secondary);">
+                            <div>
+                                <span class="font-semibold">${variant.name}</span>
+                                <span class="ml-2" style="color: var(--text-secondary);">+₹${price.toFixed(2)}</span>
+                            </div>
+                            <input type="radio" name="variant" value="${index}" ${index === 0 ? 'checked' : ''} class="form-radio" style="color: var(--brand-accent); border-color: var(--border);">
+                        </label>
+                    `
+                }).join('');
                 
                 // Unbind old listener, bind new one
                 DOM.variantModalAddBtn.onclick = () => {
                     const selectedIndex = DOM.variantModalOptions.querySelector('input[name="variant"]:checked').value;
                     const selectedVariant = product.variants[selectedIndex];
-                    this.addItemToCart(product, selectedVariant.name, selectedVariant.price);
+                    const price = selectedVariant.price || 0; // FIX: Check for price
+                    
+                    this.addItemToCart(product, selectedVariant.name, price);
                     this.showToast(`${product.name} (${selectedVariant.name}) added!`, "success");
                     this.hideModal('variant-modal');
                 };
