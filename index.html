@@ -2,169 +2,202 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Food App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Restaurant App</title>
     
-    <!-- Load Tailwind CSS -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Load Supabase Client -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- Load Fonts (Playfair Display for Brand, Poppins for Body) -->
+    <!-- Google Fonts (New Design) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,400..900&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- App Styles -->
     <style>
-        /*
-        ========================================
-        APP STYLING & DUAL-BRAND THEMING
-        NEW THEME inspired by index (7).html
-        ========================================
-        */
         :root {
-            /* Brand A (Bulb Cafe) */
-            --brand-primary: 245 158 11; /* text-amber-500 */
-            --brand-secondary: 75 85 99; /* text-gray-600 */
-            --brand-font: 'Playfair Display', serif;
+            /* Light Mode (From Design File) */
+            --bg-primary-light: #FFFFFF;
+            --bg-secondary-light: #F3F4F6;
+            --text-primary-light: #111827;
+            --text-secondary-light: #6B7280;
+            --border-light: #E5E7EB;
+            --brand-primary-light: #111827;
 
-            /* Light Theme (default) - From index (7).html */
-            --bg-primary: 255 255 255; /* #FFFFFF */
-            --bg-secondary: 243 244 246; /* #F3F4F6 */
-            --text-primary: 17 24 39; /* #111827 */
-            --text-secondary: 107 114 128; /* #6B7280 */
-            --border-color: 229 231 235; /* #E5E7EB */
+            /* Dark Mode (From Design File) */
+            --bg-primary-dark: #111111;
+            --bg-secondary-dark: #1F2023;
+            --text-primary-dark: #F9FAFB;
+            --text-secondary-dark: #9CA3AF;
+            --border-dark: #374151;
+            --brand-primary-dark: #FFFFFF;
+
+            /* Brand Colors (App Specific) */
+            --brand-bulb: #FBBF24; /* Yellow */
+            --brand-gulabi: #EC4899; /* Pink */
+
+            /* Default to Light Mode */
+            --bg-primary: var(--bg-primary-light);
+            --bg-secondary: var(--bg-secondary-light);
+            --text-primary: var(--text-primary-light);
+            --text-secondary: var(--text-secondary-light);
+            --border: var(--border-light);
+            --brand-primary: var(--brand-primary-light);
+            --brand-accent: var(--brand-bulb); /* Default brand accent */
         }
 
-        [data-brand="gulabi"] {
-            /* Brand B (Gulabi Thali) */
-            --brand-primary: 236 72 153; /* text-pink-500 */
-            --brand-secondary: 190 24 93; /* text-pink-700 */
-            --brand-font: 'Playfair Display', serif;
+        /* Light Mode Theme */
+        .theme-light {
+            --bg-primary: var(--bg-primary-light);
+            --bg-secondary: var(--bg-secondary-light);
+            --text-primary: var(--text-primary-light);
+            --text-secondary: var(--text-secondary-light);
+            --border: var(--border-light);
+            --brand-primary: var(--brand-primary-light);
         }
 
-        [data-theme="dark"] {
-            /* Dark Mode (Universal) - From index (7).html */
-            --bg-primary: 17 17 17; /* #111111 */
-            --bg-secondary: 31 32 35; /* #1F2023 */
-            --text-primary: 249 250 251; /* #F9FAFB */
-            --text-secondary: 156 163 175; /* #9CA3AF */
-            --border-color: 55 65 81; /* #374151 */
+        /* Dark Mode Theme */
+        .theme-dark {
+            --bg-primary: var(--bg-primary-dark);
+            --bg-secondary: var(--bg-secondary-dark);
+            --text-primary: var(--text-primary-dark);
+            --text-secondary: var(--text-secondary-dark);
+            --border: var(--border-dark);
+            --brand-primary: var(--brand-primary-dark);
         }
 
-        /* Utility function to use CSS vars with Tailwind opacity */
-        .bg-primary { background-color: rgb(var(--bg-primary)); }
-        .bg-secondary { background-color: rgb(var(--bg-secondary)); }
-        .text-primary { color: rgb(var(--text-primary)); }
-        .text-secondary { color: rgb(var(--text-secondary)); }
-        .text-brand { color: rgb(var(--brand-primary)); }
-        .border-default { border-color: rgb(var(--border-color)); }
-        .font-brand { font-family: var(--brand-font); }
-        .fill-brand { fill: rgb(var(--brand-primary)); }
-        
-        .bg-brand-primary { background-color: rgb(var(--brand-primary)); }
-        .bg-brand-secondary { background-color: rgb(var(--brand-secondary)); }
-
-        /* Ensure app fills viewport */
-        html, body {
-            height: 100%;
-            overflow: hidden;
-            font-family: 'Poppins', sans-serif; /* Default font */
+        /* Set Brand Accents */
+        .brand-bulb.theme-light,
+        .brand-bulb.theme-dark {
+            --brand-accent: var(--brand-bulb);
         }
 
-        /* Main app container */
+        .brand-gulabi.theme-light,
+        .brand-gulabi.theme-dark {
+            --brand-accent: var(--brand-gulabi);
+        }
+
+        /* Base App Styling */
+        body {
+            font-family: 'Poppins', sans-serif; /* New Font */
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+        }
+
         #app {
-            max-width: 480px; /* Mobile-first max-width */
-            margin: 0 auto;
-            height: 100vh; /* Full viewport height */
             display: flex;
             flex-direction: column;
+            width: 100%;
+            max-width: 480px; /* Mobile-first container */
+            margin: 0 auto;
+            background-color: var(--bg-primary);
+            min-height: 100vh;
             position: relative;
-            overflow: hidden;
         }
 
-        /*
-        ========================================
-        SPLASH SCREEN
-        ========================================
-        */
-        #splash-screen {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
-        }
-        #splash-screen svg {
-            width: 80px;
-            height: 80px;
-            animation: pulse-light 2s infinite ease-in-out;
-        }
-        @keyframes pulse-light {
-            0%, 100% { transform: scale(1); opacity: 0.8; }
-            50% { transform: scale(1.1); opacity: 1; }
-        }
-        .splash-hide {
-            opacity: 0;
-            transform: scale(1.2);
-            pointer-events: none;
-        }
-
-        /*
-        ========================================
-        PAGE CONTAINER & TRANSITIONS
-        ========================================
-        */
+        /* Main Content Area */
         #main-content {
             flex-grow: 1;
-            position: relative;
-            overflow-y: auto;
-            /* Enable momentum scrolling on iOS */
-            -webkit-overflow-scrolling: touch; 
+            padding: 1.5rem 1.5rem 6rem 1.5rem; /* Padding for content + bottom nav */
+            overflow-y: auto; /* Enable scrolling for content */
+            -webkit-overflow-scrolling: touch;
+            width: 100%;
         }
 
         .page {
+            width: 100%;
+            display: none; /* Hidden by default */
+        }
+
+        .page.active {
+            display: block; /* Show active page */
+        }
+
+        /* Fonts (New Design) */
+        .font-brand {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-weight: 700;
+        }
+
+        /* Splash Screen */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #111111;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease-out;
+        }
+
+        /* Pulsing Bulb Animation */
+        .bulb {
+            width: 60px;
+            height: 60px;
+            background-color: #FBBF24;
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            position: relative;
+            animation: pulse 1.5s infinite;
+        }
+        .bulb::before {
+            content: '';
             position: absolute;
-            top: 0; left: 0; right: 0;
-            min-height: 100%;
-            padding: 1.5rem 1.5rem 6rem 1.5rem; /* 6rem bottom padding for tab bar */
-            opacity: 0;
-            transform: translateX(100%);
-            transition: opacity 0.3s ease, transform 0.3s ease;
-            display: none; /* Will be toggled by JS */
-            z-index: 1;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 15px;
+            background-color: #4B5563;
+            border-radius: 3px;
+        }
+        .bulb::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 5px;
+            background-color: #1F2937;
+            border-radius: 2px;
         }
 
-        .page-active {
-            opacity: 1;
-            transform: translateX(0);
-            display: block;
-            z-index: 10;
-        }
-        
-        .page-exit {
-            opacity: 0;
-            transform: translateX(-100%);
-            z-index: 5;
-            display: block; /* Keep it in flow during transition */
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 10px #FBBF24, 0 0 20px #FBBF24;
+                opacity: 0.8;
+            }
+            50% {
+                box-shadow: 0 0 20px #FBBF24, 0 0 40px #FBBF24;
+                opacity: 1;
+            }
         }
 
-        /*
-        ========================================
-        TAB BAR
-        ========================================
-        */
+        /* Tab Bar Navigation */
         #tab-bar {
-            flex-shrink: 0;
-            height: 64px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            max-width: 480px; /* Match app width */
+            margin: 0 auto;
+            height: 60px;
+            background-color: var(--bg-secondary);
+            border-top: 1px solid var(--border);
             display: flex;
             justify-content: space-around;
             align-items: center;
-            border-top: 1px solid rgb(var(--border-color));
-            position: relative;
             z-index: 50;
         }
         .tab-item {
@@ -172,1493 +205,1550 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
             font-size: 0.75rem;
-            flex: 1;
-            padding-top: 8px;
-            padding-bottom: 4px;
+            flex-grow: 1;
+            position: relative;
         }
         .tab-item svg {
             width: 24px;
             height: 24px;
             margin-bottom: 2px;
-            transition: transform 0.2s ease;
         }
-        .tab-item.active svg {
-            transform: scale(1.1);
+        .tab-item.active {
+            color: var(--brand-accent);
         }
-        .tab-item .icon-default { display: block; }
-        .tab-item .icon-active { display: none; }
-        .tab-item.active .icon-default { display: none; }
-        .tab-item.active .icon-active { display: block; }
-        
-        /* Cart badge */
+
+        /* Cart Badge */
         #cart-badge {
             position: absolute;
-            top: -4px;
-            right: -8px;
-            min-width: 20px;
+            top: -5px;
+            right: 20px;
+            background-color: var(--brand-accent);
+            color: var(--bg-primary); /* High contrast */
+            border-radius: 50%;
+            width: 20px;
             height: 20px;
-            border-radius: 99px;
             font-size: 0.75rem;
-            font-weight: 600;
+            font-weight: bold;
             display: flex;
             align-items: center;
             justify-content: center;
             transform: scale(0);
-            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: transform 0.2s ease;
         }
-        #cart-badge.active {
+        #cart-badge.visible {
             transform: scale(1);
         }
 
-        /*
-        ========================================
-        MODALS
-        ========================================
-        */
-        #modal-container {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            z-index: 60;
+        /* Page Headers (New Design) */
+        .page-header {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 2.5rem;
+            font-weight: 800; /* Bolder */
+            margin-bottom: 1.5rem;
+            color: var(--brand-primary);
+        }
+
+        /* Form Elements (New Design) */
+        .input {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            width: 100%;
+            font-size: 1rem;
+            font-family: 'Poppins', sans-serif;
+        }
+        .input:focus {
+            outline: none;
+            border-color: var(--brand-accent);
+            box-shadow: 0 0 0 1px var(--brand-accent); /* Subtle focus */
+        }
+        .btn {
+            border: none;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            font-family: 'Poppins', sans-serif;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn:hover:not(:disabled) {
+            opacity: 0.8;
+        }
+        .btn-primary {
+            background-color: var(--brand-accent);
+            color: var(--bg-primary); /* High contrast text on accent */
+        }
+        /* Special case for dark mode button text */
+        .theme-dark .btn-primary {
+             color: #111111; /* Black text on yellow/pink for dark mode */
+        }
+        .btn-secondary {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        /* Menu Item Card (New Design) */
+        .menu-item-card {
+            background-color: var(--bg-primary); /* Use primary bg */
+            border-bottom: 1px solid var(--border); /* Simple separator */
+            padding: 1rem 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .menu-item-card h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .menu-item-card p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin: 0.25rem 0;
+        }
+        .menu-item-price {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--brand-accent);
+        }
+        .menu-item-add-btn {
+            background-color: var(--brand-accent);
+            color: var(--bg-primary);
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            font-size: 1.5rem;
+            font-weight: 300;
             display: flex;
             align-items: center;
             justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s;
         }
-        #modal-backdrop {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
+        /* Dark mode text for add button */
+         .theme-dark .menu-item-add-btn {
+             color: #111111;
+         }
+        .menu-item-add-btn:hover {
+            transform: scale(1.1);
+        }
+        .menu-item-view-btn {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        /* Modals (New Design) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background-color: rgba(0, 0, 0, 0.5);
+            z-index: 60;
+            display: none; /* Hidden by default */
+            align-items: center;
+            justify-content: center;
             opacity: 0;
             transition: opacity 0.3s ease;
         }
-        #modal-box {
+        .modal-overlay.visible {
+            display: flex;
+            opacity: 1;
+        }
+        .modal-content {
+            background-color: var(--bg-primary);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
             width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            transform: scale(0.95);
-            opacity: 0;
-            transition: all 0.3s ease;
-            z-index: 61;
-            position: relative; /* For close button */
+            max-width: 400px;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
         }
-        #modal-container.visible #modal-backdrop {
-            opacity: 1;
-        }
-        #modal-container.visible #modal-box {
+        .modal-overlay.visible .modal-content {
             transform: scale(1);
-            opacity: 1;
         }
-
-        /*
-        ========================================
-        TOASTS / NOTIFICATIONS
-        ========================================
-        */
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .modal-header h2 {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .modal-close-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        /* Toast Notifications */
         #toast-container {
-            position: absolute;
-            top: 20px;
+            position: fixed;
+            bottom: 70px; /* Above tab bar */
             left: 50%;
             transform: translateX(-50%);
-            z-index: 100;
+            z-index: 70;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 8px;
+            pointer-events: none;
         }
-        .toast-item {
-            padding: 12px 20px;
-            border-radius: 99px;
+        .toast-notification {
+            background-color: #22C55E; /* Green for success */
+            color: #FFFFFF;
+            padding: 0.75rem 1.5rem;
+            border-radius: 2rem;
+            font-size: 0.875rem;
             font-weight: 500;
-            color: white;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            margin-top: 0.5rem;
             opacity: 0;
-            transform: translateY(-20px);
-            animation: toast-in 0.5s forwards;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
-        @keyframes toast-in {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .toast-notification.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
-        .toast-item.exit {
-            animation: toast-out 0.5s forwards;
-        }
-        @keyframes toast-out {
-            from {
-                opacity: 1;
-                transform: translateY(0);
-            }
-            to {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-        }
+
     </style>
 </head>
+<body class="brand-bulb theme-light"> <!-- Default to Bulb Light -->
 
-<body class="bg-primary text-primary">
+    <!-- Main App Container -->
+    <div id="app">
 
-    <!-- 
-    ========================================
-    SVG ICONS
-    ========================================
-    We embed all SVGs for a true single-file app.
-    -->
-    <svg width="0" height="0" class="absolute">
-        <defs>
-            <!-- Splash Screen Bulb -->
-            <symbol id="icon-bulb" viewBox="0 0 24 24">
-                <path fill-rule="evenodd" d="M12 2.25c-3.13 0-6 2.636-6 6.035A6.08 6.08 0 007.5 13.978v5.158a.75.75 0 00.75.75h7.5a.75.75 0 00.75-.75v-5.158c.45-.1.884-.23 1.28-.396A6.035 6.035 0 0018 8.285c0-3.399-2.87-6.035-6-6.035zM12.75 21a.75.75 0 00-.75-.75h-1.5a.75.75 0 000 1.5h1.5a.75.75 0 00.75-.75z" clip-rule="evenodd" />
-                <path d="M12 2.25a.75.75 0 01.75.75v.255a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM10.705 5.032a.75.75 0 01.028 1.06l-.17.19a.75.75 0 01-1.088-.027l-.17-.19a.75.75 0 111.088-1.032l.17.19a.75.75 0 01-.028 1.06zM14.497 6.282a.75.75 0 01-1.06.028l-.19-.17a.75.75 0 01.028-1.06l.19-.17a.75.75 0 111.032 1.088l-.19.17a.75.75 0 01-1.06-.028zM7.5 15.478v3.658h9v-3.658c1.36-.612 2.37-2.023 2.494-3.633.23-2.934-2.006-5.59-4.82-5.59S6.284 8.91 6.513 11.845c.123 1.61 1.133 3.02 2.493 3.633z" />
-            </symbol>
-            
-            <!-- Home -->
-            <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline>
-            </symbol>
-            <symbol id="icon-home-filled" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M11.47 3.84a.75.75 0 011.06 0l8.25 8.25a.75.75 0 01-.12 1.06l-.12.07v6.03a.75.75 0 01-.75.75H15a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75v4.5A.75.75 0 019 20.25H4.75a.75.75 0 01-.75-.75V13.22l-.1.07a.75.75 0 01-1.06-1.06l8.25-8.25z" />
-            </symbol>
-            
-            <!-- Order (Menu) -->
-            <symbol id="icon-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle>
-            </symbol>
-            <symbol id="icon-menu-filled" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" />
-                <path fill-rule="evenodd" d="M1.323 11.447C2.83 7.96 7.028 5.25 12 5.25c4.972 0 9.17 2.71 10.677 6.197a.75.75 0 010 .606C21.17 16.04 16.972 18.75 12 18.75c-4.972 0-9.17-2.71-10.677-6.197a.75.75 0 010-.606zM12 17.25c4.21 0 7.903-2.105 9.284-5.048C20.137 9.355 16.421 7.5 12 7.5c-4.421 0-8.137 1.855-9.285 4.702C4.098 15.145 7.79 17.25 12 17.25z" clip-rule="evenodd" />
-            </symbol>
-
-            <!-- Cart -->
-            <symbol id="icon-cart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle>
-                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-            </symbol>
-            <symbol id="icon-cart-filled" viewBox="0 0 24 24" fill="currentColor">
-                <path fill-rule="evenodd" d="M6 6a.75.75 0 01.75-.75h11.19l-1.12 4.46a.75.75 0 01-.72.54H9.75a.75.75 0 01-.75-.75V6z" clip-rule="evenodd" />
-                <path fill-rule="evenodd" d="M6.3 2.84A1.5 1.5 0 004.86 4.31L1.75 4.77a.75.75 0 00-.73 1.01l1.6 4.8a.75.75 0 00.73.51h14.7a.75.75 0 00.73-.51l2.4-7.2a.75.75 0 00-.73-1.01L8.25 2.27a.75.75 0 00-.72-.18L6.3 2.84zM3.4 12.016l.79 2.37a2.25 2.25 0 002.18 1.614h9.72a2.25 2.25 0 002.18-1.614l.79-2.37H3.4z" clip-rule="evenodd" />
-                <path d="M9 22.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM18.5 19.5a1.5 1.5 0 100 3 1.5 1.5 0 000-3z" />
-            </symbol>
-
-            <!-- History -->
-            <symbol id="icon-history" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.75 2.75"></path><path d="M3 7v6h6"></path>
-            </symbol>
-            <symbol id="icon-history-filled" viewBox="0 0 24 24" fill="currentColor">
-                <path fill-rule="evenodd" d="M11.925 3.003a.75.75 0 01.75.75v8.665l5.22 3.013a.75.75 0 01-.75 1.299l-5.63-3.25a.75.75 0 01-.37-.65V3.753a.75.75 0 01.75-.75z" clip-rule="evenodd" />
-                <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM3.5 12a8.25 8.25 0 1116.5 0 8.25 8.25 0 01-16.5 0z" clip-rule="evenodd" />
-            </symbol>
-
-            <!-- Profile -->
-            <symbol id="icon-profile" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle>
-            </symbol>
-            <symbol id="icon-profile-filled" viewBox="0 0 24 24" fill="currentColor">
-                <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 21.75c-2.67 0-5.197-.53-7.562-1.503a.75.75 0 01-.437-.695z" clip-rule="evenodd" />
-            </symbol>
-        </defs>
-    </svg>
-
-
-    <!-- 
-    ========================================
-    MAIN APP WRAPPER
-    ========================================
-    -->
-    <div id="app" class="bg-secondary">
-    
-        <!-- 
-        ========================================
-        SPLASH SCREEN
-        ========================================
-        -->
-        <div id="splash-screen" class="bg-primary">
-            <svg class="fill-brand">
-                <use href="#icon-bulb"></use>
-            </svg>
+        <!-- Splash Screen -->
+        <div id="splash-screen">
+            <div class="bulb"></div>
+            <h1 class="font-brand text-3xl text-white mt-6" style="font-style: italic;">BULB CAFE</h1>
         </div>
 
-        <!-- 
-        ========================================
-        MAIN CONTENT (Pages)
-        ========================================
-        This is where pages are dynamically loaded.
-        -->
-        <main id="main-content" class="bg-secondary">
+        <!-- Main Content Area (Scrollable) -->
+        <main id="main-content">
 
-            <!-- ==== PAGE: HOME ==== -->
-            <section id="page-home" class="page space-y-6">
-                <!-- Brand-specific Header -->
-                <div id="home-header" class="text-center">
-                    <div id="brand-logo-home" class="h-24 mx-auto mb-2"></div>
-                    <h1 class="text-4xl font-bold font-brand text-primary" id="brand-welcome-text">Welcome</h1>
-                </div>
+            <!-- Home Page -->
+            <div id="page-home" class="page active">
+                <h1 class="page-header" id="home-header">Welcome</h1>
+                <p class="text-lg -mt-4 mb-6" style="color: var(--text-secondary);">Good to see you!</p>
 
-                <!-- Featured Item -->
-                <div class="bg-primary rounded-xl shadow-lg overflow-hidden border border-default">
-                    <img src="https://placehold.co/600x400/f59e0b/white?text=Special+Offer" alt="Featured Offer" class="w-full h-48 object-cover">
-                    <div class="p-6">
-                        <h2 class="text-2xl font-bold text-primary font-brand">Today's Special</h2>
-                        <p class="text-secondary mt-2">Get our best-selling "Bulb Signature Roast" for 20% off. Today only!</p>
-                        <button class="mt-4 w-full bg-brand-primary text-white font-bold py-3 px-6 rounded-lg shadow transition-transform hover:scale-105"
-                                onclick="app.navigateTo('order')">
-                            Order Now
-                        </button>
+                <!-- Brand Switcher -->
+                <div class="mb-6">
+                    <h2 class="text-sm font-semibold uppercase mb-2" style="color: var(--text-secondary);">Select Brand</h2>
+                    <div class="flex space-x-2">
+                        <button id="brand-bulb-btn" class="btn btn-secondary flex-1 border-2 border-yellow-400">Bulb Cafe</button>
+                        <button id="brand-gulabi-btn" class="btn btn-secondary flex-1">Gulabi Thali</button>
                     </div>
                 </div>
 
-                <!-- Quick Actions -->
-                <div class="grid grid-cols-2 gap-4">
-                    <button class="bg-primary p-6 rounded-xl shadow-lg text-center transition-transform hover:scale-105 border border-default" onclick="app.navigateTo('history')">
-                        <svg class="w-12 h-12 text-brand mx-auto" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
-                        <span class="mt-2 block font-semibold text-primary">Re-Order Last</span>
-                    </button>
-                    <button class="bg-primary p-6 rounded-xl shadow-lg text-center transition-transform hover:scale-105 border border-default" onclick="app.navigateTo('profile')">
-                        <svg class="w-12 h-12 text-brand mx-auto" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 6a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM16.5 18h-9a2.25 2.25 0 00-2.25 2.25v.005c0 .69.56 1.25 1.25 1.25h10.5c.69 0 1.25-.56 1.25-1.25v-.005A2.25 2.25 0 0016.5 18z" /></svg>
-                        <span class="mt-2 block font-semibold text-primary">My Profile</span>
-                    </button>
+                <!-- Loyalty Card -->
+                <div class="mb-6 p-5 rounded-lg" style="background-color: var(--bg-secondary);">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-sm font-semibold uppercase" style="color: var(--text-secondary);">Loyalty Points</span>
+                        <span id="home-brand-logo" class="font-brand font-bold" style="color: var(--brand-accent); font-style: italic;">BULB</span>
+                    </div>
+                    <div id="loyalty-points" class="font-brand text-4xl font-bold mb-1" style="color: var(--brand-primary); font-style: italic;">0</div>
+                    <p class="text-sm" style="color: var(--text-secondary);">points</p>
+                    <button id="redeem-points-btn" class="btn btn-primary w-full mt-4">Redeem Reward (500 pts)</button>
                 </div>
-            </section>
+                
+                <!-- Placeholder for future content -->
+                <div class="text-center p-6 rounded-lg" style="background-color: var(--bg-secondary);">
+                    <p style="color: var(--text-secondary);">Check out our specials on the Order page!</p>
+                </div>
+            </div>
 
-            <!-- ==== PAGE: ORDER (MENU) ==== -->
-            <section id="page-order" class="page !p-0">
-                <div class="p-6 pb-2 sticky top-0 bg-secondary z-10">
-                    <h1 class="text-3xl font-bold font-brand text-primary mb-4">Menu</h1>
-                    <!-- Search Bar -->
-                    <div class="relative">
-                        <input id="search-bar" type="text" placeholder="Search menu..." class="w-full px-4 py-3 pl-10 rounded-full border border-default bg-primary text-primary placeholder:text-secondary focus:outline-none focus:ring-2 focus:ring-[rgb(var(--brand-primary))]">
-                        <svg class="w-5 h-5 text-secondary absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    </div>
-                    <!-- Recent Searches -->
-                    <div id="recent-searches-container" class="mt-2 flex flex-wrap gap-2">
-                        <!-- e.g., <button class="recent-search-btn">Coffee</button> -->
-                    </div>
+            <!-- Order Page -->
+            <div id="page-order" class="page">
+                <h1 class="page-header" id="order-header">Menu</h1>
+                
+                <!-- Search Bar -->
+                <div class="mb-4 relative">
+                    <input type="text" id="search-bar" placeholder="Search menu..." class="input pl-10">
+                    <svg class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2" style="color: var(--text-secondary);" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                 </div>
+                
+                <!-- Recent Searches -->
+                <div id="recent-searches" class="mb-4 flex flex-wrap gap-2"></div>
                 
                 <!-- Menu List -->
-                <div id="menu-list-container" class="p-6 pt-2 space-y-6">
-                    <!-- Categories will be dynamically injected here -->
-                    <!-- 
-                    <div class="menu-category">
-                        <h2 class="text-2xl font-bold font-brand text-primary mb-2">Category Name</h2>
-                        <div class="space-y-4">
-                            <div class="menu-item-card"> ... </div>
-                        </div>
-                    </div>
-                    -->
-                    <div id="menu-loading" class="text-center py-10">
-                        <span class="text-secondary">Loading menu...</span>
-                    </div>
-                    <div id="menu-no-results" class="text-center py-10 hidden">
-                        <span class="text-secondary">No items match your search.</span>
-                    </div>
+                <div id="menu-list">
+                    <!-- Categories and items will be injected by JavaScript -->
+                    <p id="menu-loading-text" style="color: var(--text-secondary);">Loading menu...</p>
                 </div>
-            </section>
+            </div>
 
-            <!-- ==== PAGE: CART ==== -->
-            <section id="page-cart" class="page">
-                <h1 class="text-3xl font-bold font-brand text-primary mb-6">My Cart</h1>
+            <!-- Cart Page -->
+            <div id="page-cart" class="page">
+                <h1 class="page-header">My Cart</h1>
                 
-                <!-- Cart Items -->
-                <div id="cart-items-container" class="space-y-4">
-                    <!-- Dynamically populated -->
-                    <!-- 
-                    <div class="cart-item-card flex items-center gap-4 bg-primary p-4 rounded-lg shadow border border-default">
-                        <img src="https://placehold.co/100x100" class="w-20 h-20 rounded-md object-cover">
-                        <div class="flex-grow">
-                            <h3 class="font-bold text-primary">Product Name</h3>
-                            <p class="text-sm text-secondary">Variant: Large</p>
-                            <span class="font-bold text-brand">$9.99</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button class="quantity-btn">-</button>
-                            <span>1</span>
-                            <button class="quantity-btn">+</button>
-                        </div>
-                        <button class="remove-btn">&times;</button>
-                    </div> 
-                    -->
-                </div>
-
-                <!-- Empty Cart Message -->
-                <div id="cart-empty-message" class="text-center py-20 hidden">
-                    <svg class="w-24 h-24 mx-auto text-gray-300" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24"><path d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM15.75 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" /></svg>
-                    <p class="mt-4 text-lg font-semibold text-secondary">Your cart is empty</p>
-                    <p class="text-secondary">Looks like you haven't added anything yet.</p>
-                    <button class="mt-6 bg-brand-primary text-white font-bold py-3 px-6 rounded-lg shadow transition-transform hover:scale-105"
-                            onclick="app.navigateTo('order')">
-                        Start Ordering
-                    </button>
-                </div>
-
-                <!-- Cart Summary (Show only if cart is not empty) -->
-                <div id="cart-summary-container" class="mt-8 pt-6 border-t border-default hidden">
-                    <div class="space-y-2 text-primary">
-                        <div class="flex justify-between">
-                            <span class="text-secondary">Subtotal</span>
-                            <span class="font-semibold" id="cart-subtotal">₹0.00</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-secondary">GST (5%)</span>
-                            <span class="font-semibold" id="cart-gst">₹0.00</span>
-                        </div>
-                        <div class="flex justify-between text-xl font-bold">
-                            <span class="text-primary">Total</span>
-                            <span class="text-brand" id="cart-total">₹0.00</span>
-                        </div>
-                    </div>
-                    <button id="checkout-button" class="mt-6 w-full bg-brand-primary text-white font-bold py-4 px-6 rounded-lg shadow-lg text-lg transition-transform hover:scale-105">
-                        Proceed to Payment
-                    </button>
-                </div>
-            </section>
-
-            <!-- ==== PAGE: HISTORY ==== -->
-            <section id="page-history" class="page">
-                <h1 class="text-3xl font-bold font-brand text-primary mb-6">Order History</h1>
-                
-                <div id="order-history-container" class="space-y-6">
-                    <!-- Dynamically populated -->
-                    <!--
-                    <div class="order-history-card bg-primary p-4 rounded-lg shadow border border-default">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="font-bold text-primary">Order #12345</span>
-                            <span class="text-sm text-secondary">01 Nov 2025</span>
-                        </div>
-                        <p class="text-secondary">Total: <span class="font-semibold text-brand">₹25.50</span></p>
-                        <p class="text-secondary">Status: <span class="font-semibold text-green-500">Delivered</span></p>
-                        <div class="mt-2 text-sm text-secondary">
-                            Items: Coffee (Large) x 1, Muffin x 2
-                        </div>
-                        <button class="re-order-btn mt-4 w-full bg-brand-secondary text-white font-semibold py-2 px-4 rounded-lg">
-                            Re-Order
-                        </button>
-                    </div>
-                    -->
-                </div>
-
-                <!-- Empty History Message -->
-                <div id="history-empty-message" class="text-center py-20 hidden">
-                    <svg class="w-24 h-24 mx-auto text-gray-300" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 7.5V6.108c0-1.135.845-2.098 1.976-2.192.351-.026.69.055 1.002.232.312.176.58.42.787.708.207.288.32.62.32.958V7.5M8.25 7.5h7.5M8.25 7.5V15M15.75 7.5V15m-7.5 4.5h7.5m-7.5 0a1.125 1.125 0 01-1.125-1.125V18.75c0-.621.504-1.125 1.125-1.125h7.5c.621 0 1.125.504 1.125 1.125v.375c0 .621-.504 1.125-1.125 1.125h-7.5z" /></svg>
-                    <p class="mt-4 text-lg font-semibold text-secondary">No orders yet</p>
-                    <p class="text-secondary">Place your first order to see it here.</p>
-                </div>
-            </section>
-
-            <!-- ==== PAGE: PROFILE ==== -->
-            <section id="page-profile" class="page space-y-6">
-                <h1 class="text-3xl font-bold font-brand text-primary mb-4">Profile</h1>
-
-                <!-- User Info -->
-                <div class="bg-primary p-6 rounded-xl shadow-lg flex items-center gap-4 border border-default">
-                    <div class="w-16 h-16 rounded-full bg-secondary flex items-center justify-center border border-default">
-                        <svg class="w-10 h-10 text-brand"><use href="#icon-profile-filled"></use></svg>
-                    </div>
-                    <div>
-                        <h2 id="profile-name" class="text-2xl font-bold text-primary">Guest</h2>
-                        <p id="profile-user-id" class="text-xs text-secondary break-all">user_id: ...</p>
-                    </div>
-                </div>
-
-                <!-- Loyalty Points -->
-                <div class="bg-primary p-6 rounded-xl shadow-lg border border-default">
-                    <h3 class="text-xl font-bold text-primary mb-3">Loyalty Points</h3>
-                    <div class="text-center mb-4">
-                        <span id="profile-loyalty-points" class="text-6xl font-bold text-brand">0</span>
-                        <span class="block text-secondary">Points</span>
-                    </div>
-                    <button id="redeem-points-btn" class="w-full bg-brand-primary text-white font-bold py-3 px-6 rounded-lg shadow transition-transform hover:scale-105 disabled:opacity-50">
-                        Redeem Free Reward (100 Pts)
-                    </button>
+                <div id="cart-items-container">
+                    <!-- Cart items will be injected here -->
                 </div>
                 
-                <!-- Review Bonus -->
-                <div class="bg-primary p-6 rounded-xl shadow-lg border border-default">
-                    <h3 class="text-xl font-bold text-primary mb-3">Get a Review Bonus!</h3>
-                    <p class="text-secondary mb-4">Get 50 bonus points for leaving us a review.</p>
-                    <a href="https://www.google.com/search?q=reviews+page" target="_blank" class="block w-full text-center bg-blue-500 text-white font-bold py-3 px-6 rounded-lg mb-3">
-                        1. Leave a Google Review
-                    </a>
-                    <button id="claim-review-btn" class="w-full bg-brand-secondary text-white font-bold py-3 px-6 rounded-lg">
-                        2. Claim My 50 Points
-                    </button>
+                <div id="cart-empty-msg" class="text-center py-10" style="color: var(--text-secondary);">
+                    <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    <p>Your cart is empty.</p>
+                    <button id="cart-back-to-menu" class="btn btn-primary mt-4">Browse Menu</button>
                 </div>
 
+                <div id="cart-summary-container" class="hidden">
+                    <div class="mt-6 pt-6 border-t" style="border-color: var(--border);">
+                        <h2 class="font-brand text-2xl font-semibold mb-4" style="font-style: italic;">Summary</h2>
+                        <div class="space-y-2">
+                            <div class="flex justify-between" style="color: var(--text-secondary);">
+                                <span>Subtotal</span>
+                                <span id="cart-subtotal">₹0.00</span>
+                            </div>
+                            <div class="flex justify-between" style="color: var(--text-secondary);">
+                                <span>GST (5%)</span>
+                                <span id="cart-gst">₹0.00</span>
+                            </div>
+                            <div class="flex justify-between text-lg font-bold mt-2" style="color: var(--text-primary);">
+                                <span>Total</span>
+                                <span id="cart-total">₹0.00</span>
+                            </div>
+                        </div>
+                        <button id="proceed-to-payment-btn" class="btn btn-primary w-full mt-6">Proceed to Payment</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Page -->
+            <div id="page-history" class="page">
+                <h1 class="page-header">Order History</h1>
+                <div id="order-history-list">
+                    <!-- Order history will be injected here -->
+                    <p id="history-loading-text" style="color: var(--text-secondary);">Loading history...</p>
+                </div>
+                <div id="history-empty-msg" class="hidden text-center py-10" style="color: var(--text-secondary);">
+                    <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                    <p>You haven't placed any orders yet.</p>
+                </div>
+            </div>
+
+            <!-- Profile Page -->
+            <div id="page-profile" class="page">
+                <h1 class="page-header">Profile</h1>
+                
                 <!-- Theme Switcher -->
-                <div class="bg-primary p-6 rounded-xl shadow-lg border border-default">
-                    <h3 class="text-xl font-bold text-primary mb-3">App Settings</h3>
-                    <div class="space-y-2">
-                        <div>
-                            <label for="brand-switcher" class="block text-secondary mb-1">Brand</label>
-                            <select id="brand-switcher" class="w-full p-3 rounded-lg border border-default bg-primary text-primary focus:outline-none focus:ring-2 focus:ring-[rgb(var(--brand-primary))]">
-                                <option value="bulb">Bulb Cafe</option>
-                                <option value="gulabi">Gulabi Thali</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="theme-switcher" class="block text-secondary mb-1">Theme</label>
-                            <select id="theme-switcher" class="w-full p-3 rounded-lg border border-default bg-primary text-primary focus:outline-none focus:ring-2 focus:ring-[rgb(var(--brand-primary))]">
-                                <option value="light">Light</option>
-                                <option value="dark">Dark</option>
-                            </select>
-                        </div>
+                <div class="mb-6">
+                    <h2 class="text-sm font-semibold uppercase mb-2" style="color: var(--text-secondary);">Theme</h2>
+                    <div class="flex space-x-2">
+                        <button class="theme-btn btn btn-secondary flex-1" data-theme="theme-light">Light</button>
+                        <button class="theme-btn btn btn-secondary flex-1" data-theme="theme-dark">Dark</button>
                     </div>
                 </div>
-            </section>
+
+                <!-- Review Bonus -->
+                <div class="p-5 rounded-lg mb-6" style="background-color: var(--bg-secondary);">
+                    <h2 class="font-brand text-2xl font-semibold mb-2" style="font-style: italic;">Get a Free Coffee!</h2>
+                    <p class="mb-4" style="color: var(--text-secondary);">Get 100 bonus points for leaving us a review!</p>
+                    <a href="https://www.google.com/search?q=bulb+cafe+jaipur+reviews" target="_blank" id="leave-review-btn" class="btn btn-secondary w-full mb-2 text-center">Step 1: Leave a Review</a>
+                    <button id="claim-review-btn" class="btn btn-primary w-full">Step 2: Claim Bonus</button>
+                </div>
+
+                <!-- User ID -->
+                <div class="text-center">
+                    <p class="text-xs" style="color: var(--text-secondary);">Anonymous User ID:</p>
+                    <p id="user-id-display" class="text-xs break-all" style="color: var(--text-secondary);"></p>
+                </div>
+            </div>
 
         </main>
 
-        <!-- 
-        ========================================
-        BOTTOM TAB BAR
-        ========================================
-        -->
-        <nav id="tab-bar" class="bg-primary">
+        <!-- Bottom Tab Bar -->
+        <nav id="tab-bar">
             <button class="tab-item active" data-page="home">
-                <svg class="icon-default text-secondary"><use href="#icon-home"></use></svg>
-                <svg class="icon-active text-brand"><use href="#icon-home-filled"></use></svg>
-                <span class="text-secondary">Home</span>
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6-4a1 1 0 001-1v-1a1 1 0 10-2 0v1a1 1 0 001 1z"></path></svg>
+                <span>Home</span>
             </button>
             <button class="tab-item" data-page="order">
-                <svg class="icon-default text-secondary"><use href="#icon-menu"></use></svg>
-                <svg class="icon-active text-brand"><use href="#icon-menu-filled"></use></svg>
-                <span class="text-secondary">Order</span>
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13.5M9.503 3.512l.33 1.98M14.497 3.512l-.33 1.98M21 12.031H3M6.5 12.031l-3.33-3.329M17.5 12.031l3.33-3.329"></path></svg>
+                <span>Order</span>
             </button>
             <button class="tab-item" data-page="cart">
-                <div class="relative">
-                    <svg class="icon-default text-secondary"><use href="#icon-cart"></use></svg>
-                    <svg class="icon-active text-brand"><use href="#icon-cart-filled"></use></svg>
-                    <span id="cart-badge" class="bg-brand-primary text-white">0</span>
-                </div>
-                <span class="text-secondary">Cart</span>
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                <span>Cart</span>
+                <div id="cart-badge">0</div>
             </button>
             <button class="tab-item" data-page="history">
-                <svg class="icon-default text-secondary"><use href="#icon-history"></use></svg>
-                <svg class="icon-active text-brand"><use href="#icon-history-filled"></use></svg>
-                <span class="text-secondary">History</span>
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3M20 12a8 8 0 11-16 0 8 8 0 0116 0z"></path></svg>
+                <span>History</span>
             </button>
             <button class="tab-item" data-page="profile">
-                <svg class="icon-default text-secondary"><use href="#icon-profile"></use></svg>
-                <svg class="icon-active text-brand"><use href="#icon-profile-filled"></use></svg>
-                <span class="text-secondary">Profile</span>
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                <span>Profile</span>
             </button>
         </nav>
-    </div>
 
-    <!-- 
-    ========================================
-    MODAL CONTAINER
-    ========================================
-    -->
-    <div id="modal-container" class="hidden">
-        <div id="modal-backdrop"></div>
-        <div id="modal-box" class="bg-primary">
-            <!-- Close button -->
-            <button id="modal-close-btn" class="absolute top-2 right-3 text-secondary text-3xl">&times;</button>
-            <!-- Modal Content Injected Here -->
-            <div id="modal-content" class="p-6 pt-10"></div>
+        <!-- Toast Notification Container -->
+        <div id="toast-container"></div>
+
+        <!-- Variant Selection Modal -->
+        <div id="variant-modal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="variant-modal-title">Select Option</h2>
+                    <button class="modal-close-btn" data-modal-id="variant-modal">&times;</button>
+                </div>
+                <div id="variant-modal-body">
+                    <p id="variant-modal-desc" class="mb-4" style="color: var(--text-secondary);"></p>
+                    <div id="variant-modal-options" class="space-y-2">
+                        <!-- Variant options injected here -->
+                    </div>
+                </div>
+                <button id="variant-modal-add-btn" class="btn btn-primary w-full mt-6">Add to Cart</button>
+            </div>
+        </div>
+        
+        <!-- Payment Modal -->
+        <div id="payment-modal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Payment</h2>
+                    <button class="modal-close-btn" data-modal-id="payment-modal">&times;</button>
+                </div>
+                <p class="mb-6" style="color: var(--text-secondary);">Please confirm your order. You can pay at the counter when you pick it up.</p>
+                <button id="confirm-payment-btn" class="btn btn-primary w-full">Confirm Order (Pay at Counter)</button>
+            </div>
         </div>
     </div>
 
-    <!-- 
-    ========================================
-    TOAST CONTAINER
-    ========================================
-    -->
-    <div id="toast-container"></div>
-
-
-    <!-- 
-    ================================================================
-    ================================================================
-    
-    JAVASCRIPT
-    
-    This is the core application logic.
-    
-    ================================================================
-    ================================================================
-    -->
+    <!-- JavaScript -->
     <script type="module">
-        /*
-        ========================================
-        SUPABASE SETUP
-        ========================================
-        */
+        // Import Supabase client
+        const { createClient } = supabase;
+
+        // --- SUPABASE & APP CONFIG ---
+        // !!! CORRECTED SUPABASE CREDENTIALS !!!
         const SUPABASE_URL = 'https://vrvlvvlfzbdqwfsdlrkv.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZydmx2dmxmemJkcXdmc2Rscmt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NzI2NzAsImV4cCI6MjA3NzU0ODY3MH0.yYnxeipLuO0DlTvGITI5ajHDeoWZ80N2PS3rPhuOyp8';
 
-        if (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY') {
-            document.getElementById('page-home').innerHTML = `
-                <div class="p-4 bg-red-100 text-red-800 rounded-lg">
-                    <h1 class="font-bold text-lg">Configuration Needed</h1>
-                    <p>Please open this HTML file and replace 
-                    <code>YOUR_SUPABASE_URL</code> and <code>YOUR_SUPABASE_ANON_KEY</code> 
-                    with your project credentials from supabase.com.</p>
-                </div>`;
-            document.getElementById('splash-screen').classList.add('splash-hide');
-            document.getElementById('page-home').classList.add('page-active');
-        }
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        const { createClient } = supabase;
-        const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // --- STATE MANAGEMENT ---
+        const AppState = {
+            currentBrand: 'bulb', // 'bulb' or 'gulabi'
+            currentTheme: 'theme-light', // 'theme-light' or 'theme-dark'
+            currentPage: 'home',
+            currentUser: null,
+            userProfile: null,
+            products: [], // All products from DB
+            cart: [], // Array of cart items
+            recentSearches: [],
+            orderHistory: [],
+            realtimeChannels: [], // Store all active Supabase channels
+        };
 
-        /*
-        ========================================
-        APPLICATION STATE
-        ========================================
-        */
-        const app = {
-            state: {
-                currentUser: null,
-                profile: { loyalty_points: 0, name: 'Guest' },
-                currentBrand: 'bulb',
-                currentTheme: 'light',
-                currentPage: 'home',
-                products: [],       // All products from DB
-                categories: [],     // Unique categories from products
-                cart: [],           // { id, name, price, image_url, quantity, variant: { name, price_modifier }, brand }
-                orders: [],         // User's past orders
-                recentSearches: [], // Last 5 search terms
-                lastPage: 'home',
-            },
+        // --- DOM ELEMENT SELECTORS ---
+        const DOM = {
+            app: document.getElementById('app'),
+            body: document.body,
+            splashScreen: document.getElementById('splash-screen'),
+            mainContent: document.getElementById('main-content'),
+            pages: document.querySelectorAll('.page'),
+            tabBar: document.getElementById('tab-bar'),
+            tabItems: document.querySelectorAll('.tab-item'),
+            cartBadge: document.getElementById('cart-badge'),
+            
+            // Home
+            homeHeader: document.getElementById('home-header'),
+            homeBrandLogo: document.getElementById('home-brand-logo'),
+            brandBulbBtn: document.getElementById('brand-bulb-btn'),
+            brandGulabiBtn: document.getElementById('brand-gulabi-btn'),
+            loyaltyPoints: document.getElementById('loyalty-points'),
+            redeemPointsBtn: document.getElementById('redeem-points-btn'),
+            
+            // Order
+            orderHeader: document.getElementById('order-header'),
+            menuList: document.getElementById('menu-list'),
+            menuLoadingText: document.getElementById('menu-loading-text'),
+            searchBar: document.getElementById('search-bar'),
+            recentSearches: document.getElementById('recent-searches'),
 
-            // ===== APP INITIALIZATION =====
+            // Cart
+            cartItemsContainer: document.getElementById('cart-items-container'),
+            cartEmptyMsg: document.getElementById('cart-empty-msg'),
+            cartBackToMenu: document.getElementById('cart-back-to-menu'),
+            cartSummaryContainer: document.getElementById('cart-summary-container'),
+            cartSubtotal: document.getElementById('cart-subtotal'),
+            cartGst: document.getElementById('cart-gst'),
+            cartTotal: document.getElementById('cart-total'),
+            proceedToPaymentBtn: document.getElementById('proceed-to-payment-btn'),
+
+            // History
+            orderHistoryList: document.getElementById('order-history-list'),
+            historyLoadingText: document.getElementById('history-loading-text'),
+            historyEmptyMsg: document.getElementById('history-empty-msg'),
+
+            // Profile
+            themeButtons: document.querySelectorAll('.theme-btn'),
+            leaveReviewBtn: document.getElementById('leave-review-btn'),
+            claimReviewBtn: document.getElementById('claim-review-btn'),
+            userIdDisplay: document.getElementById('user-id-display'),
+
+            // Modals
+            variantModal: document.getElementById('variant-modal'),
+            variantModalTitle: document.getElementById('variant-modal-title'),
+            variantModalDesc: document.getElementById('variant-modal-desc'),
+            variantModalOptions: document.getElementById('variant-modal-options'),
+            variantModalAddBtn: document.getElementById('variant-modal-add-btn'),
+            paymentModal: document.getElementById('payment-modal'),
+            confirmPaymentBtn: document.getElementById('confirm-payment-btn'),
+            modalCloseButtons: document.querySelectorAll('.modal-close-btn'),
+            
+            // Toast
+            toastContainer: document.getElementById('toast-container'),
+        };
+
+        // --- CORE APP LOGIC ---
+
+        /**
+         * Initializes the application.
+         * Authenticates, fetches data, sets up listeners, and hides splash screen.
+         */
+        const App = {
             async init() {
-                console.log('App init...');
-                this.initTheme();
-                this.initCart();
-                this.initEventListeners();
+                console.log("App initializing...");
                 
-                try {
-                    await this.authenticateUser();
-                    if (!this.state.currentUser) throw new Error("Authentication failed");
-                    
-                    console.log('User authenticated:', this.state.currentUser.id);
+                // Show splash screen, then hide it after a short delay
+                // This makes the app feel responsive immediately
+                setTimeout(() => {
+                    if (DOM.splashScreen) {
+                        DOM.splashScreen.style.opacity = '0';
+                        // Use setTimeout to remove after animation
+                        setTimeout(() => {
+                            DOM.splashScreen.remove();
+                        }, 500); // Matches CSS transition time
+                    }
+                }, 1000); // 1-second splash screen
 
-                    // Fetch data in parallel
-                    await Promise.all([
-                        this.fetchUserProfile(this.state.currentUser.id),
-                        this.fetchProducts(),
-                        this.fetchOrders(this.state.currentUser.id)
-                    ]);
+                try {
+                    this.setupEventListeners();
+                    this.loadStateFromLocalStorage();
+
+                    await this.authenticateUser();
                     
-                    this.setupRealtimeSubscriptions();
+                    // Fetch initial data in parallel
+                    await Promise.all([
+                        this.fetchProducts(),
+                        this.fetchUserProfile(),
+                        this.fetchOrderHistory()
+                    ]);
+
                     this.renderAll();
+                    this.setupRealtimeSubscriptions();
 
                 } catch (error) {
                     console.error("Error during app initialization:", error);
-                    this.showToast("Error connecting to server", "error");
-                } finally {
-                    // Hide splash screen
-                    setTimeout(() => {
-                        document.getElementById('splash-screen').classList.add('splash-hide');
-                        this.navigateTo('home', true); // Force navigate to home
-                    }, 1000); // Show splash for at least 1 sec
-                }
-            },
-
-            // ===== AUTHENTICATION & PROFILE =====
-            async authenticateUser() {
-                const { data, error } = await sb.auth.signInAnonymously();
-                if (error) {
-                    console.error("Error signing in anonymously:", error);
-                    return;
-                }
-                this.state.currentUser = data.user;
-            },
-
-            async fetchUserProfile(userId) {
-                try {
-                    let { data, error } = await sb.from('customers').select('*').eq('user_id', userId).single();
-                    
-                    if (error || !data) {
-                        console.log('No profile found, creating one...');
-                        const { data: newData, error: insertError } = await sb.from('customers')
-                            .insert({ user_id: userId, name: 'Guest', loyalty_points: 0 })
-                            .select()
-                            .single();
-                        
-                        if (insertError) throw insertError;
-                        this.state.profile = newData;
+                    // Failsafe: Ensure splash screen is hidden
+                    if (DOM.splashScreen) DOM.splashScreen.remove();
+                    // Show specific error for auth
+                    if (error.message.includes("Invalid API key") || error.message.includes("failed to fetch")) {
+                        this.showToast("Connection failed. Check API key.", "error");
                     } else {
-                        this.state.profile = data;
-                    }
-                    console.log('Profile loaded:', this.state.profile);
-                } catch (error) {
-                    console.error("Error fetching/creating profile:", error);
-                    this.showToast("Could not load user profile", "error");
-                }
-            },
-
-            // ===== DATA FETCHING =====
-            async fetchProducts() {
-                try {
-                    let { data, error } = await sb.from('products').select('*');
-                    if (error) throw error;
-                    
-                    this.state.products = data;
-                    // Get unique categories from all products
-                    const categorySet = new Set(data.map(p => p.category));
-                    this.state.categories = [...categorySet].sort();
-                    
-                    console.log('Products loaded:', this.state.products.length);
-                    this.renderMenu();
-                } catch (error) {
-                    console.error("Error fetching products:", error);
-                    this.showToast("Could not load menu", "error");
-                }
-            },
-
-            async fetchOrders(userId) {
-                try {
-                    // Fetch orders
-                    let { data: orders, error } = await sb.from('orders')
-                        .select('*')
-                        .eq('user_id', userId)
-                        .order('created_at', { ascending: false });
-                    if (error) throw error;
-
-                    // For each order, fetch its items
-                    for (let order of orders) {
-                        let { data: items, error: itemsError } = await sb.from('order_items')
-                            .select('*')
-                            .eq('order_id', order.id);
-                        
-                        if (itemsError) throw itemsError;
-                        order.items = items;
-                    }
-
-                    this.state.orders = orders;
-                    console.log('Orders loaded:', this.state.orders.length);
-                    this.renderHistory();
-                } catch (error) {
-                    console.error("Error fetching orders:", error);
-                }
-            },
-
-            // ===== REALTIME SUBSCRIPTIONS =====
-            setupRealtimeSubscriptions() {
-                console.log('Setting up realtime...');
-                // Channel for product changes
-                sb.channel('products-channel')
-                  .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, 
-                    (payload) => {
-                        console.log('Product change received!', payload);
-                        this.fetchProducts(); // Re-fetch all products
-                        this.showToast("Menu has been updated!");
-                    }
-                  )
-                  .subscribe();
-
-                // Channel for user's order changes
-                sb.channel('user-orders-channel')
-                  .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: `user_id=eq.${this.state.currentUser.id}` }, 
-                    (payload) => {
-                        console.log('Order change received!', payload);
-                        this.fetchOrders(this.state.currentUser.id); // Re-fetch orders
-                        if (payload.new && payload.new.status) {
-                            this.showToast(`Your order #${payload.new.id.toString().slice(0, 4)} is now ${payload.new.status}`);
-                        }
-                    }
-                  )
-                  .subscribe();
-            },
-
-            // ===== NAVIGATION =====
-            navigateTo(pageId, force = false) {
-                const newPage = document.getElementById(`page-${pageId}`);
-                if (!newPage) return;
-
-                const oldPageId = this.state.currentPage;
-                if (oldPageId === pageId && !force) return;
-
-                const oldPage = document.getElementById(`page-${oldPageId}`);
-
-                // Update tab bar
-                document.querySelectorAll('#tab-bar .tab-item').forEach(tab => {
-                    tab.classList.toggle('active', tab.dataset.page === pageId);
-                    // Update text color of tab label
-                    const label = tab.querySelector('span');
-                    if (label) {
-                        label.classList.toggle('text-brand', tab.dataset.page === pageId);
-                        label.classList.toggle('text-secondary', tab.dataset.page !== pageId);
-                    }
-                });
-
-                // Page Transition
-                if (oldPage && oldPage !== newPage) {
-                    oldPage.classList.remove('page-active');
-                    oldPage.classList.add('page-exit');
-                    
-                    newPage.classList.add('page-active');
-
-                    // Clean up after transition
-                    setTimeout(() => {
-                        oldPage.classList.remove('page-exit');
-                    }, 300);
-                } else {
-                    newPage.classList.add('page-active');
-                }
-
-                this.state.lastPage = oldPageId;
-                this.state.currentPage = pageId;
-
-                // Scroll to top of new page
-                document.getElementById('main-content').scrollTop = 0;
-            },
-
-            // ===== THEME & BRAND SWITCHING =====
-            initTheme() {
-                const brand = localStorage.getItem('appBrand') || 'bulb';
-                const theme = localStorage.getItem('appTheme') || 'light';
-                this.state.recentSearches = JSON.parse(localStorage.getItem('appRecentSearches')) || [];
-                
-                this.switchTheme(brand, theme);
-
-                // Update dropdowns
-                document.getElementById('brand-switcher').value = brand;
-                document.getElementById('theme-switcher').value = theme;
-            },
-
-            switchTheme(brand, theme) {
-                this.state.currentBrand = brand;
-                this.state.currentTheme = theme;
-
-                document.body.dataset.brand = brand;
-                document.body.dataset.theme = theme;
-
-                localStorage.setItem('appBrand', brand);
-                localStorage.setItem('appTheme', theme);
-                
-                // Re-render menu and cart for the new brand
-                this.renderMenu();
-                this.renderCart();
-                this.updateCartCount();
-
-                // Update brand-specific elements
-                const logoHome = document.getElementById('brand-logo-home');
-                const welcomeText = document.getElementById('brand-welcome-text');
-                
-                // Text-based logos using the new brand font
-                const bulbLogo = `<div class="flex items-center justify-center h-24 mx-auto mb-2"><span class="font-brand text-5xl font-bold" style="color: rgb(var(--brand-primary))">Bulb</span></div>`;
-                const gulabiLogo = `<div class="flex items-center justify-center h-24 mx-auto mb-2"><span class="font-brand text-5xl font-bold" style="color: rgb(var(--brand-primary))">Gulabi</span></div>`;
-
-                if (brand === 'bulb') {
-                    logoHome.innerHTML = bulbLogo;
-                    welcomeText.textContent = "Welcome to Bulb Cafe";
-                } else {
-                    logoHome.innerHTML = gulabiLogo;
-                    welcomeText.textContent = "Welcome to Gulabi Thali";
-                }
-            },
-
-            // ===== CART MANAGEMENT =====
-            initCart() {
-                const savedCart = localStorage.getItem('appCart');
-                if (savedCart) {
-                    this.state.cart = JSON.parse(savedCart);
-                }
-                this.updateCartCount();
-            },
-
-            saveCart() {
-                localStorage.setItem('appCart', JSON.stringify(this.state.cart));
-            },
-
-            addToCart(product, variant, quantity = 1) {
-                const existingItemIndex = this.state.cart.findIndex(
-                    item => item.id === product.id && item.variant.name === variant.name
-                );
-
-                if (existingItemIndex > -1) {
-                    this.state.cart[existingItemIndex].quantity += quantity;
-                } else {
-                    this.state.cart.push({
-                        id: product.id,
-                        name: product.name,
-                        price: product.price,
-                        image_url: product.image_url,
-                        quantity: quantity,
-                        variant: variant,
-                        brand: product.brand // <-- Add brand to cart item
-                    });
-                }
-                
-                this.saveCart();
-                this.updateCartCount();
-                this.renderCart();
-                this.showToast(`${product.name} (${variant.name}) added to cart`);
-            },
-            
-            updateCartQuantity(productId, variantName, newQuantity) {
-                const itemIndex = this.state.cart.findIndex(
-                    item => item.id === productId && item.variant.name === variantName
-                );
-                
-                if (itemIndex > -1) {
-                    if (newQuantity <= 0) {
-                        // Remove item
-                        this.state.cart.splice(itemIndex, 1);
-                    } else {
-                        this.state.cart[itemIndex].quantity = newQuantity;
-                    }
-                    this.saveCart();
-                    this.renderCart();
-                    this.updateCartCount();
-                }
-            },
-
-            updateCartCount() {
-                // Filter cart for current brand
-                const currentBrandCart = this.state.cart.filter(item => item.brand === this.state.currentBrand);
-                const totalItems = currentBrandCart.reduce((sum, item) => sum + item.quantity, 0);
-                const badge = document.getElementById('cart-badge');
-                if (totalItems > 0) {
-                    badge.textContent = totalItems;
-                    badge.classList.add('active');
-                } else {
-                    badge.classList.remove('active');
-                }
-            },
-            
-            clearCart(brandToClear = null) {
-                if (brandToClear) {
-                    this.state.cart = this.state.cart.filter(item => item.brand !== brandToClear);
-                } else {
-                    this.state.cart = [];
-                }
-                this.saveCart();
-                this.renderCart();
-                this.updateCartCount();
-            },
-
-            // ===== CHECKOUT =====
-            async placeOrder() {
-                const checkoutButton = document.getElementById('checkout-button');
-                checkoutButton.disabled = true;
-                checkoutButton.textContent = 'Placing Order...';
-                
-                try {
-                    const { subtotal, gst, total } = this.calculateCartTotals();
-                    
-                    // 1. Create 'orders' entry
-                    const { data: orderData, error: orderError } = await sb.from('orders').insert({
-                        user_id: this.state.currentUser.id,
-                        total_amount: total,
-                        status: 'Pending' // 'Pay at Counter'
-                    }).select().single();
-                    
-                    if (orderError) throw orderError;
-                    
-                    // 2. Create 'order_items' entries
-                    const currentBrandCart = this.state.cart.filter(item => item.brand === this.state.currentBrand);
-                    const orderItems = currentBrandCart.map(item => ({
-                        order_id: orderData.id,
-                        product_id: item.id,
-                        product_name: item.name,
-                        variant_name: item.variant.name,
-                        quantity: item.quantity,
-                        price: (item.price || 0) + item.variant.price_modifier
-                    }));
-                    
-                    const { error: itemsError } = await sb.from('order_items').insert(orderItems);
-                    if (itemsError) throw itemsError;
-                    
-                    // 3. Add loyalty points (e.g., 5 points for orders over 20)
-                    if (total > 20) {
-                        await this.addLoyaltyPoints(5, `Order #${orderData.id.toString().slice(0, 4)}`);
-                    }
-                    
-                    // 4. Clear cart FOR THE CURRENT BRAND
-                    this.clearCart(this.state.currentBrand);
-                    
-                    // 5. Feedback
-                    this.showToast('Order placed successfully!', 'success');
-                    this.navigateTo('history');
-                    
-                } catch (error) {
-                    console.error("Error placing order:", error);
-                    this.showToast("Failed to place order. Please try again.", "error");
-                } finally {
-                    checkoutButton.disabled = false;
-                    checkoutButton.textContent = 'Proceed to Payment';
-                }
-            },
-
-            // ===== RENDER FUNCTIONS (UI) =====
-            
-            // Render all dynamic content
-            renderAll() {
-                this.renderProfile();
-                this.renderMenu();
-                this.renderCart();
-                this.renderHistory();
-                this.renderRecentSearches();
-            },
-            
-            renderMenu(searchTerm = '') {
-                const container = document.getElementById('menu-list-container');
-                const loading = document.getElementById('menu-loading');
-                const noResults = document.getElementById('menu-no-results');
-                
-                // Defensive null check
-                if (!container || !loading || !noResults) {
-                    console.warn("RenderMenu called, but DOM elements are not ready.");
-                    return;
-                }
-
-                // Filter products
-                const lowerSearchTerm = searchTerm.toLowerCase();
-                // 1. Filter by current brand
-                const brandProducts = this.state.products.filter(p => p.brand === this.state.currentBrand);
-                
-                // 2. Filter by search term
-                const filteredProducts = brandProducts.filter(p => 
-                    p.name.toLowerCase().includes(lowerSearchTerm) ||
-                    (p.category && p.category.toLowerCase().includes(lowerSearchTerm))
-                );
-                
-                if (brandProducts.length === 0 && this.state.products.length > 0) {
-                    // Products are loaded, but none for this brand
-                    loading.classList.add('hidden');
-                    noResults.classList.add('hidden');
-                    container.innerHTML = `<div class="text-center py-10"><span class="text-secondary">Menu for ${this.state.currentBrand} is coming soon!</span></div>`;
-                    return;
-                }
-                
-                if (this.state.products.length === 0) {
-                    loading.classList.remove('hidden');
-                    container.innerHTML = ''; // Clear old categories
-                    noResults.classList.add('hidden');
-                    return;
-                }
-                
-                loading.classList.add('hidden');
-                
-                if (filteredProducts.length === 0) {
-                    noResults.classList.remove('hidden');
-                    container.innerHTML = ''; // Clear old categories
-                    return;
-                }
-                
-                noResults.classList.add('hidden');
-                
-                // Group by category
-                const productsByCategory = {};
-                // Get categories only from brand's products
-                const brandCategories = [...new Set(brandProducts.map(p => p.category))].sort();
-
-                for (const category of brandCategories) {
-                    const productsInCategory = filteredProducts.filter(p => p.category === category);
-                    if (productsInCategory.length > 0) {
-                        productsByCategory[category] = productsInCategory;
+                        this.showToast("Error loading app. Please refresh.", "error");
                     }
                 }
-                
-                let html = '';
-                for (const category in productsByCategory) {
-                    html += `<div class="menu-category">
-                        <h2 class="text-2xl font-bold font-brand text-primary mb-3">${category}</h2>
-                        <div class="space-y-4">`;
-                    
-                    productsByCategory[category].forEach(product => {
-                        // Show variants price range if they exist
-                        const basePrice = product.price || 0;
-                        let priceDisplay = `₹${basePrice.toFixed(2)}`;
-                        if (product.variants && product.variants.length > 0) {
-                            const minPrice = basePrice + Math.min(...product.variants.map(v => v.price_modifier));
-                            const maxPrice = basePrice + Math.max(...product.variants.map(v => v.price_modifier));
-                            if (minPrice !== maxPrice) {
-                                priceDisplay = `₹${minPrice.toFixed(2)} - ₹${maxPrice.toFixed(2)}`;
-                            } else {
-                                priceDisplay = `₹${minPrice.toFixed(2)}`;
-                            }
-                        }
-
-                        html += `
-                            <div class="menu-item-card flex items-center gap-4 bg-primary p-4 rounded-xl shadow-lg border border-default">
-                                <img src="${product.image_url || 'https://placehold.co/100x100/e5e7eb/6b7280?text=Item'}" alt="${product.name}" class="w-20 h-20 rounded-md object-cover flex-shrink-0">
-                                <div class="flex-grow">
-                                    <h3 class="font-bold text-lg text-primary">${product.name}</h3>
-                                    <p class="text-sm text-secondary truncate">${product.description || ''}</p>
-                                    <span class="font-bold text-brand text-lg">${priceDisplay}</span>
-                                </div>
-                                ${product.is_orderable ? `
-                                <button class="add-to-cart-btn flex-shrink-0 bg-brand-primary text-white w-10 h-10 rounded-full text-2xl font-bold shadow-md" data-product-id="${product.id}">
-                                    +
-                                </button>
-                                ` : `
-                                <span class="text-sm text-secondary text-right px-2">View Only</span>
-                                `}
-                            </div>
-                        `;
-                    });
-                        
-                    html += `</div></div>`;
-                }
-                container.innerHTML = html;
-            },
-            
-            renderCart() {
-                const container = document.getElementById('cart-items-container');
-                const emptyMsg = document.getElementById('cart-empty-message');
-                const summary = document.getElementById('cart-summary-container');
-                
-                // Filter cart for current brand
-                const currentBrandCart = this.state.cart.filter(item => item.brand === this.state.currentBrand);
-
-                if (currentBrandCart.length === 0) {
-                    container.innerHTML = '';
-                    emptyMsg.classList.remove('hidden');
-                    summary.classList.add('hidden');
-                    
-                    // Check if there are items for *other* brands
-                    if (this.state.cart.length > 0) {
-                        document.querySelector('#cart-empty-message p.text-secondary').textContent = `You have items for another brand in your cart. Switch brands to see them.`;
-                    } else {
-                        document.querySelector('#cart-empty-message p.text-secondary').textContent = "Looks like you haven't added anything yet.";
-                    }
-                    return;
-                }
-                
-                emptyMsg.classList.add('hidden');
-                summary.classList.remove('hidden');
-                
-                let html = '';
-                currentBrandCart.forEach(item => {
-                    const itemTotal = ((item.price || 0) + item.variant.price_modifier) * item.quantity;
-                    html += `
-                        <div class="cart-item-card flex items-center gap-4 bg-primary p-4 rounded-lg shadow border border-default">
-                            <img src="${item.image_url || 'https://placehold.co/100x100/e5e7eb/6b7280?text=Item'}" class="w-20 h-20 rounded-md object-cover">
-                            <div class="flex-grow">
-                                <h3 class="font-bold text-primary">${item.name}</h3>
-                                <p class="text-sm text-secondary">Variant: ${item.variant.name}</p>
-                                <span class="font-bold text-brand">₹${itemTotal.toFixed(2)}</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <button class="quantity-btn bg-secondary text-primary w-7 h-7 rounded-full font-bold" data-product-id="${item.id}" data-variant-name="${item.variant.name}" data-action="decrease">
-                                    -
-                                </button>
-                                <span class="font-semibold text-primary w-5 text-center">${item.quantity}</span>
-                                <button class="quantity-btn bg-secondary text-primary w-7 h-7 rounded-full font-bold" data-product-id="${item.id}" data-variant-name="${item.variant.name}" data-action="increase">
-                                    +
-                                </button>
-                            </div>
-                        </div> 
-                    `;
-                });
-                container.innerHTML = html;
-                
-                // Update totals
-                const { subtotal, gst, total } = this.calculateCartTotals();
-                document.getElementById('cart-subtotal').textContent = `₹${subtotal.toFixed(2)}`;
-                document.getElementById('cart-gst').textContent = `₹${gst.toFixed(2)}`;
-                document.getElementById('cart-total').textContent = `₹${total.toFixed(2)}`;
-            },
-            
-            calculateCartTotals() {
-                // Filter cart for current brand
-                const currentBrandCart = this.state.cart.filter(item => item.brand === this.state.currentBrand);
-                
-                const subtotal = currentBrandCart.reduce((sum, item) => {
-                    return sum + ((item.price || 0) + item.variant.price_modifier) * item.quantity;
-                }, 0);
-                const gst = subtotal * 0.05; // 5% GST
-                const total = subtotal + gst;
-                return { subtotal, gst, total };
             },
 
-            renderHistory() {
-                const container = document.getElementById('order-history-container');
-                const emptyMsg = document.getElementById('history-empty-message');
-
-                if (this.state.orders.length === 0) {
-                    container.innerHTML = '';
-                    emptyMsg.classList.remove('hidden');
-                    return;
-                }
-                
-                emptyMsg.classList.add('hidden');
-                
-                let html = '';
-                this.state.orders.forEach(order => {
-                    const orderDate = new Date(order.created_at).toLocaleDateString();
-                    const itemsSummary = order.items.map(item => `${item.product_name} (${item.variant_name}) x ${item.quantity}`).join(', ');
-                    
-                    html += `
-                        <div class="order-history-card bg-primary p-4 rounded-lg shadow border border-default">
-                            <div class="flex justify-between items-center mb-2">
-                                <span class="font-bold text-primary">Order #${order.id.toString().slice(0, 8)}</span>
-                                <span class="text-sm text-secondary">${orderDate}</span>
-                            </div>
-                            <p class="text-secondary">Total: <span class="font-semibold text-brand">₹${order.total_amount.toFixed(2)}</span></p>
-                            <p class="text-secondary">Status: <span class="font-semibold text-green-500">${order.status}</span></p>
-                            <div class="mt-2 text-sm text-secondary truncate">
-                                ${itemsSummary}
-                            </div>
-                            <button class="re-order-btn mt-4 w-full bg-brand-secondary text-white font-semibold py-2 px-4 rounded-lg" data-order-id="${order.id}">
-                                Re-Order
-                            </button>
-                        </div>
-                    `;
-                });
-                container.innerHTML = html;
-            },
-
-            renderProfile() {
-                document.getElementById('profile-name').textContent = this.state.profile.name || 'Guest';
-                document.getElementById('profile-user-id').textContent = `user_id: ${this.state.currentUser?.id}`;
-                document.getElementById('profile-loyalty-points').textContent = this.state.profile.loyalty_points;
-                
-                // Enable/disable redeem button
-                document.getElementById('redeem-points-btn').disabled = this.state.profile.loyalty_points < 100;
-            },
-            
-            renderRecentSearches() {
-                const container = document.getElementById('recent-searches-container');
-                if (this.state.recentSearches.length === 0) {
-                    container.classList.add('hidden');
-                    return;
-                }
-                container.classList.remove('hidden');
-                container.innerHTML = this.state.recentSearches.map(term => 
-                    `<button class="recent-search-btn bg-primary text-secondary px-3 py-1 rounded-full text-sm border border-default">${term}</button>`
-                ).join('');
-            },
-            
-            addRecentSearch(term) {
-                if (!term) return;
-                // Remove existing
-                this.state.recentSearches = this.state.recentSearches.filter(s => s !== term);
-                // Add to front
-                this.state.recentSearches.unshift(term);
-                // Limit to 5
-                this.state.recentSearches = this.state.recentSearches.slice(0, 5);
-                localStorage.setItem('appRecentSearches', JSON.stringify(this.state.recentSearches));
-                this.renderRecentSearches();
-            },
-
-            // ===== LOYALTY & REWARDS =====
-            async addLoyaltyPoints(points, reason = "Bonus") {
-                try {
-                    const newPoints = (this.state.profile.loyalty_points || 0) + points;
-                    
-                    const { data, error } = await sb.from('customers')
-                        .update({ loyalty_points: newPoints })
-                        .eq('user_id', this.state.currentUser.id)
-                        .select()
-                        .single();
-                        
-                    if (error) throw error;
-                    
-                    this.state.profile = data;
-                    this.renderProfile();
-                    this.showToast(`+${points} points! (${reason})`, 'success');
-                    
-                } catch (error) {
-                    console.error("Error adding loyalty points:", error);
-                }
-            },
-            
-            redeemReward() {
-                if (this.state.profile.loyalty_points < 100) {
-                    this.showToast("Not enough points to redeem", "error");
-                    return;
-                }
-                
-                // Add a "Free Reward" item to the cart
-                // This is a "dummy" product
-                const rewardItem = {
-                    id: 'REWARD-001',
-                    name: 'Free Reward',
-                    price: 0,
-                    image_url: 'https://placehold.co/100x100/f59e0b/white?text=Reward!',
-                    variant: { name: 'Redeemed', price_modifier: 0 },
-                    brand: this.state.currentBrand // <-- Assign current brand to reward
-                };
-                
-                this.addToCart(rewardItem, rewardItem.variant);
-                
-                // Deduct points
-                this.addLoyaltyPoints(-100, "Redeemed Reward");
-                
-                this.navigateTo('cart');
-            },
-
-            // ===== UI FEEDBACK (TOASTS & MODALS) =====
-            showToast(message, type = 'info') {
-                const container = document.getElementById('toast-container');
-                const toast = document.createElement('div');
-                toast.className = 'toast-item';
-                toast.textContent = message;
-
-                if (type === 'success') {
-                    toast.style.backgroundColor = 'rgb(var(--brand-primary))';
-                } else if (type === 'error') {
-                    toast.style.backgroundColor = '#ef4444'; // red-500
-                } else {
-                    toast.style.backgroundColor = '#374151'; // gray-700
-                }
-
-                container.appendChild(toast);
-
-                setTimeout(() => {
-                    toast.classList.add('exit');
-                    setTimeout(() => {
-                        container.removeChild(toast);
-                    }, 500);
-                }, 3000);
-            },
-
-            showModal(content) {
-                const container = document.getElementById('modal-container');
-                const contentBox = document.getElementById('modal-content');
-                
-                contentBox.innerHTML = content;
-                container.classList.remove('hidden');
-                setTimeout(() => container.classList.add('visible'), 10); // For transition
-            },
-
-            hideModal() {
-                const container = document.getElementById('modal-container');
-                container.classList.remove('visible');
-                setTimeout(() => container.classList.add('hidden'), 300); // Wait for transition
-            },
-            
-            showVariantModal(productId) {
-                const product = this.state.products.find(p => p.id === productId);
-                if (!product) return;
-                
-                // variants are expected to be JSON: [{"name": "Small", "price_modifier": 0}, {"name": "Large", "price_modifier": 2.50}]
-                // Handle base price for variants (e.g., Gulabi Thali takeaway)
-                const basePrice = product.price || 0;
-                const variants = product.variants || [{ name: 'Regular', price_modifier: 0 }];
-                
-                let content = `
-                    <h2 class="text-2xl font-bold text-primary font-brand mb-4">${product.name}</h2>
-                    <img src="${product.image_url || 'https://placehold.co/600x400'}" class="w-full h-48 object-cover rounded-lg mb-4">
-                    <p class="text-secondary mb-4">${product.description || ''}</p>
-                    <h3 class="text-lg font-semibold text-primary mb-2">Select an option:</h3>
-                    <div class="space-y-2">
-                `;
-                
-                variants.forEach(variant => {
-                    const finalPrice = (basePrice + variant.price_modifier).toFixed(2);
-                    
-                    // If the product is not orderable, just display, don't make it a button
-                    if (!product.is_orderable) {
-                        content += `
-                            <div class="w-full flex justify-between items-center p-4 border border-default rounded-lg bg-secondary">
-                                <span class="font-semibold text-primary">${variant.name}</span>
-                                <span class="font-bold text-brand">₹${finalPrice}</span>
-                            </div>
-                        `;
-                    } else {
-                        content += `
-                            <button class="variant-select-btn w-full flex justify-between items-center p-4 border border-default rounded-lg hover:bg-secondary"
-                                    data-product-id="${product.id}" 
-                                    data-variant-name="${variant.name}"
-                                    data-variant-price-mod="${variant.price_modifier}">
-                                <span class="font-semibold text-primary">${variant.name}</span>
-                                <span class="font-bold text-brand">₹${finalPrice}</span>
-                            </button>
-                        `;
-                    }
-                });
-                
-                content += `</div>`;
-                this.showModal(content);
-            },
-
-            // ===== EVENT LISTENERS =====
-            initEventListeners() {
+            /**
+             * Sets up all global event listeners for the app.
+             */
+            setupEventListeners() {
                 // Tab Bar Navigation
-                document.getElementById('tab-bar').addEventListener('click', (e) => {
-                    const tab = e.target.closest('.tab-item');
-                    if (tab && tab.dataset.page) {
-                        this.navigateTo(tab.dataset.page);
+                DOM.tabBar.addEventListener('click', (e) => {
+                    const tabItem = e.target.closest('.tab-item');
+                    if (tabItem) {
+                        this.navigateTo(tabItem.dataset.page);
                     }
                 });
+
+                // Brand Switcher
+                DOM.brandBulbBtn.addEventListener('click', () => this.setBrand('bulb'));
+                DOM.brandGulabiBtn.addEventListener('click', () => this.setBrand('gulabi'));
+
+                // Theme Switcher
+                DOM.themeButtons.forEach(btn => {
+                    btn.addEventListener('click', () => this.setTheme(btn.dataset.theme));
+                });
                 
-                // Brand/Theme Switchers
-                document.getElementById('brand-switcher').addEventListener('change', (e) => {
-                    this.switchTheme(e.target.value, this.state.currentTheme);
-                });
-                document.getElementById('theme-switcher').addEventListener('change', (e) => {
-                    this.switchTheme(this.state.currentBrand, e.target.value);
-                });
-                
-                // Search Bar
-                const searchBar = document.getElementById('search-bar');
-                searchBar.addEventListener('input', (e) => {
-                    this.renderMenu(e.target.value);
-                });
-                searchBar.addEventListener('keypress', (e) => {
+                // Search
+                DOM.searchBar.addEventListener('input', (e) => this.renderMenu(e.target.value));
+                DOM.searchBar.addEventListener('keypress', (e) => {
                     if (e.key === 'Enter') {
                         this.addRecentSearch(e.target.value);
-                        searchBar.blur(); // Hide keyboard
+                        e.target.blur();
                     }
                 });
                 
                 // Recent Searches
-                document.getElementById('recent-searches-container').addEventListener('click', (e) => {
-                    if (e.target.classList.contains('recent-search-btn')) {
-                        const term = e.target.textContent;
-                        searchBar.value = term;
-                        this.renderMenu(term);
+                DOM.recentSearches.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('recent-search-tag')) {
+                        DOM.searchBar.value = e.target.dataset.term;
+                        this.renderMenu(DOM.searchBar.value);
                     }
                 });
 
-                // Add to Cart (from Menu) or View Variants
-                document.getElementById('menu-list-container').addEventListener('click', (e) => {
-                    const btn = e.target.closest('.add-to-cart-btn');
-                    if (btn) {
-                        const productId = btn.dataset.productId;
-                        const product = this.state.products.find(p => p.id == productId);
-                        if (product) {
-                            if (product.variants && product.variants.length > 0) {
-                                this.showVariantModal(product.id);
-                            } else {
-                                // Default/no variant
-                                const defaultVariant = { name: 'Regular', price_modifier: 0 };
-                                this.addToCart(product, defaultVariant);
-                            }
-                        }
-                    }
-                });
+                // Cart
+                DOM.cartBackToMenu.addEventListener('click', () => this.navigateTo('order'));
+                DOM.proceedToPaymentBtn.addEventListener('click', () => this.showModal('payment-modal'));
 
-                // Modal Clicks
-                document.getElementById('modal-backdrop').addEventListener('click', () => this.hideModal());
-                document.getElementById('modal-close-btn').addEventListener('click', () => this.hideModal());
-                document.getElementById('modal-content').addEventListener('click', (e) => {
-                    const btn = e.target.closest('.variant-select-btn');
-                    if (btn) {
-                        const productId = btn.dataset.productId;
-                        const product = this.state.products.find(p => p.id == productId);
-                        const variant = {
-                            name: btn.dataset.variantName,
-                            price_modifier: parseFloat(btn.dataset.variantPriceMod)
-                        };
-                        this.addToCart(product, variant);
-                        this.hideModal();
+                // Modals
+                DOM.modalCloseButtons.forEach(btn => {
+                    btn.addEventListener('click', () => this.hideModal(btn.dataset.modalId));
+                });
+                DOM.confirmPaymentBtn.addEventListener('click', () => this.placeOrder());
+
+                // Profile
+                DOM.claimReviewBtn.addEventListener('click', () => this.claimReviewBonus());
+                DOM.redeemPointsBtn.addEventListener('click', () => this.redeemPoints());
+
+                // Menu & Cart (Event delegation)
+                DOM.menuList.addEventListener('click', (e) => {
+                    const addBtn = e.target.closest('.menu-item-add-btn');
+                    if (addBtn) {
+                        this.handleAddItemClick(addBtn.dataset.productId);
                     }
                 });
                 
-                // Cart Quantity Buttons
-                document.getElementById('cart-items-container').addEventListener('click', (e) => {
-                    const btn = e.target.closest('.quantity-btn');
-                    if (btn) {
-                        const productId = btn.dataset.productId;
-                        const variantName = btn.dataset.variantName;
-                        const action = btn.dataset.action;
-                        
-                        const item = this.state.cart.find(i => i.id == productId && i.variant.name === variantName);
-                        if (!item) return;
-                        
-                        let newQuantity = item.quantity;
-                        if (action === 'increase') {
-                            newQuantity++;
-                        } else if (action === 'decrease') {
-                            newQuantity--;
-                        }
-                        
-                        this.updateCartQuantity(productId, variantName, newQuantity);
+                DOM.cartItemsContainer.addEventListener('click', (e) => {
+                    const btn = e.target.closest('button');
+                    if (!btn) return;
+                    
+                    const cartId = btn.dataset.cartId;
+                    if (btn.classList.contains('cart-quantity-decrease')) {
+                        this.updateCartQuantity(cartId, -1);
+                    } else if (btn.classList.contains('cart-quantity-increase')) {
+                        this.updateCartQuantity(cartId, 1);
+                    } else if (btn.classList.contains('cart-remove-item')) {
+                        this.updateCartQuantity(cartId, -Infinity); // Removes item
                     }
                 });
                 
-                // Checkout Button
-                document.getElementById('checkout-button').addEventListener('click', () => {
-                    // Simple "Pay at Counter" confirmation
-                    const content = `
-                        <h2 class="text-2xl font-bold text-primary font-brand mb-4">Confirm Order</h2>
-                        <p class="text-secondary mb-6">You are placing a "Pay at Counter" order. Please confirm to proceed.</p>
-                        <button id="confirm-payment-btn" class="w-full bg-brand-primary text-white font-bold py-3 px-6 rounded-lg text-lg">
-                            Confirm & Place Order
-                        </button>
-                    `;
-                    this.showModal(content);
-                });
-                
-                // Confirm Payment in Modal
-                document.getElementById('modal-content').addEventListener('click', (e) => {
-                    if (e.target.id === 'confirm-payment-btn') {
-                        this.hideModal();
-                        this.placeOrder();
+                // History
+                DOM.orderHistoryList.addEventListener('click', (e) => {
+                    const reorderBtn = e.target.closest('.reorder-btn');
+                    if (reorderBtn) {
+                        this.reorderFromHistory(reorderBtn.dataset.orderId);
                     }
-                });
-                
-                // Re-Order Button
-                document.getElementById('order-history-container').addEventListener('click', async (e) => {
-                    const btn = e.target.closest('.re-order-btn');
-                    if (btn) {
-                        btn.disabled = true;
-                        btn.textContent = 'Adding...';
-                        const orderId = btn.dataset.orderId;
-                        const order = this.state.orders.find(o => o.id == orderId);
-                        
-                        if (order && order.items) {
-                            let itemsAdded = 0;
-                            for (const item of order.items) {
-                                // Find the *current* product details
-                                const product = this.state.products.find(p => p.id === item.product_id);
-                                
-                                // Check if product exists, is orderable, and matches current brand
-                                if (product && product.is_orderable && product.brand === this.state.currentBrand) {
-                                    // Find the *current* variant
-                                    const variants = product.variants || [{ name: 'Regular', price_modifier: 0 }];
-                                    const variant = variants.find(v => v.name === item.variant_name);
-                                    
-                                    if (variant) {
-                                        // Use current product data but old quantity
-                                        this.addToCart(product, variant, item.quantity);
-                                        itemsAdded++;
-                                    } else {
-                                        console.warn(`Variant ${item.variant_name} no longer exists for ${product.name}`);
-                                    }
-                                } else {
-                                    console.warn(`Product ${item.product_name} is no longer orderable or available for this brand.`);
-                                }
-                            }
-                            
-                            if(itemsAdded > 0) {
-                                this.showToast('Orderable items added to cart!');
-                                this.navigateTo('cart');
-                            } else {
-                                this.showToast('No items from this order are available for the current brand.', 'error');
-                            }
-                        } else {
-                            this.showToast('Could not re-order', 'error');
-                        }
-                        btn.disabled = false;
-                        btn.textContent = 'Re-Order';
-                    }
-                });
-                
-                // Profile Page Actions
-                document.getElementById('redeem-points-btn').addEventListener('click', () => this.redeemReward());
-                
-                document.getElementById('claim-review-btn').addEventListener('click', (e) => {
-                    // This is a simulation. In a real app, you'd check a server-side flag.
-                    this.addLoyaltyPoints(50, "Review Bonus");
-                    e.target.disabled = true;
-                    e.target.textContent = 'Bonus Claimed!';
                 });
             },
+
+            /**
+             * Loads persisted state (cart, theme, brand) from Local Storage.
+             */
+            loadStateFromLocalStorage() {
+                const cart = localStorage.getItem('appCart');
+                if (cart) {
+                    AppState.cart = JSON.parse(cart);
+                }
+                
+                const theme = localStorage.getItem('appTheme');
+                if (theme) {
+                    AppState.currentTheme = theme;
+                }
+                
+                const brand = localStorage.getItem('appBrand');
+                if (brand) {
+                    AppState.currentBrand = brand;
+                }
+                
+                const searches = localStorage.getItem('appRecentSearches');
+                if (searches) {
+                    AppState.recentSearches = JSON.parse(searches);
+                }
+            },
+
+            /**
+             * Saves a specific part of the state to Local Storage.
+             * @param {string} key - The key to save (e.g., 'appCart').
+             * @param {any} value - The value to save.
+             */
+            saveStateToLocalStorage(key, value) {
+                localStorage.setItem(key, JSON.stringify(value));
+            },
+            
+            /**
+             * Renders all components based on the current AppState.
+             */
+            renderAll() {
+                this.renderTheme();
+                this.renderBrand();
+                this.renderPage();
+                this.renderMenu();
+                this.renderCart();
+                this.renderRecentSearches();
+                this.renderOrderHistory();
+                this.renderProfile();
+            },
+
+            // --- AUTH & USER ---
+
+            /**
+             * Signs the user in anonymously.
+             */
+            async authenticateUser() {
+                const { data, error } = await supabaseClient.auth.signInAnonymously();
+                if (error) {
+                    console.error("Error signing in:", error);
+                    throw error;
+                }
+                AppState.currentUser = data.user;
+                console.log("Anonymous user authenticated:", AppState.currentUser.id);
+                DOM.userIdDisplay.textContent = AppState.currentUser.id;
+            },
+
+            /**
+             * Fetches the user's profile from the 'customers' table.
+             * Creates one if it doesn't exist.
+             */
+            async fetchUserProfile() {
+                if (!AppState.currentUser) throw new Error("User not authenticated.");
+
+                const { data, error } = await supabaseClient
+                    .from('customers')
+                    .select('*')
+                    .eq('id', AppState.currentUser.id)
+                    .single();
+                
+                if (error && error.code === 'PGRST116') {
+                    // No profile found, create one
+                    console.warn("No profile found, creating one...");
+                    const { data: newProfile, error: createError } = await supabaseClient
+                        .from('customers')
+                        .insert({ id: AppState.currentUser.id, loyalty_points: 0 })
+                        .select()
+                        .single();
+                    
+                    if (createError) {
+                        console.error("Error creating profile:", createError);
+                        throw createError;
+                    }
+                    AppState.userProfile = newProfile;
+                } else if (error) {
+                    console.error("Error fetching profile:", error);
+                    throw error;
+                } else {
+                    AppState.userProfile = data;
+                }
+                
+                console.log("Profile loaded:", AppState.userProfile);
+                this.renderProfile();
+            },
+
+            /**
+             * Updates the user's profile in the database.
+             * @param {object} updates - An object of fields to update (e.g., { loyalty_points: 100 }).
+             */
+            async updateUserProfile(updates) {
+                if (!AppState.userProfile) return;
+
+                const { data, error } = await supabaseClient
+                    .from('customers')
+                    .update(updates)
+                    .eq('id', AppState.userProfile.id)
+                    .select()
+                    .single();
+                
+                if (error) {
+                    console.error("Error updating profile:", error);
+                    this.showToast("Error updating profile", "error");
+                } else {
+                    AppState.userProfile = data; // Update local state
+                    this.renderProfile();
+                    console.log("Profile updated:", data);
+                }
+            },
+
+            // --- REALTIME SUBSCRIPTIONS ---
+
+            /**
+             * Sets up Supabase realtime subscriptions.
+             */
+            setupRealtimeSubscriptions() {
+                // Clean up old channels if any
+                this.unsubscribeAll();
+                
+                // Watch for product changes
+                const productChannel = supabaseClient
+                    .channel('public:products')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'products' },
+                        (payload) => {
+                            console.log('Product change detected!', payload);
+                            this.fetchProducts(); // Refetch all products
+                        }
+                    )
+                    .subscribe();
+                AppState.realtimeChannels.push(productChannel);
+                
+                // Watch for changes to THIS user's orders
+                if (AppState.currentUser) {
+                    const orderChannel = supabaseClient
+                        .channel(`public:orders:user_id=eq.${AppState.currentUser.id}`)
+                        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: `user_id=eq.${AppState.currentUser.id}` },
+                            (payload) => {
+                                console.log('Order change detected!', payload);
+                                // If a new order is created, clear cart and show success
+                                if (payload.eventType === 'INSERT') {
+                                    this.showToast("Order placed successfully!", "success");
+                                    this.clearCart();
+                                    this.navigateTo('history');
+                                }
+                                this.fetchOrderHistory(); // Refetch history
+                            }
+                        )
+                        .subscribe();
+                    AppState.realtimeChannels.push(orderChannel);
+
+                    // Watch for changes to THIS user's profile
+                    const profileChannel = supabaseClient
+                        .channel(`public:customers:id=eq.${AppState.currentUser.id}`)
+                        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'customers', filter: `id=eq.${AppState.currentUser.id}` },
+                            (payload) => {
+                                console.log('Profile change detected!', payload);
+                                const oldPoints = AppState.userProfile.loyalty_points;
+                                const newPoints = payload.new.loyalty_points;
+                                if (newPoints > oldPoints) {
+                                    this.showToast(`+${newPoints - oldPoints} points earned!`, "success");
+                                }
+                                AppState.userProfile = payload.new;
+                                this.renderProfile();
+                            }
+                        )
+                        .subscribe();
+                    AppState.realtimeChannels.push(profileChannel);
+                }
+                console.log("Realtime subscriptions setup.");
+            },
+            
+            /**
+             * Unsubscribes from all active Supabase channels.
+             */
+            unsubscribeAll() {
+                for (const channel of AppState.realtimeChannels) {
+                    supabaseClient.removeChannel(channel);
+                }
+                AppState.realtimeChannels = [];
+                console.log("Unsubscribed from all channels.");
+            },
+
+            // --- PAGE & THEME ---
+
+            /**
+             * Navigates to a specific page.
+             * @param {string} pageId - The ID of the page to show.
+             */
+            navigateTo(pageId) {
+                AppState.currentPage = pageId;
+                this.renderPage();
+            },
+            
+            /**
+             * Renders the current page and tab bar state.
+             */
+            renderPage() {
+                DOM.pages.forEach(page => {
+                    page.classList.toggle('active', page.id === `page-${AppState.currentPage}`);
+                });
+                
+                DOM.tabItems.forEach(tab => {
+                    tab.classList.toggle('active', tab.dataset.page === AppState.currentPage);
+                });
+                
+                // Scroll to top of new page
+                DOM.mainContent.scrollTop = 0;
+            },
+
+            /**
+             * Sets the active brand ('bulb' or 'gulabi').
+             * @param {string} brandName - The name of the brand.
+             */
+            setBrand(brandName) {
+                AppState.currentBrand = brandName;
+                this.saveStateToLocalStorage('appBrand', brandName);
+                this.renderBrand();
+                this.renderMenu(); // Re-render menu for new brand
+            },
+
+            /**
+             * Applies brand styles to the UI.
+             */
+            renderBrand() {
+                DOM.body.classList.remove('brand-bulb', 'brand-gulabi');
+                DOM.body.classList.add(`brand-${AppState.currentBrand}`);
+                
+                // Update brand-specific UI elements
+                if (AppState.currentBrand === 'bulb') {
+                    DOM.homeHeader.textContent = "Welcome to Bulb";
+                    DOM.orderHeader.textContent = "Bulb Menu";
+                    DOM.homeBrandLogo.textContent = "BULB";
+                    DOM.brandBulbBtn.classList.add('border-2', 'border-yellow-400');
+                    DOM.brandGulabiBtn.classList.remove('border-2', 'border-pink-400');
+                } else {
+                    DOM.homeHeader.textContent = "Welcome to Gulabi";
+                    DOM.orderHeader.textContent = "Gulabi Menu";
+                    DOM.homeBrandLogo.textContent = "GULABI";
+                    DOM.brandGulabiBtn.classList.add('border-2', 'border-pink-400');
+                    DOM.brandBulbBtn.classList.remove('border-2', 'border-yellow-400');
+                }
+            },
+            
+            /**
+             * Sets the active theme ('theme-light' or 'theme-dark').
+             * @param {string} themeName - The name of the theme class.
+             */
+            setTheme(themeName) {
+                AppState.currentTheme = themeName;
+                this.saveStateToLocalStorage('appTheme', themeName);
+                this.renderTheme();
+            },
+            
+            /**
+             * Applies theme styles to the UI.
+             */
+            renderTheme() {
+                DOM.body.classList.remove('theme-light', 'theme-dark');
+                DOM.body.classList.add(AppState.currentTheme);
+                
+                // Update button states
+                DOM.themeButtons.forEach(btn => {
+                    btn.classList.toggle('btn-primary', btn.dataset.theme === AppState.currentTheme);
+                    btn.classList.toggle('btn-secondary', btn.dataset.theme !== AppState.currentTheme);
+                });
+            },
+            
+            /**
+             * Renders the user's loyalty points and button states.
+             */
+            renderProfile() {
+                if (AppState.userProfile) {
+                    const points = AppState.userProfile.loyalty_points;
+                    DOM.loyaltyPoints.textContent = points;
+                    if (points >= 500) {
+                        DOM.redeemPointsBtn.classList.add('btn-primary');
+                        DOM.redeemPointsBtn.classList.remove('btn-secondary');
+                        DOM.redeemPointsBtn.disabled = false;
+                    } else {
+                        DOM.redeemPointsBtn.classList.add('btn-secondary');
+                        DOM.redeemPointsBtn.classList.remove('btn-primary');
+                        DOM.redeemPointsBtn.disabled = true;
+                    }
+                    
+                    const reviewClaimed = AppState.userProfile.review_bonus_claimed;
+                    DOM.claimReviewBtn.disabled = reviewClaimed;
+                    DOM.claimReviewBtn.textContent = reviewClaimed ? "Bonus Claimed" : "Step 2: Claim Bonus";
+                    if(reviewClaimed) {
+                        DOM.claimReviewBtn.classList.add('btn-secondary');
+                        DOM.claimReviewBtn.classList.remove('btn-primary');
+                    }
+                    
+                } else {
+                    // Default state if profile is not loaded
+                    DOM.loyaltyPoints.textContent = '0';
+                    DOM.redeemPointsBtn.classList.add('btn-secondary');
+                    DOM.redeemPointsBtn.classList.remove('btn-primary');
+                    DOM.redeemPointsBtn.disabled = true;
+                    DOM.claimReviewBtn.disabled = true;
+                }
+            },
+            
+            // --- MENU & ORDERING ---
+
+            /**
+             * Fetches all products from the database.
+             */
+            async fetchProducts() {
+                const { data, error } = await supabaseClient
+                    .from('products')
+                    .select('*')
+                    .order('category', { ascending: true })
+                    .order('name', { ascending: true });
+                
+                if (error) {
+                    console.error("Error fetching products:", error);
+                    DOM.menuLoadingText.textContent = "Could not load menu. Please try again.";
+                } else {
+                    AppState.products = data;
+                    console.log("Products loaded:", data.length);
+                    this.renderMenu();
+                }
+            },
+            
+            /**
+             * Renders the menu, filtered by brand and search term.
+             * @param {string} [searchTerm=""] - The search term to filter by.
+             */
+            renderMenu(searchTerm = "") {
+                if (!DOM.menuList) return; // Guard clause if element doesn't exist yet
+                
+                const lowerSearchTerm = searchTerm.toLowerCase();
+                
+                // Filter products by the CURRENT brand and search term
+                const filteredProducts = AppState.products.filter(product => {
+                    const matchesBrand = product.brand === AppState.currentBrand;
+                    const matchesSearch = product.name.toLowerCase().includes(lowerSearchTerm) || 
+                                          product.category.toLowerCase().includes(lowerSearchTerm);
+                    return matchesBrand && matchesSearch;
+                });
+                
+                if (filteredProducts.length === 0 && AppState.products.length > 0) {
+                    DOM.menuList.innerHTML = `<p style="color: var(--text-secondary);">No items found for "${searchTerm}"</p>`;
+                    return;
+                }
+                
+                if (AppState.products.length === 0) {
+                     DOM.menuList.innerHTML = `<p id="menu-loading-text" style="color: var(--text-secondary);">Loading menu...</p>`;
+                     return;
+                }
+
+                // Group products by category
+                const productsByCategory = filteredProducts.reduce((acc, product) => {
+                    if (!acc[product.category]) {
+                        acc[product.category] = [];
+                    }
+                    acc[product.category].push(product);
+                    return acc;
+                }, {});
+
+                // Generate HTML
+                let html = '';
+                for (const category in productsByCategory) {
+                    html += `<h2 class="font-brand text-2xl font-semibold mt-6 mb-4" style="font-style: italic;">${category}</h2>`;
+                    html += productsByCategory[category].map(product => {
+                        const hasVariants = product.variants && product.variants.length > 0;
+                        const price = hasVariants ? product.variants[0].price : product.base_price;
+                        
+                        // Gulabi Thali is "View Only"
+                        const isOrderable = AppState.currentBrand === 'bulb' && product.is_orderable;
+                        
+                        return `
+                            <div class="menu-item-card">
+                                <div>
+                                    <h3>${product.name}</h3>
+                                    <p>${product.description || ''}</p>
+                                    <span class="menu-item-price">
+                                        ${hasVariants ? 'From ' : ''}₹${price.toFixed(2)}
+                                    </span>
+                                </div>
+                                ${isOrderable ? `
+                                    <button class="menu-item-add-btn" data-product-id="${product.id}">+</button>
+                                ` : `
+                                    <span class="menu-item-view-btn">View Only</span>
+                                `}
+                            </div>
+                        `;
+                    }).join('');
+                }
+                
+                DOM.menuList.innerHTML = html;
+            },
+            
+            /**
+             * Renders the recent search tags.
+             */
+            renderRecentSearches() {
+                DOM.recentSearches.innerHTML = AppState.recentSearches.map(term => 
+                    `<button class="recent-search-tag text-xs px-3 py-1 rounded-full" style="background-color: var(--bg-secondary); color: var(--text-secondary);" data-term="${term}">${term}</button>`
+                ).join('');
+            },
+            
+            /**
+             * Adds a search term to the recent searches list.
+             * @param {string} term - The search term.
+             */
+            addRecentSearch(term) {
+                if (!term || term.length < 2) return;
+                
+                // Remove existing instance, if any
+                const existingIndex = AppState.recentSearches.indexOf(term);
+                if (existingIndex > -1) {
+                    AppState.recentSearches.splice(existingIndex, 1);
+                }
+                
+                // Add to the front
+                AppState.recentSearches.unshift(term);
+                
+                // Limit to 5
+                if (AppState.recentSearches.length > 5) {
+                    AppState.recentSearches.pop();
+                }
+                
+                this.saveStateToLocalStorage('appRecentSearches', AppState.recentSearches);
+                this.renderRecentSearches();
+            },
+            
+            // --- CART LOGIC ---
+
+            /**
+             * Handles the click event for adding an item.
+             * Opens variant modal if needed, or adds to cart directly.
+             * @param {string} productId - The ID of the product to add.
+             */
+            handleAddItemClick(productId) {
+                const product = AppState.products.find(p => p.id == productId);
+                if (!product) return;
+                
+                const hasVariants = product.variants && product.variants.length > 0;
+                
+                if (hasVariants) {
+                    this.showVariantModal(product);
+                } else {
+                    this.addItemToCart(product, null, product.base_price);
+                    this.showToast(`${product.name} added to cart!`, "success");
+                }
+            },
+            
+            /**
+             * Adds an item (with or without variant) to the cart.
+             * @param {object} product - The product object.
+             * @param {string|null} variantName - The name of the selected variant.
+             * @param {number} price - The price of the item/variant.
+             */
+            addItemToCart(product, variantName, price) {
+                // Create a unique cart ID
+                const cartId = variantName ? `${product.id}_${variantName}` : `${product.id}`;
+                
+                const existingItem = AppState.cart.find(item => item.cartId === cartId);
+                
+                if (existingItem) {
+                    existingItem.quantity += 1;
+                } else {
+                    AppState.cart.push({
+                        cartId: cartId,
+                        productId: product.id,
+                        name: product.name,
+                        variantName: variantName,
+                        price: price,
+                        quantity: 1
+                    });
+                }
+                
+                this.saveStateToLocalStorage('appCart', AppState.cart);
+                this.renderCart();
+            },
+            
+            /**
+             * Updates the quantity of an item in the cart.
+             * @param {string} cartId - The unique ID of the cart item.
+             * @param {number} amount - The amount to change (e.g., 1, -1).
+             */
+            updateCartQuantity(cartId, amount) {
+                const itemIndex = AppState.cart.findIndex(item => item.cartId === cartId);
+                if (itemIndex === -1) return;
+                
+                if (amount === -Infinity) { // Remove item
+                    AppState.cart.splice(itemIndex, 1);
+                } else {
+                    const item = AppState.cart[itemIndex];
+                    item.quantity += amount;
+                    
+                    if (item.quantity <= 0) {
+                        AppState.cart.splice(itemIndex, 1); // Remove if quantity is 0 or less
+                    }
+                }
+                
+                this.saveStateToLocalStorage('appCart', AppState.cart);
+                this.renderCart();
+            },
+            
+            /**
+             * Renders the cart page and updates the cart badge.
+             */
+            renderCart() {
+                // Update Badge
+                const totalItems = AppState.cart.reduce((sum, item) => sum + item.quantity, 0);
+                DOM.cartBadge.textContent = totalItems;
+                DOM.cartBadge.classList.toggle('visible', totalItems > 0);
+                
+                // Render Cart Page
+                if (totalItems === 0) {
+                    DOM.cartItemsContainer.innerHTML = '';
+                    DOM.cartEmptyMsg.style.display = 'block';
+                    DOM.cartSummaryContainer.classList.add('hidden');
+                } else {
+                    DOM.cartEmptyMsg.style.display = 'none';
+                    DOM.cartSummaryContainer.classList.remove('hidden');
+                    
+                    DOM.cartItemsContainer.innerHTML = AppState.cart.map(item => `
+                        <div class="flex items-center justify-between py-4 border-b" style="border-color: var(--border);">
+                            <div>
+                                <h3 class="text-lg font-semibold">${item.name}</h3>
+                                ${item.variantName ? `<p class="text-sm" style="color: var(--text-secondary);">${item.variantName}</p>` : ''}
+                                <span class="font-bold" style="color: var(--brand-accent);">₹${item.price.toFixed(2)}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button class="cart-quantity-decrease w-8 h-8 rounded-full" style="background-color: var(--bg-secondary); color: var(--text-secondary);" data-cart-id="${item.cartId}">-</button>
+                                <span class="w-8 text-center font-semibold">${item.quantity}</span>
+                                <button class="cart-quantity-increase w-8 h-8 rounded-full" style="background-color: var(--bg-secondary); color: var(--text-primary);" data-cart-id="${item.cartId}">+</button>
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    // Calculate and render totals
+                    const subtotal = AppState.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                    const gst = subtotal * 0.05;
+                    const total = subtotal + gst;
+                    
+                    DOM.cartSubtotal.textContent = `₹${subtotal.toFixed(2)}`;
+                    DOM.cartGst.textContent = `₹${gst.toFixed(2)}`;
+                    DOM.cartTotal.textContent = `₹${total.toFixed(2)}`;
+                }
+            },
+            
+            /**
+             * Clears all items from the cart.
+             */
+            clearCart() {
+                AppState.cart = [];
+                this.saveStateToLocalStorage('appCart', AppState.cart);
+                this.renderCart();
+            },
+
+            // --- CHECKOUT & HISTORY ---
+
+            /**
+             * Fetches the user's past orders.
+             */
+            async fetchOrderHistory() {
+                if (!AppState.currentUser) return; // Don't fetch if user auth failed
+                
+                const { data, error } = await supabaseClient
+                    .from('orders')
+                    .select('*, order_items(*)')
+                    .eq('user_id', AppState.currentUser.id)
+                    .order('created_at', { ascending: false });
+                
+                if (error) {
+                    console.error("Error fetching orders:", error);
+                    DOM.historyLoadingText.textContent = "Could not load history.";
+                } else {
+                    AppState.orderHistory = data;
+                    this.renderOrderHistory();
+                }
+            },
+            
+            /**
+             * Renders the order history list.
+             */
+            renderOrderHistory() {
+                if (AppState.orderHistory.length === 0) {
+                    DOM.historyLoadingText.style.display = 'none';
+                    DOM.historyEmptyMsg.classList.remove('hidden');
+                    DOM.orderHistoryList.innerHTML = '';
+                } else {
+                    DOM.historyLoadingText.style.display = 'none';
+                    DOM.historyEmptyMsg.classList.add('hidden');
+                    
+                    DOM.orderHistoryList.innerHTML = AppState.orderHistory.map(order => {
+                        const orderDate = new Date(order.created_at).toLocaleString('en-IN', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: 'numeric',
+                            minute: '2-digit'
+                        });
+                        const totalItems = order.order_items.reduce((sum, item) => sum + item.quantity, 0);
+                        
+                        return `
+                            <div class="mb-4 p-4 rounded-lg" style="background-color: var(--bg-secondary);">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="font-semibold">Order #${order.id.toString().slice(-6)}</span>
+                                    <span class="text-sm" style="color: var(--text-secondary);">${orderDate}</span>
+                                </div>
+                                <p class="mb-1" style="color: var(--text-secondary);">${totalItems} items</p>
+                                <p class="text-lg font-bold mb-4" style="color: var(--brand-accent);">Total: ₹${order.total_amount.toFixed(2)}</p>
+                                <div class="text-xs mb-3 p-2 rounded" style="background-color: var(--bg-primary);">
+                                    ${order.order_items.map(item => `
+                                        <p>${item.quantity}x ${item.name} ${item.variant_name ? `(${item.variant_name})` : ''}</p>
+                                    `).join('')}
+                                </div>
+                                <button class="reorder-btn btn btn-secondary w-full" data-order-id="${order.id}">Re-order</button>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            },
+
+            /**
+             * Places the order in the database.
+             */
+            async placeOrder() {
+                if (AppState.cart.length === 0) {
+                    this.showToast("Your cart is empty.", "error");
+                    return;
+                }
+                
+                this.showToast("Placing order...", "info");
+                this.hideModal('payment-modal');
+                
+                const subtotal = AppState.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                const gst = subtotal * 0.05;
+                const total = subtotal + gst;
+                
+                // 1. Create the 'orders' record
+                const { data: orderData, error: orderError } = await supabaseClient
+                    .from('orders')
+                    .insert({
+                        user_id: AppState.currentUser.id,
+                        total_amount: total,
+                        status: 'pending',
+                        payment_method: 'pay_at_counter'
+                    })
+                    .select()
+                    .single();
+                
+                if (orderError) {
+                    console.error("Error creating order:", orderError);
+                    this.showToast("Order failed. Please try again.", "error");
+                    return;
+                }
+                
+                // 2. Create the 'order_items' records
+                const orderItems = AppState.cart.map(item => ({
+                    order_id: orderData.id,
+                    product_id: item.productId,
+                    name: item.name,
+                    variant_name: item.variantName,
+                    quantity: item.quantity,
+                    price: item.price
+                }));
+                
+                const { error: itemsError } = await supabaseClient
+                    .from('order_items')
+                    .insert(orderItems);
+                
+                if (itemsError) {
+                    console.error("Error creating order items:", itemsError);
+                    // Try to delete the failed order record
+                    await supabaseClient.from('orders').delete().eq('id', orderData.id);
+                    this.showToast("Order failed. Please try again.", "error");
+                    return;
+                }
+                
+                // 3. Award loyalty points (e.g., 10 points for orders > 100)
+                if (total > 100 && AppState.userProfile) {
+                    const newPoints = (AppState.userProfile.loyalty_points || 0) + 10;
+                    await this.updateUserProfile({ loyalty_points: newPoints });
+                }
+                
+                // Success is handled by the realtime subscription,
+                // which will clear the cart and navigate to history.
+            },
+            
+            /**
+             * Re-adds all items from a past order to the current cart.
+             * @param {string} orderId - The ID of the order to re-order.
+             */
+            reorderFromHistory(orderId) {
+                const order = AppState.orderHistory.find(o => o.id == orderId);
+                if (!order) return;
+                
+                order.order_items.forEach(item => {
+                    const cartId = item.variant_name ? `${item.product_id}_${item.variant_name}` : `${item.product_id}`;
+                    const existingItem = AppState.cart.find(ci => ci.cartId === cartId);
+                    
+                    if (existingItem) {
+                        existingItem.quantity += item.quantity;
+                    } else {
+                        AppState.cart.push({
+                            cartId: cartId,
+                            productId: item.product_id,
+                            name: item.name,
+                            variantName: item.variant_name,
+                            price: item.price,
+                            quantity: item.quantity
+                        });
+                    }
+                });
+                
+                this.saveStateToLocalStorage('appCart', AppState.cart);
+                this.renderCart();
+                this.showToast("Items added to your cart!", "success");
+                this.navigateTo('cart');
+            },
+
+            // --- LOYALTY & REWARDS ---
+
+            /**
+             * Claims the 100-point review bonus.
+             */
+            async claimReviewBonus() {
+                // FIX: Add guard clause
+                if (!AppState.userProfile) {
+                    this.showToast("Profile not loaded. Please wait.", "error");
+                    return;
+                }
+                
+                if (AppState.userProfile.review_bonus_claimed) {
+                    this.showToast("Bonus already claimed.", "info");
+                    return;
+                }
+                
+                const newPoints = (AppState.userProfile.loyalty_points || 0) + 100;
+                await this.updateUserProfile({
+                    loyalty_points: newPoints,
+                    review_bonus_claimed: true
+                });
+                
+                this.showToast("100 bonus points added!", "success");
+                this.renderProfile();
+            },
+            
+            /**
+             * Redeems 500 points for a free reward.
+             */
+            async redeemPoints() {
+                // FIX: Add guard clause
+                if (!AppState.userProfile) {
+                    this.showToast("Profile not loaded. Please wait.", "error");
+                    return;
+                }
+
+                if (AppState.userProfile.loyalty_points < 500) {
+                    this.showToast("Not enough points.", "error");
+                    return;
+                }
+                
+                const newPoints = AppState.userProfile.loyalty_points - 500;
+                
+                // Add "Free Reward" to cart
+                // This is a "dummy" product
+                AppState.cart.push({
+                    cartId: `reward_${Date.now()}`,
+                    productId: 'REWARD-ITEM',
+                    name: 'Free Reward Item',
+                    variantName: null,
+                    price: 0,
+                    quantity: 1
+                });
+                
+                this.saveStateToLocalStorage('appCart', AppState.cart);
+                this.renderCart();
+                
+                // Update profile
+                await this.updateUserProfile({ loyalty_points: newPoints });
+                
+                this.showToast("Free Reward added to cart!", "success");
+                this.navigateTo('cart');
+            },
+
+            // --- MODALS & TOASTS ---
+
+            /**
+             * Shows the variant selection modal for a product.
+             * @param {object} product - The product with variants.
+             */
+            showVariantModal(product) {
+                DOM.variantModalTitle.textContent = product.name;
+                DOM.variantModalDesc.textContent = product.description || 'Select an option';
+                
+                DOM.variantModalOptions.innerHTML = product.variants.map((variant, index) => `
+                    <label class="flex items-center justify-between p-3 rounded-lg" style="background-color: var(--bg-secondary);">
+                        <div>
+                            <span class="font-semibold">${variant.name}</span>
+                            <span class="ml-2" style="color: var(--text-secondary);">+₹${variant.price.toFixed(2)}</span>
+                        </div>
+                        <input type="radio" name="variant" value="${index}" ${index === 0 ? 'checked' : ''} class="form-radio" style="color: var(--brand-accent); border-color: var(--border);">
+                    </label>
+                `).join('');
+                
+                // Unbind old listener, bind new one
+                DOM.variantModalAddBtn.onclick = () => {
+                    const selectedIndex = DOM.variantModalOptions.querySelector('input[name="variant"]:checked').value;
+                    const selectedVariant = product.variants[selectedIndex];
+                    this.addItemToCart(product, selectedVariant.name, selectedVariant.price);
+                    this.showToast(`${product.name} (${selectedVariant.name}) added!`, "success");
+                    this.hideModal('variant-modal');
+                };
+                
+                this.showModal('variant-modal');
+            },
+
+            /**
+             * Shows a modal by its ID.
+             * @param {string} modalId - The ID of the modal to show.
+             */
+            showModal(modalId) {
+                document.getElementById(modalId).classList.add('visible');
+            },
+
+            /**
+             * Hides a modal by its ID.
+             * @param {string} modalId - The ID of the modal to hide.
+             */
+            hideModal(modalId) {
+                document.getElementById(modalId).classList.remove('visible');
+            },
+
+            /**
+             * Shows a toast notification.
+             * @param {string} message - The text to display.
+             * @param {'success'|'error'|'info'} [type='info'] - The type of toast.
+             */
+            showToast(message, type = 'info') {
+                const toast = document.createElement('div');
+                toast.className = 'toast-notification';
+                toast.textContent = message;
+                
+                if (type === 'success') {
+                    toast.style.backgroundColor = '#22C55E'; // Green
+                } else if (type === 'error') {
+                    toast.style.backgroundColor = '#EF4444'; // Red
+                } else {
+                    toast.style.backgroundColor = '#3B82F6'; // Blue
+                }
+                
+                DOM.toastContainer.appendChild(toast);
+                
+                // Trigger transition
+                setTimeout(() => {
+                    toast.classList.add('visible');
+                }, 10);
+                
+                // Remove after 3 seconds
+                setTimeout(() => {
+                    toast.classList.remove('visible');
+                    setTimeout(() => {
+                        toast.remove();
+                    }, 300); // Wait for fade out
+                }, 3000);
+            }
         };
 
-        // ===== START THE APP =====
-        // Wait for the DOM to be fully loaded
+        // --- RUN THE APP ---
+        // Start the application once the DOM is ready.
         document.addEventListener('DOMContentLoaded', () => {
-            // Only init if Supabase credentials are set
-            if (SUPABASE_URL !== 'YOUR_SUPABASE_URL') {
-                app.init();
-                window.app = app; // Expose to global scope for inline onclicks
-            }
+            App.init();
         });
 
     </script>
