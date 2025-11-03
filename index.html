@@ -86,6 +86,14 @@
         .quantity-control button { width: 34px; height: 100%; font-size: 20px; line-height: 1; transition: background-color 0.2s ease; }
         .quantity-control button:hover { background-color: rgba(0,0,0,0.1); }
         .quantity-control span { font-size: 16px; }
+        
+        /* View-only item style for Gulabi Thali */
+        .menu-item-view-only {
+            background-color: var(--bg-secondary);
+            border-radius: 0.5rem; /* 8px */
+            padding: 0.75rem; /* 12px */
+            border: 1px solid var(--border-color);
+        }
 
         /* Loyalty Slider */
         #loyalty-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 8px; background: var(--bg-secondary); outline: none; opacity: 0.7; transition: opacity .2s; border-radius: 4px; }
@@ -121,7 +129,7 @@
                 <div id="page-content"></div>
             </div>
             <!-- Footer Spacer -->
-            <div class="h-20 flex-shrink-0"></div>
+            <div id="footer-spacer" class="h-20 flex-shrink-0"></div>
         </main>
         <!-- Bottom Navigation Bar -->
         <nav id="bottom-nav" class="fixed bottom-0 left-1/2 -translate-x-1/2 max-w-lg w-full bg-primary border-t border-custom flex justify-around items-center h-16 z-30 hidden"></nav>
@@ -136,7 +144,7 @@
     </div>
 
 <!-- Load Supabase as a standard script before the module script -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script type="module">
     
@@ -176,9 +184,8 @@
         // Placeholder IDs (These are just for structure and won't filter out items incorrectly now)
         bestSellers: [1, 2, 3, 4], 
         captionIdeas: {
-            // UPDATED social handles
             cafe_vibes: [ "Fueling my day with the best coffee @a_bulbcafejaipur! 💡☕️", "Cozy corners and great beans at Bulb Cafe. #CafeVibes" ],
-            thali_time: [ "Feast mode ON! Enjoying the delicious thali at Gulabi Thali. 🍽️💖 #IndianFood", "Nothing beats a traditional thali! @gulabithali_thecloudkitchen." ],
+            thali_time: [ "Feast mode ON! Enjoying the delicious thali. 🍽️💖 #IndianFood", "Nothing beats a traditional thali! @gulabithali_thecloudkitchen." ],
             friends: [ "Great food and great company! Cheers from Bulb Cafe. 🎉", "Lunch plans sorted! @a_bulbcafejaipur" ]
         }
     };
@@ -239,6 +246,10 @@
                 return; 
             }
 
+            // Apply theme first to style splash screen
+            this.applyTheme();
+            $('#splash-screen').classList.remove('hidden');
+
             const initialHash = location.hash.substring(1);
             if (PAGES.includes(initialHash)) {
                  this.state.currentPage = initialHash;
@@ -252,8 +263,6 @@
         },
 
         async startAppFlow() {
-            this.applyTheme();
-            $('#splash-screen').classList.remove('hidden');
             this.getTableNumberFromURL();
 
             try {
@@ -285,13 +294,19 @@
                 $('#app').classList.remove('hidden');
                 $('#app').classList.add('flex');
 
-                // FIX: Check if name is default 'Guest' or phone is missing to trigger onboarding
-                if (!this.state.customerProfile || this.state.customerProfile.name === 'Guest' || !this.state.customerProfile.whatsapp_number) {
-                     this.showOnboardingModal();
-                } else if (this.state.tableNumber) {
-                    this.startSession();
+                // 5. Handle theme-specific logic
+                if (this.state.theme === 'gulabi') {
+                    // Cloud kitchen view: No onboarding, no table number needed.
+                    this.showMainInterface();
                 } else {
-                    this.showTableNumberModal();
+                    // Bulb Cafe view: Check for onboarding or table number.
+                    if (!this.state.customerProfile || this.state.customerProfile.name === 'Guest' || !this.state.customerProfile.whatsapp_number) {
+                        this.showOnboardingModal();
+                    } else if (this.state.tableNumber) {
+                        this.startSession();
+                    } else {
+                        this.showTableNumberModal();
+                    }
                 }
 
             } catch (error) {
@@ -376,6 +391,7 @@
 
                 this.state.allMenuItems = data.filter(i => i.is_available);
 
+                // Grouping is still useful for Bulb Cafe menu
                 const groupedMenu = data.reduce((acc, item) => {
                     if (!item.is_available) return acc;
                     const categoryName = item.category || 'Uncategorized';
@@ -497,16 +513,27 @@
         },
 
         async startSession() {
-            await this.fetchActiveOrder();
+            // Only fetch active order if we are in Bulb Cafe mode
+            if (this.state.theme === 'bulb') {
+                await this.fetchActiveOrder();
+            }
             this.showMainInterface();
         },
 
         showMainInterface(){
             $('#main-interface').classList.remove('hidden');
-            $('#bottom-nav').classList.remove('hidden');
-            ui.renderBottomNav();
-            // Initial navigation is handled by the caller (onboarding/table entry)
-            // or by init() when loading from hash
+            
+            // NEW: Only show nav for Bulb Cafe
+            if (this.state.theme === 'bulb') {
+                $('#bottom-nav').classList.remove('hidden');
+                $('#footer-spacer').classList.remove('hidden');
+                ui.renderBottomNav();
+                ui.updateActiveNav(this.state.currentPage);
+            } else {
+                $('#bottom-nav').classList.add('hidden');
+                $('#footer-spacer').classList.add('hidden');
+            }
+            
             this.navigateTo(this.state.currentPage, false);
         },
 
@@ -530,7 +557,11 @@
              this.state.currentPage = page;
              ui.renderHeader(page);
              ui.renderPageContent(page);
-             ui.updateActiveNav(page);
+             
+             // NEW: Only update nav if it's visible
+             if (this.state.theme === 'bulb') {
+                ui.updateActiveNav(page);
+             }
         },
 
         handleHardwareBack(event) {
@@ -544,6 +575,12 @@
                 // Replace hash to current page after closing modal
                 history.replaceState(null, '', '#' + this.state.currentPage);
                 return;
+             }
+             
+             // NEW: Don't allow back navigation in Gulabi theme
+             if (this.state.theme === 'gulabi') {
+                 event.preventDefault();
+                 return;
              }
              
              // 2. Handle Page Back (Prevent double back/exit from home)
@@ -565,7 +602,28 @@
         },
 
         applyTheme(){ document.body.dataset.theme = this.state.theme; },
-        toggleTheme(t){ ui.closeModal('brand-switcher-modal'); this.state.theme = t; localStorage.setItem('brand-theme', t); this.applyTheme(); this.refreshPage(); },
+        
+        toggleTheme(t){ 
+            ui.closeModal('brand-switcher-modal'); 
+            this.state.theme = t; 
+            localStorage.setItem('brand-theme', t); 
+            this.applyTheme(); 
+            
+            // NEW: Show/Hide nav based on theme
+            const nav = $('#bottom-nav');
+            const spacer = $('#footer-spacer');
+            if (t === 'gulabi') {
+                nav.classList.add('hidden');
+                spacer.classList.add('hidden');
+            } else {
+                nav.classList.remove('hidden');
+                spacer.classList.remove('hidden');
+                ui.renderBottomNav(); // Re-render to ensure correct state
+            }
+            
+            // Force content re-render
+            this.navigateTo(this.state.currentPage, false); 
+        },
 
         addOrUpdateCart(itemId, quantityChange) {
             const item = this.state.allMenuItems.find(i => i.id === itemId);
@@ -659,21 +717,17 @@
         calculateCartTotal(){
             const subtotal = this.state.cart.reduce((t, i) => t + (i.price * i.quantity), 0);
             const availablePoints = this.state.customerProfile?.loyalty_points || 0;
-
-            // 1. Calculate max discount
-            const redeemablePercentage = 0.70;
-            const redeemablePoints = Math.floor(availablePoints * redeemablePercentage);
-
-            // --- FIX START ---
-            // Calculate max redeemable based on subtotal (1 point = 1 rupee)
-            const maxRedeemableBySubtotal = Math.floor(subtotal);
+            const loyaltyThreshold = parseFloat(this.state.appSettings.loyalty_threshold || 350);
             
-            // The actual max redeemable is the minimum of what they have (70%) and the order total
-            const maxRedeemableForOrder = Math.min(redeemablePoints, maxRedeemableBySubtotal);
-            // --- FIX END ---
+            // 1. Calculate max discount (70% of available points)
+            const maxRedeemablePoints = Math.floor(availablePoints * 0.70);
+            const maxRedeemableForOrder = Math.min(maxRedeemablePoints, Math.floor(subtotal));
 
             // 2. Clamp current discount
-            const actualPointsToRedeem = Math.min(this.state.pointsToRedeem, maxRedeemableForOrder); // This line is now correct
+            let actualPointsToRedeem = 0;
+            if (this.state.pointsToRedeem > 0) {
+                 actualPointsToRedeem = Math.min(this.state.pointsToRedeem, maxRedeemableForOrder);
+            }
             const discountAmount = actualPointsToRedeem;
 
             // 3. Update state if clamped
@@ -685,6 +739,12 @@
             const discountedSubtotal = subtotal - discountAmount;
             const gst = discountedSubtotal * 0.05; // 5% GST
             const finalTotal = discountedSubtotal + gst;
+            
+            // 5. Calculate points to be earned (10% of subtotal if over threshold)
+            let pointsToEarn = 0;
+            if (subtotal >= loyaltyThreshold) {
+                pointsToEarn = Math.floor(subtotal * 0.10);
+            }
 
             return { 
                 subtotal, 
@@ -692,7 +752,9 @@
                 discountedSubtotal, 
                 gst, 
                 finalTotal: Math.max(0, finalTotal),
-                maxRedeemableForOrder 
+                maxRedeemableForOrder,
+                pointsToEarn,
+                loyaltyThreshold
             };
         },
 
@@ -723,7 +785,7 @@
             const otherBtn = [...$$('.payment-btn')].find(b => b !== btnElement);
             if(otherBtn) otherBtn.disabled = true;
 
-            const { subtotal, discountAmount, finalTotal } = this.calculateCartTotal();
+            const { subtotal, discountAmount, finalTotal, pointsToEarn } = this.calculateCartTotal();
             const pointsToRedeem = this.state.pointsToRedeem;
 
             let orderData;
@@ -789,17 +851,10 @@
                     }
 
                     // Earn points
-                    // NEW: Earn 10% in points if subtotal is over 350
-                    const pointsThreshold = 350;
-                    let pointsEarned = 0;
-                    if (subtotal >= pointsThreshold) {
-                        pointsEarned = Math.floor(subtotal * 0.10);
-                    }
-                    
-                    if (pointsEarned > 0) {
-                         const { error: earnError } = await supabase.rpc('increment_loyalty_points', { customer_id_input: this.state.customerProfile.id, points_to_add: pointsEarned });
+                    if (pointsToEarn > 0) {
+                         const { error: earnError } = await supabase.rpc('increment_loyalty_points', { customer_id_input: this.state.customerProfile.id, points_to_add: pointsToEarn });
                          if(earnError) throw new Error(`Earn RPC failed: ${earnError.message}`);
-                         this.state.customerProfile.loyalty_points += pointsEarned;
+                         this.state.customerProfile.loyalty_points += pointsToEarn;
                     }
                 } catch (pointsError) {
                     // Log error, but don't fail the whole order
@@ -877,14 +932,14 @@
                         supabase.removeChannel(this.state.orderSubscription);
                         this.state.orderSubscription = null;
 
-                        // FIX: Redirect to Google Review
+                        // FIX: Redirect to Google Search
                         if (updatedOrder.status === 'delivered' && !updatedOrder.feedback_submitted) {
                              ui.showModal('review-modal', `
                                 <div class="text-center">
                                     <span class="text-3xl">⭐</span>
                                     <h2 class="text-2xl font-bold mt-4">Order Delivered!</h2>
                                     <p class="text-secondary my-2">Thank you for your order! We'd love to hear your feedback.</p>
-                                    <button onclick="app.handleReviewRedirect('${orderId}')" class="w-full mt-4 brand-bg font-semibold py-3 rounded-lg">Leave a Review on Google</button>
+                                    <button onclick="app.handleReviewRedirect('${orderId}')" class="w-full mt-4 brand-bg font-semibold py-3 rounded-lg">Leave a Review</button>
                                     <button onclick="app.handleReviewSkip('${orderId}')" class="w-full mt-2 bg-secondary py-3 rounded-lg">No Thanks</button>
                                 </div>`);
                         } else if (updatedOrder.status === 'cancelled') {
@@ -912,7 +967,7 @@
         
         // NEW: Function to handle Google Review redirect
         handleReviewRedirect(orderId) {
-            // This link is for "Bulb Cafe, Jaipur"
+            // This link is for "a bulb cafe jaipur" Google Search
             const reviewUrl = 'https://www.google.com/search?q=a+bulb+cafe+jaipur'; 
             window.open(reviewUrl, '_blank');
             this.markFeedbackAsSubmitted(orderId);
@@ -1032,9 +1087,24 @@
                 order: { title: 'Menu'},
                 cart: { title: app.state.activeOrder ? 'Track Order' : 'My Cart'},
                 social: { title: 'Social'},
-                cowork: { title: 'Gulabi Thali Kitchen'},
+                cowork: { title: 'Kitchen'}, // Updated
                 more: { title: 'More Options'}
             };
+            
+            // NEW: Override for Gulabi Thali
+            if (app.state.theme === 'gulabi') {
+                 header.innerHTML = `
+                    <div class="flex items-center space-x-2">
+                        <h1 class="text-2xl font-bold brand-text">GULABI THALI</h1>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-semibold text-primary text-sm">${app.state.customerProfile?.name || 'Guest'}</p>
+                        <p class="text-xs text-secondary">Cloud Kitchen</p>
+                    </div>`;
+                 return;
+            }
+            
+            // Original Bulb Cafe Header
             const config = pageConfigs[page] || { title: currentBrandName };
             header.innerHTML = `
                 <div class="flex items-center space-x-2">
@@ -1048,13 +1118,21 @@
 
         renderPageContent(page) {
             const content = $('#page-content');
-            content.innerHTML = '';
+            content.innerHTML = ''; // Clear content
+            
+            // NEW: If Gulabi Thali theme, render its special page and stop
+            if (app.state.theme === 'gulabi') {
+                this.renderGulabiThaliPage(content);
+                return;
+            }
+            
+            // --- Original Bulb Cafe Render Logic ---
             const renderers = {
                 home: this.renderHomePage,
                 order: this.renderMenuPage,
                 cart: this.renderCartPage,
                 social: this.renderSocialPage,
-                cowork: this.renderGulabiThaliKitchenPage, // Renamed renderer
+                cowork: this.renderCoworkPage, // Renamed
                 more: this.renderMorePage,
             };
             content.classList.remove('fade-in');
@@ -1062,6 +1140,88 @@
             content.classList.add('fade-in');
             renderers[page]?.call(this);
         },
+        
+        // +++ NEW: GULABI THALI PAGE RENDERER +++
+        renderGulabiThaliPage(container) {
+            const switchTheme = 'bulb';
+            const switchBrandName = 'BULB CAFE';
+            const switchButtonColor = 'bg-yellow-500'; // Bulb's color
+            
+            // 1. Get Gulabi Thali menu items
+            const brandItems = app.state.allMenuItems.filter(item => item.brand?.toLowerCase() === 'gulabi thali');
+
+            // 2. Group them by category
+            const categoryMap = brandItems.reduce((acc, item) => {
+                const category = item.category || 'Uncategorized';
+                if (!acc[category]) {
+                    acc[category] = [];
+                }
+                acc[category].push(item);
+                return acc;
+            }, {});
+            const categories = Object.keys(categoryMap);
+            
+            // 3. Build Menu HTML
+            let menuHTML = '';
+            if (brandItems.length === 0) {
+                menuHTML = `<p class="text-secondary text-center">Menu loading or unavailable.</p>`;
+            } else {
+                menuHTML = categories.map(category => `
+                    <div class="mb-6">
+                        <h3 class="text-2xl font-bold brand-text mb-3 border-b-2 border-custom pb-1">${category}</h3>
+                        <div class="space-y-2">
+                            ${categoryMap[category].map(item => `
+                                <div class="menu-item-view-only">
+                                    <div class="flex justify-between items-center">
+                                        <h4 class="font-semibold text-base text-primary">${item.name}</h4>
+                                        <p class="font-bold text-sm text-secondary whitespace-nowrap ml-2">₹${item.price.toFixed(2)}</p>
+                                    </div>
+                                    ${item.description ? `<p class="text-sm text-secondary mt-1">${item.description}</p>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // 4. Build Full Page HTML
+            container.innerHTML = `
+                <div class="p-4 space-y-6">
+                    <!-- Video Hero -->
+                    <div class="relative h-48 overflow-hidden rounded-lg shadow-lg">
+                        <video src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/WhatsApp%20Video%202025-11-01%20at%2020.52.47_2473f7b8.mp4" autoplay loop muted playsinline preload="metadata" class="absolute top-1/2 left-1/2 w-full h-full object-cover -translate-x-1/2 -translate-y-1/2"></video>
+                        <div class="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white text-center p-4">
+                            <h1 class="text-4xl font-bold">GULABI THALI</h1>
+                            <p class="text-lg font-medium">Cloud Kitchen</p>
+                        </div>
+                    </div>
+                
+                    <!-- Catering Card -->
+                    <div class="bg-secondary p-6 rounded-xl shadow-sm border border-custom text-center">
+                        <span class="text-4xl mb-2">🎉</span>
+                        <h2 class="text-2xl font-bold text-primary">Catering & Functions</h2>
+                        <p class="text-secondary mt-2 mb-4">
+                            We offer bulk orders and catering services from our cloud kitchen for your special events, parties, and functions.
+                        </p>
+                        <a href="tel:YOUR_PHONE_NUMBER" class="brand-bg font-semibold py-3 px-6 rounded-lg inline-block">Call to Inquire</a>
+                    </div>
+                    
+                    <!-- View-Only Menu -->
+                    <div class="mt-8">
+                        <h2 class="text-3xl font-bold text-center text-primary mb-6">Our Menu</h2>
+                        ${menuHTML}
+                    </div>
+                    
+                    <!-- Switch Button -->
+                    <div class="sticky bottom-4 z-10 p-4 bg-primary/80 backdrop-blur-sm rounded-xl border border-custom">
+                        <button onclick="app.toggleTheme('${switchTheme}')" class="w-full ${switchButtonColor} text-white font-extrabold py-4 px-6 rounded-xl shadow-lg transition transform hover:scale-[1.02] text-lg">
+                            SWITCH TO ${switchBrandName}
+                        </button>
+                    </div>
+                </div>
+            `;
+        },
+        // --- END GULABI THALI PAGE ---
 
         renderBottomNav(){
             const icons = {
@@ -1072,7 +1232,8 @@
                 cowork: `<svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v2a2 2 0 01-2 2h-4m-12 0h4m-4 0a2 2 0 00-2 2v2a2 2 0 002 2h12a2 2 0 002-2v-2a2 2 0 00-2-2h-4m-6-6V4a2 2 0 012-2h4a2 2 0 012 2v4" /></svg>`,
                 more: `<svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16m-7 6h7" /></svg>`
             };
-
+            
+            // Renamed 'cowork' to 'Kitchen'
             const labels = { home: 'Home', order: 'Menu', cart: 'Cart', social: 'Social', cowork: 'Kitchen', more: 'More' };
             $('#bottom-nav').innerHTML = PAGES.map(p => `<button onclick="app.navigateTo('${p}')" class="nav-item flex-1 p-2 text-secondary" data-page="${p}">${icons[p]}<span id="${p}-tab-label" class="text-xs font-bold capitalize">${labels[p]}</span></button>`).join('');
         },
@@ -1097,6 +1258,7 @@
 
         refreshCartDependentUI() {
             const el = $('#cart-count');
+            if (!el) return; // Exit if nav isn't rendered
             const total = app.state.cart.reduce((s, i) => s + i.quantity, 0);
             if (total > 0 && !app.state.activeOrder) {
                 el.textContent = total;
@@ -1109,10 +1271,21 @@
         renderHomePage(){
             const currentBrandName = app.state.theme === 'bulb' ? 'BULB CAFE' : 'GULABI THALI';
             const switchTheme = app.state.theme === 'bulb' ? 'gulabi' : 'bulb';
-            const switchBrandName = switchTheme === 'bulb' ? 'BULB CAFE' : 'GULABI THALI';
-            const switchButtonColor = switchTheme === 'bulb' ? 'bg-yellow-500' : 'bg-pink-500';
+            const switchBrandName = switchTheme === 'bulb' ? 'GULABI THALI' : 'BULB CAFE';
+            const switchButtonColor = switchTheme === 'bulb' ? 'bg-pink-500' : 'bg-yellow-500';
 
             const activeOrderHTML = app.state.activeOrder ? `<div class="bg-blue-500/10 border-2 border-blue-500/20 rounded-xl p-4 text-center"> <h2 class="font-bold text-primary">Your order is ${app.state.activeOrder.status}!</h2> <p class="text-secondary text-sm">Order ID: #${app.state.activeOrder.id.slice(0,6)}</p> <button onclick="app.navigateTo('cart')" class="mt-2 text-sm font-semibold text-blue-600 hover:underline">View Details &rarr;</button> </div>` : '';
+            
+            const { loyaltyThreshold } = app.calculateCartTotal();
+            const loyaltyCardHTML = `
+                <div class="bg-secondary p-6 rounded-xl shadow-sm border border-custom text-center">
+                    <span class="text-4xl mb-2">🪙</span>
+                    <h2 class="text-2xl font-bold text-primary">Earn Loyalty Points</h2>
+                    <p class="text-secondary mt-2">
+                        Get <span class="font-bold brand-text">10% points back</span> on all orders over <span class="font-bold brand-text">₹${loyaltyThreshold}</span>.
+                    </p>
+                </div>
+            `;
 
             $('#page-content').innerHTML = `
                 <div class="space-y-6">
@@ -1125,23 +1298,20 @@
                     </div>
                     <div class="p-4 space-y-8">
                         ${activeOrderHTML ? `<div class="mt-8">${activeOrderHTML}</div>` : ''}
+                        
+                        <!-- Loyalty Card -->
+                        ${loyaltyCardHTML}
 
-                        <!-- Brand Switcher -->
-                        <div class="mt-8 text-center">
-                            <h2 class="text-2xl font-bold text-primary mb-4 px-1">You are viewing the ${currentBrandName} menu.</h2>
-                            <button onclick="app.toggleTheme('${switchTheme}')" class="w-full ${switchButtonColor} text-white font-extrabold py-4 px-6 rounded-xl shadow-lg transition transform hover:scale-[1.02] text-lg">
-                                CLICK TO SWITCH TO ${switchBrandName}
+                        <!-- Brand Switcher (NOW A CLICKABLE CARD) -->
+                        <div onclick="app.toggleTheme('${switchTheme}')" 
+                             class="bg-secondary p-6 rounded-xl shadow-sm border border-custom text-center cursor-pointer transition transform hover:scale-[1.02]">
+                            <span class="text-4xl mb-2">🍛</span>
+                            <h2 class="text-2xl font-bold text-primary mb-4 px-1">View Cloud Kitchen</h2>
+                            <button class="w-full ${switchButtonColor} text-white font-extrabold py-3 px-6 rounded-xl shadow-lg text-lg">
+                                CLICK TO VIEW ${switchBrandName}
                             </button>
                         </div>
                         
-                        <!-- Loyalty Program Info -->
-                        <div class="bg-secondary p-6 rounded-xl shadow-sm border border-custom text-center">
-                            <span class="text-4xl">🪙</span>
-                            <h2 class="text-2xl font-bold text-primary mt-3 mb-2">Join Our Loyalty Program!</h2>
-                            <p class="text-secondary">Earn <span class="font-bold text-primary">10% back in Loyalty Points</span> on all orders over ₹350. Redeem them for discounts on your next visit!</p>
-                            <button onclick="app.navigateTo('more')" class="mt-4 text-sm font-semibold brand-text hover:underline">Learn More &rarr;</button>
-                        </div>
-
                         <!-- Call Staff - Simplified -->
                         <div class="grid grid-cols-1 gap-4">
                             <button onclick="ui.showCallStaffModal()" class="bg-secondary rounded-xl p-4 text-center flex flex-col items-center justify-center h-28 border border-custom"><span class="text-3xl">🛎</span><p class="font-semibold mt-2 text-primary">Call Assistance</p></button>
@@ -1313,30 +1483,28 @@
         },
 
         renderCart(container){
-            const { subtotal, discountAmount, gst, finalTotal, maxRedeemableForOrder } = app.calculateCartTotal();
+            const { subtotal, discountAmount, gst, finalTotal, maxRedeemableForOrder, pointsToEarn, loyaltyThreshold } = app.calculateCartTotal();
             const loyaltyPoints = app.state.customerProfile?.loyalty_points || 0;
             const currentDiscount = app.state.pointsToRedeem; 
 
-            const pointsThreshold = 350;
-            let loyaltyExplanation = `<p class="text-xs text-secondary mt-1 mb-3">Earn 10% back in points (1pt = ₹1) on orders over ₹${pointsThreshold}. You can redeem up to 70% of your available points on this order.</p>`;
-            
-            if (subtotal < pointsThreshold && subtotal > 0) {
-                const amountNeeded = pointsThreshold - subtotal;
-                const pointsToEarn = Math.floor(pointsThreshold * 0.10);
-                loyaltyExplanation += `<p class="text-sm font-semibold text-primary p-3 bg-primary rounded-lg border border-custom">Add just <span class="brand-text">₹${amountNeeded.toFixed(2)}</span> more to your cart to earn ~<span class="brand-text">${pointsToEarn} points</span> on this order!</p>`;
-            } else if (subtotal >= pointsThreshold) {
-                 const pointsToEarn = Math.floor(subtotal * 0.10);
-                 loyaltyExplanation += `<p class="text-sm font-semibold text-primary p-3 bg-green-500/10 text-green-700 rounded-lg border border-green-500/20">You will earn <span class="font-bold">${pointsToEarn} points</span> on this order!</p>`;
+            // Dynamic loyalty explanation
+            let loyaltyExplanation = '';
+            const remainingToEarn = loyaltyThreshold - subtotal;
+            if (pointsToEarn > 0) {
+                loyaltyExplanation = `<p class="text-sm text-green-600 font-semibold mb-3">Congrats! This order will earn ${pointsToEarn} points.</p>`;
+            } else if (remainingToEarn > 0) {
+                loyaltyExplanation = `<p class="text-sm text-secondary mb-3">Add just <span class="font-bold brand-text">₹${remainingToEarn.toFixed(2)}</span> more to earn <span class="font-bold brand-text">${Math.floor(loyaltyThreshold * 0.10)}</span> points on this order!</p>`;
+            } else {
+                 loyaltyExplanation = `<p class="text-xs text-secondary mt-1 mb-3">Earn 10% points on orders over ₹${loyaltyThreshold}. Redeem 70% of your balance.</p>`;
             }
-
+            
             let loyaltySectionHTML = '';
             if (loyaltyPoints > 0 && maxRedeemableForOrder > 0) {
                 loyaltySectionHTML = `
                     <div class="p-4 border-t border-b border-custom">
                         <h3 class="font-bold text-lg mb-2 text-primary">Redeem Loyalty Points</h3>
-                        <p class="text-sm text-secondary mb-1">Available: ${loyaltyPoints} points</p>
                         ${loyaltyExplanation}
-                        <p class="text-sm text-secondary mb-3">Redeemable (max ₹${maxRedeemableForOrder}):</p>
+                        <p class="text-sm text-secondary mb-1">Available: ${loyaltyPoints} points (Redeemable: ${maxRedeemableForOrder} pts)</p>
                         <input type="range" id="loyalty-slider" min="0" max="${maxRedeemableForOrder}" value="${app.state.pointsToRedeem}"
                                oninput="app.updatePointsToRedeem(this.value)" class="w-full h-2 rounded-lg cursor-pointer">
                         <div class="flex justify-between text-sm font-semibold mt-2">
@@ -1344,10 +1512,8 @@
                             <span>Discount: - ₹<span id="discount-amount-display">${currentDiscount.toFixed(2)}</span></span>
                         </div>
                     </div>`;
-            } else if (loyaltyPoints > 0) {
-                 loyaltySectionHTML = `<div class="p-4 border-t border-b border-custom"><p class="text-sm text-secondary text-center">You have ${loyaltyPoints} points.</p>${loyaltyExplanation}<p class="text-sm text-secondary text-center mt-2">Increase your order total to redeem them.</p></div>`;
             } else {
-                 loyaltySectionHTML = `<div class="p-4 border-t border-b border-custom"><p class="text-sm text-secondary text-center">Start earning points today!</p>${loyaltyExplanation}</div>`;
+                 loyaltySectionHTML = `<div class="p-4 border-t border-b border-custom"><h3 class="font-bold text-lg mb-2 text-primary">Loyalty Points</h3>${loyaltyExplanation}</div>`;
             }
 
 
@@ -1437,19 +1603,8 @@
         },
 
         renderSocialPage(){
-            // UPDATED: Dynamically show correct social handle based on theme
-            const isBulb = app.state.theme === 'bulb';
-            const socialHandle = isBulb ? '@a_bulbcafejaipur' : '@gulabithali_thecloudkitchen';
-            const socialUrl = isBulb ? 'https://instagram.com/a_bulbcafejaipur' : 'https://instagram.com/gulabithali_thecloudkitchen';
-            
-            const currentBrandName = isBulb ? 'Bulb Cafe' : 'Gulabi Thali';
-            const switchTheme = isBulb ? 'gulabi' : 'bulb';
-            const switchBrandName = isBulb ? 'GULABI THALI' : 'BULB CAFE';
-            const switchButtonColor = isBulb ? 'bg-pink-500' : 'bg-yellow-500'; // Colors updated to match switch target
-
-            const socialCaption = isBulb 
-                ? "Post your coffee pics! Tag us for a shoutout." 
-                : "Share your thali feast! Tag us to be featured.";
+            const currentBrandName = 'Bulb Cafe'; // This page is only on Bulb theme
+            const socialCaption = "Post your coffee pics! Tag us for a shoutout.";
 
             $('#page-content').innerHTML = `
                 <div class="p-4 space-y-6 text-center">
@@ -1457,43 +1612,40 @@
                         <h2 class="text-2xl font-bold text-primary">Join Our Community!</h2>
                         <p class="text-secondary mt-1">${socialCaption}</p>
                         
-                        <a href="${socialUrl}" target="_blank" class="social-card-gradient text-2xl font-bold my-4 block">${socialHandle}</a>
+                        <a href="https://instagram.com/a_bulbcafejaipur" target="_blank" class="social-card-gradient text-2xl font-bold my-4 block">@a_bulbcafejaipur</a>
                         <p class="text-xs text-secondary mt-2">Scan to follow the official account!</p>
                     </div>
 
                     <div class="bg-secondary p-6 rounded-xl shadow-sm border border-custom">
                         <h2 class="text-2xl font-bold text-primary">Switch Brand View</h2>
-                        <p class="text-secondary mt-1 mb-4">View the menu of the other brand quickly.</p>
-                        <button onclick="app.toggleTheme('${switchTheme}')" class="w-full ${switchButtonColor} text-white font-extrabold py-3 px-6 rounded-xl shadow-lg transition transform hover:scale-[1.02]">
-                            View ${switchBrandName} Menu
+                        <p class="text-secondary mt-1 mb-4">View the menu for our cloud kitchen.</p>
+                        <button onclick="app.toggleTheme('gulabi')" class="w-full bg-pink-500 text-white font-extrabold py-3 px-6 rounded-xl shadow-lg transition transform hover:scale-[1.02]">
+                            View GULABI THALI
                         </button>
                     </div>
                 </div>
             `;
         },
 
-        renderGulabiThaliKitchenPage() {
-            const switchTheme = 'bulb';
-            const switchBrandName = 'BULB CAFE';
-            const switchButtonColor = 'bg-yellow-500';
-
+        renderCoworkPage() {
+            // This page is now just for Bulb Cafe, so we rename it "Kitchen" and can simplify
             $('#page-content').innerHTML = `
                 <div class="p-6 space-y-6 text-center">
                      <div class="bg-secondary p-8 rounded-xl shadow-lg border border-custom">
-                        <span class="text-5xl mb-4 block">🍛</span>
-                        <h2 class="text-3xl font-bold text-primary mb-2">GULABI THALI KITCHEN</h2>
+                        <span class="text-5xl mb-4 block">💡</span>
+                        <h2 class="text-3xl font-bold text-primary mb-2">BULB CAFE</h2>
                         <p class="text-lg text-secondary mb-6">
-                            Gulabi Thali operates as our specialized Dine-In Kitchen inside Bulb Cafe.
+                            Welcome to Bulb Cafe. Order anything you like from our menu.
                         </p>
                         <ul class="text-left space-y-2 mb-8 list-disc list-inside text-secondary">
-                            <li>Authentic Indian Cuisine</li>
-                            <li>Dine-In Thali Specials Only</li>
-                            <li>View menu on 'Menu' tab and order via staff.</li>
-                            <li>All orders are placed through our service counter.</li>
+                            <li>Artisanal Coffee & Teas</li>
+                            <li>Quick Bites & Snacks</li>
+                            <li>Comfortable Seating</li>
+                            <li>Free Wi-Fi</li>
                         </ul>
-                        <p class="text-primary font-semibold mb-4">Ready to order quick bites and coffee?</p>
-                        <button onclick="app.toggleTheme('${switchTheme}')" class="w-full ${switchButtonColor} text-white font-extrabold py-3 px-6 rounded-lg transition hover:opacity-90">
-                            CLICK TO SWITCH TO ${switchBrandName}
+                        <p class="text-primary font-semibold mb-4">Ready to order?</p>
+                        <button onclick="app.navigateTo('order')" class="w-full brand-bg text-white font-extrabold py-3 px-6 rounded-lg transition hover:opacity-90">
+                            BROWSE THE MENU
                         </button>
                     </div>
                 </div>
@@ -1502,11 +1654,11 @@
 
         renderMorePage(){
             const loyaltyPoints = app.state.customerProfile?.loyalty_points ?? 0;
-            const loyaltyExplanation = `<p class="text-xs text-secondary mt-1">Earn 10% back in points (1pt = ₹1) on orders over ₹350. Redeem up to 70% of your balance in the Cart.</p>`;
+            const loyaltyExplanation = `<p class="text-xs text-secondary mt-1">Earn 10% points (on orders > ₹${app.state.appSettings.loyalty_threshold || 350}). 1 pt = ₹1 discount (redeem in Cart).</p>`;
             const options = [
                 { icon: "🪙", text: `Loyalty Points: ${loyaltyPoints}`, action: "", explanation: loyaltyExplanation },
                 { icon: "🛎", text: "Call Staff for Assistance", action: "ui.showCallStaffModal()" },
-                { icon: "🔄", text: "Switch Brand View", action: "ui.showBrandSwitcherModal()" },
+                { icon: "🔄", text: "Switch to Gulabi Thali", action: "app.toggleTheme('gulabi')" },
                 { icon: "🎮", text: "Play Games", action: "ui.showGamesModal()" },
                 { icon: "📜", text: "Order History", action: "ui.showOrderHistoryModal()" },
             ];
@@ -1529,7 +1681,7 @@
         showCallStaffModal() {
             ui.showModal('staff-modal', `
                  <h2 class="text-2xl font-bold text-center mb-4">Call Assistance</h2>
-                 <p class="text-secondary text-center mb-6">Need assistance with your order, payment, or finding Gulabi Thali?</p>
+                 <p class="text-secondary text-center mb-6">Need assistance with your order or payment?</p>
                  <div class="space-y-3">
                     <button onclick="app.sendStaffCall('assistance'); ui.closeModal('staff-modal')" class="w-full flex items-center justify-center bg-secondary p-4 rounded-xl brand-text border brand-border"><span class="text-2xl mr-4">🛎</span><span class="font-semibold">General Help</span></button>
                     <button onclick="app.sendStaffCall('payment'); ui.closeModal('staff-modal')" class="w-full flex items-center justify-center bg-secondary p-4 rounded-xl brand-text border brand-border"><span class="text-2xl mr-4">💵</span><span class="font-semibold">Help with Payment</span></button>
@@ -1539,20 +1691,9 @@
         },
         
         showBrandSwitcherModal(){
-            const currentBrand = app.state.theme === 'bulb' ? 'Bulb Cafe' : 'Gulabi Thali';
-            const switchTheme = app.state.theme === 'bulb' ? 'gulabi' : 'bulb';
-            const switchBrandName = switchTheme === 'bulb' ? 'GULABI THALI' : 'BULB CAFE';
-            const switchButtonColor = switchTheme === 'bulb' ? 'bg-pink-500' : 'bg-yellow-500'; // Colors updated to match switch target
-
-            ui.showModal('brand-switcher-modal', `
-                <h2 class="text-2xl font-bold text-center mb-4">Switch Menu View</h2>
-                <p class="text-secondary text-center mb-6">You are currently viewing the **${currentBrand}** menu.</p>
-                
-                <button onclick="app.toggleTheme('${switchTheme}')" class="w-full ${switchButtonColor} text-white font-extrabold py-4 px-6 rounded-xl shadow-lg transition transform hover:scale-[1.02]">
-                    SWITCH TO ${switchBrandName}
-                </button>
-                <button onclick="ui.closeModal('brand-switcher-modal')" class="w-full mt-4 bg-secondary font-semibold py-3 rounded-lg">Close</button>
-            `);
+             // This is no longer used, as the toggle is directly on other pages.
+             // Kept here in case it's needed later.
+             app.toggleTheme('gulabi');
         },
 
         showPaymentModal(){
@@ -1777,6 +1918,5 @@
 </script>
 </body>
 </html>
-
 
 
