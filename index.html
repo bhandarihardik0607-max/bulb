@@ -136,7 +136,7 @@
     </div>
 
 <!-- Load Supabase as a standard script before the module script -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script type="module">
     
@@ -661,8 +661,8 @@
             const availablePoints = this.state.customerProfile?.loyalty_points || 0;
 
             // 1. Calculate max discount
-            const redeemablePoints = Math.floor(availablePoints * 0.8);
-            const maxRedeemableForOrder = Math.min(redeemablePoints, Math.floor(subtotal));
+            const redeemablePercentage = 0.70;
+            const redeemablePoints = Math.floor(availablePoints * redeemablePercentage);
 
             // 2. Clamp current discount
             const actualPointsToRedeem = Math.min(this.state.pointsToRedeem, maxRedeemableForOrder);
@@ -781,7 +781,13 @@
                     }
 
                     // Earn points
-                    const pointsEarned = Math.floor(subtotal / 500) * 50;
+                    // NEW: Earn 10% in points if subtotal is over 350
+                    const pointsThreshold = 350;
+                    let pointsEarned = 0;
+                    if (subtotal >= pointsThreshold) {
+                        pointsEarned = Math.floor(subtotal * 0.10);
+                    }
+                    
                     if (pointsEarned > 0) {
                          const { error: earnError } = await supabase.rpc('increment_loyalty_points', { customer_id_input: this.state.customerProfile.id, points_to_add: pointsEarned });
                          if(earnError) throw new Error(`Earn RPC failed: ${earnError.message}`);
@@ -1120,6 +1126,14 @@
                             </button>
                         </div>
                         
+                        <!-- Loyalty Program Info -->
+                        <div class="bg-secondary p-6 rounded-xl shadow-sm border border-custom text-center">
+                            <span class="text-4xl">🪙</span>
+                            <h2 class="text-2xl font-bold text-primary mt-3 mb-2">Join Our Loyalty Program!</h2>
+                            <p class="text-secondary">Earn <span class="font-bold text-primary">10% back in Loyalty Points</span> on all orders over ₹350. Redeem them for discounts on your next visit!</p>
+                            <button onclick="app.navigateTo('more')" class="mt-4 text-sm font-semibold brand-text hover:underline">Learn More &rarr;</button>
+                        </div>
+
                         <!-- Call Staff - Simplified -->
                         <div class="grid grid-cols-1 gap-4">
                             <button onclick="ui.showCallStaffModal()" class="bg-secondary rounded-xl p-4 text-center flex flex-col items-center justify-center h-28 border border-custom"><span class="text-3xl">🛎</span><p class="font-semibold mt-2 text-primary">Call Assistance</p></button>
@@ -1295,7 +1309,17 @@
             const loyaltyPoints = app.state.customerProfile?.loyalty_points || 0;
             const currentDiscount = app.state.pointsToRedeem; 
 
-            const loyaltyExplanation = `<p class="text-xs text-secondary mt-1 mb-3">Earn 50 points (worth ₹50) for every ₹500 spent on subtotal. Redeemable points = 80% of balance.</p>`;
+            const pointsThreshold = 350;
+            let loyaltyExplanation = `<p class="text-xs text-secondary mt-1 mb-3">Earn 10% back in points (1pt = ₹1) on orders over ₹${pointsThreshold}. You can redeem up to 70% of your available points on this order.</p>`;
+            
+            if (subtotal < pointsThreshold && subtotal > 0) {
+                const amountNeeded = pointsThreshold - subtotal;
+                const pointsToEarn = Math.floor(pointsThreshold * 0.10);
+                loyaltyExplanation += `<p class="text-sm font-semibold text-primary p-3 bg-primary rounded-lg border border-custom">Add just <span class="brand-text">₹${amountNeeded.toFixed(2)}</span> more to your cart to earn ~<span class="brand-text">${pointsToEarn} points</span> on this order!</p>`;
+            } else if (subtotal >= pointsThreshold) {
+                 const pointsToEarn = Math.floor(subtotal * 0.10);
+                 loyaltyExplanation += `<p class="text-sm font-semibold text-primary p-3 bg-green-500/10 text-green-700 rounded-lg border border-green-500/20">You will earn <span class="font-bold">${pointsToEarn} points</span> on this order!</p>`;
+            }
 
             let loyaltySectionHTML = '';
             if (loyaltyPoints > 0 && maxRedeemableForOrder > 0) {
@@ -1313,9 +1337,9 @@
                         </div>
                     </div>`;
             } else if (loyaltyPoints > 0) {
-                 loyaltySectionHTML = `<div class="p-4 border-t border-b border-custom"><p class="text-sm text-secondary text-center">You have ${loyaltyPoints} points. ${loyaltyExplanation} Earn more/increase order total to redeem.</p></div>`;
+                 loyaltySectionHTML = `<div class="p-4 border-t border-b border-custom"><p class="text-sm text-secondary text-center">You have ${loyaltyPoints} points.</p>${loyaltyExplanation}<p class="text-sm text-secondary text-center mt-2">Increase your order total to redeem them.</p></div>`;
             } else {
-                 loyaltySectionHTML = `<div class="p-4 border-t border-b border-custom"><p class="text-sm text-secondary text-center">${loyaltyExplanation}</p></div>`;
+                 loyaltySectionHTML = `<div class="p-4 border-t border-b border-custom"><p class="text-sm text-secondary text-center">Start earning points today!</p>${loyaltyExplanation}</div>`;
             }
 
 
@@ -1470,7 +1494,7 @@
 
         renderMorePage(){
             const loyaltyPoints = app.state.customerProfile?.loyalty_points ?? 0;
-            const loyaltyExplanation = `<p class="text-xs text-secondary mt-1">Earn 50 pts (₹50) per ₹500 spent. 1 pt = ₹1 discount (redeem in Cart).</p>`;
+            const loyaltyExplanation = `<p class="text-xs text-secondary mt-1">Earn 10% back in points (1pt = ₹1) on orders over ₹350. Redeem up to 70% of your balance in the Cart.</p>`;
             const options = [
                 { icon: "🪙", text: `Loyalty Points: ${loyaltyPoints}`, action: "", explanation: loyaltyExplanation },
                 { icon: "🛎", text: "Call Staff for Assistance", action: "ui.showCallStaffModal()" },
@@ -1745,3 +1769,4 @@
 </script>
 </body>
 </html>
+
