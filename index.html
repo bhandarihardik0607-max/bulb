@@ -1203,7 +1203,8 @@
                         <p class="text-secondary mt-2 mb-4">
                             We offer bulk orders and catering services from our cloud kitchen for your special events, parties, and functions.
                         </p>
-                        <a href="tel:YOUR_PHONE_NUMBER" class="brand-bg font-semibold py-3 px-6 rounded-lg inline-block">Call to Inquire</a>
+                        <a href="tel:9782035098" class="brand-bg font-semibold py-3 px-6 rounded-lg inline-block">Call to Inquire</a>
+                        <p class="text-sm text-secondary mt-3">Contact: Prateek Arora</p>
                     </div>
                     
                     <!-- View-Only Menu -->
@@ -1271,7 +1272,9 @@
         renderHomePage(){
             const currentBrandName = app.state.theme === 'bulb' ? 'BULB CAFE' : 'GULABI THALI';
             const switchTheme = app.state.theme === 'bulb' ? 'gulabi' : 'bulb';
-            const switchBrandName = switchTheme === 'bulb' ? 'GULABI THALI' : 'BULB CAFE';
+            // FIX: The logic for the button text was inverted.
+            // It should show the name of the brand you are *switching to*.
+            const switchBrandName = app.state.theme === 'bulb' ? 'GULABI THALI' : 'BULB CAFE';
             const switchButtonColor = switchTheme === 'bulb' ? 'bg-pink-500' : 'bg-yellow-500';
 
             const activeOrderHTML = app.state.activeOrder ? `<div class="bg-blue-500/10 border-2 border-blue-500/20 rounded-xl p-4 text-center"> <h2 class="font-bold text-primary">Your order is ${app.state.activeOrder.status}!</h2> <p class="text-secondary text-sm">Order ID: #${app.state.activeOrder.id.slice(0,6)}</p> <button onclick="app.navigateTo('cart')" class="mt-2 text-sm font-semibold text-blue-600 hover:underline">View Details &rarr;</button> </div>` : '';
@@ -1918,5 +1921,7 @@
 </script>
 </body>
 </html>
+
+
 
 
