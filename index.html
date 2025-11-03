@@ -14,7 +14,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,400..900&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Supabase Client -->
+    <!-- Supabase Client (Loaded before module script) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
@@ -135,12 +135,11 @@
         <p id="toast-message"></p>
     </div>
 
-<!-- FIX: Load Supabase as a standard script before the module script -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Supabase client is already loaded above -->
 
 <script type="module">
     
-    // FIX: Accessing createClient from the global window.supabase object.
+    // Accessing createClient from the global window.supabase object.
     const $ = (selector) => document.querySelector(selector);
     const $$ = (selector) => document.querySelectorAll(selector);
 
@@ -151,6 +150,7 @@
     setAppHeight();
 
     // --- SUPABASE CONFIG ---
+    // Make sure these are correct for your Supabase project
     const SUPABASE_URL = 'https://ttdnlatylcqrevzlyrru.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0ZG5sYXR5bGNxcmV2emx5cnJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAxNzAyMDEsImV4cCI6MjA3NTc0NjIwMX0.aiQ1_viA1JrugEyMWxA2e5f2Aqrao9BNgCTb70NWyCc';
     
@@ -173,7 +173,7 @@
 
     // --- STATIC DATA ---
     const STATIC_DATA = {
-        // Placeholder IDs (These are just for structure and won't filter out items incorrectly now)
+        // Placeholder IDs (These are just for structure)
         bestSellers: [1, 2, 3, 4], 
         captionIdeas: {
             cafe_vibes: [ "Fueling my day with the best coffee @bulbcafe! 💡☕️", "Cozy corners and great beans at Bulb Cafe. #CafeVibes" ],
@@ -277,7 +277,10 @@
                 await this.fetchCustomerProfile();
                 
                 // 3. LOAD REMAINING DATA
-                await Promise.all([ this.fetchMenuData(), this.fetchAppSettings() ]);
+                // We'll fetch menu data
+                await this.fetchMenuData();
+                // We can skip app settings for now if it's not critical
+                // await this.fetchAppSettings(); 
 
                 // 4. START UI
                 $('#splash-screen').style.display = 'none';
@@ -309,28 +312,34 @@
             const userId = this.state.user.id;
 
             try {
+                // Check if RLS is enabled, 'loyalty_points' might be in a separate table or view.
+                // Assuming 'customers' has 'loyalty_points' for simplicity.
                 const { data, error } = await supabase.from('customers')
-                    .select('*, loyalty_points')
+                    .select('*, loyalty_points') // Explicitly select loyalty_points
                     .eq('id', userId)
                     .single();
 
                 if (error && error.code === 'PGRST116') {
+                    // Profile not found, create it
                     return this.createUserProfile(userId);
                 }
                 
                 if (error) throw error;
                 
                 if (data) {
+                    // Ensure loyalty_points is a number
                     data.loyalty_points = data.loyalty_points || 0;
                     this.state.customerProfile = data;
                     return data;
                 }
                 
+                // Fallback to create profile
                 return this.createUserProfile(userId);
 
             } catch (error) {
                 console.error('Error fetching/creating profile:', error.message);
                 ui.showToast('Could not load user profile.');
+                // Create a local fallback profile
                 this.state.customerProfile = { id: userId, name: 'Guest', loyalty_points: 0, whatsapp_number: null };
             }
         },
@@ -351,6 +360,7 @@
                 
             } catch (error) {
                 if (error.code === '23505') { // Unique violation
+                    // This can happen in a race condition, try fetching again
                     return this.fetchCustomerProfile();
                 }
                 console.error("Error creating profile:", error.message);
@@ -363,10 +373,11 @@
                 const { data, error } = await supabase.from('products').select('*').order('id');
                 if (error) throw error;
 
+                // Filter out unavailable items
                 this.state.allMenuItems = data.filter(i => i.is_available);
 
-                const groupedMenu = data.reduce((acc, item) => {
-                    if (!item.is_available) return acc;
+                // Group available items by category
+                const groupedMenu = this.state.allMenuItems.reduce((acc, item) => {
                     const categoryName = item.category || 'Uncategorized';
                     let category = acc.find(c => c.category === categoryName);
                     if (!category) {
@@ -378,6 +389,11 @@
                 }, []);
 
                 this.state.menuData = groupedMenu;
+                
+                // Refresh page if it's already rendered
+                if(this.state.currentPage === 'order') {
+                    this.refreshPage();
+                }
 
             } catch (error) {
                 console.error('Error fetching menu data:', error);
@@ -387,13 +403,7 @@
             }
         },
 
-        async fetchAppSettings() {
-            try {
-                const { data, error } = await supabase.from('app_settings').select('key, value');
-                if (error) throw error;
-                this.state.appSettings = data.reduce((acc, { key, value }) => ({ ...acc, [key]: value }), {});
-            } catch (error) { console.error('Error fetching app settings:', error); }
-        },
+        // Skipped fetchAppSettings for simplicity
 
         showOnboardingModal(){
             const tableInputHTML = !this.state.tableNumber
@@ -402,7 +412,7 @@
             ui.showModal('onboarding-modal', `
                 <h2 class="text-2xl font-bold text-primary mb-2">Welcome to Bulb!</h2><p class="text-secondary mb-6">A few details to get you started.</p>
                 <div class="space-y-4">
-                    <input type="text" id="user-name-input" class="w-full p-3 border border-custom rounded-lg bg-secondary text-primary" placeholder="Your Name" required value="${this.state.customerProfile?.name || ''}">
+                    <input type="text" id="user-name-input" class="w-full p-3 border border-custom rounded-lg bg-secondary text-primary" placeholder="Your Name" required value="${this.state.customerProfile?.name === 'Guest' ? '' : this.state.customerProfile?.name || ''}">
                     <input type="tel" id="mobile-number-input" class="w-full p-3 border border-custom rounded-lg bg-secondary text-primary" placeholder="Mobile Number (for Loyalty Points)" required value="${this.state.customerProfile?.whatsapp_number || ''}">
                     ${tableInputHTML}
                 </div>
@@ -424,47 +434,19 @@
             if (!phone || !/^\d{10}$/.test(phone.replace(/\D/g,''))) return ui.showToast("Please enter a valid 10-digit mobile number for loyalty points.");
             const cleanPhone = phone.replace(/\D/g,'');
 
-            let finalProfileData;
             try {
-                // FIX: Reverted to Select-then-Update/Insert logic to avoid the ON CONFLICT error (42P10)
+                // Update the user's profile
+                const { data: updatedProfile, error } = await supabase
+                    .from('customers')
+                    .update({ name: name, whatsapp_number: cleanPhone })
+                    .eq('id', this.state.user.id)
+                    .select()
+                    .single();
                 
-                // 1. Check if profile exists by phone number (for returning users)
-                let { data: existingProfile, error: selectError } = await supabase.from('customers')
-                    .select('*, loyalty_points')
-                    .eq('whatsapp_number', cleanPhone)
-                    .maybeSingle();
-
-                if (selectError && selectError.code !== 'PGRST116') throw selectError;
-
-                if (existingProfile) {
-                    // Profile found by phone number. Link the current auth ID to it.
-                    finalProfileData = existingProfile;
-                    const { error: updateError } = await supabase.from('customers')
-                        .update({ id: this.state.user.id, name: name })
-                        .eq('whatsapp_number', cleanPhone);
-                    if (updateError) console.warn("Failed to update ID/Name on existing profile:", updateError);
-                    finalProfileData.id = this.state.user.id; // Update local state immediately
-                    finalProfileData.name = name;
-                } else {
-                    // Profile not found by phone. Create a new one using the current auth ID.
-                    const { data: insertedData, error: insertError } = await supabase.from('customers').insert({
-                        id: this.state.user.id,
-                        name: name,
-                        whatsapp_number: cleanPhone,
-                        loyalty_points: 0
-                    }).select('*, loyalty_points').single();
-                    
-                    if (insertError) throw insertError;
-                    finalProfileData = insertedData;
-                }
+                if (error) throw error;
                 
-                // If loyalty_points is missing from DB response for any reason, default it.
-                finalProfileData.loyalty_points = finalProfileData.loyalty_points || 0;
-                
-                // END FIX: Reverted to Select-then-Update/Insert logic
-                
-                this.state.customerProfile = finalProfileData;
-                this.state.customerProfile.loyalty_points = this.state.customerProfile.loyalty_points || 0;
+                this.state.customerProfile = updatedProfile;
+                this.state.customerProfile.loyalty_points = this.state.customerProfile.loyalty_points || 0; // Ensure points are set
                 this.state.tableNumber = tableNumber;
                 
                 // Call startSession/showMainInterface before closing modal
@@ -474,13 +456,7 @@
 
             } catch (error) {
                 console.error("Onboarding/Linking Error:", error);
-                if (error.message.includes('duplicate key value violates unique constraint')) {
-                    ui.showToast('This phone number might be linked to another session. Please retry.');
-                } else if (error.message.includes('violates row-level security policy for table')) {
-                     ui.showToast('Could not save profile due to security policy. Please contact support.');
-                } else {
-                     ui.showToast(`Could not save profile: ${error.message}`);
-                }
+                ui.showToast(`Could not save profile: ${error.message}`);
             }
         },
 
@@ -512,8 +488,8 @@
             $('#main-interface').classList.remove('hidden');
             $('#bottom-nav').classList.remove('hidden');
             ui.renderBottomNav();
-            // Initial navigation is handled by the caller (onboarding/table entry)
-            // or by init() when loading from hash
+            // Initial render of page
+            this.navigateTo(this.state.currentPage, false);
         },
 
         navigateTo(page, pushToHistory = true){
@@ -522,14 +498,11 @@
 
              const currentHash = location.hash.substring(1);
              
-             // Check if we are already on the target page (ignoring initial load false)
              if (currentHash === page && pushToHistory) return;
 
-             // Only update browser history if it's a new page or we're explicitly pushing state
              if (pushToHistory) {
                 location.hash = page;
              } else if (currentHash !== page) {
-                // If not pushing history, just replace the current state to reflect the new page
                 history.replaceState(null, '', '#' + page);
              }
              
@@ -543,27 +516,21 @@
              const currentHash = location.hash.substring(1);
              const openModal = $('#modal-container').children[0];
 
-             // 1. Handle Modal Back
              if (openModal) {
                 ui.closeModal(openModal.id);
                 event.preventDefault();
-                // Replace hash to current page after closing modal
                 history.replaceState(null, '', '#' + this.state.currentPage);
                 return;
              }
              
-             // 2. Handle Page Back (Prevent double back/exit from home)
              if (this.state.currentPage === 'home') {
-                 // Already on home, allow default back behavior (or do nothing)
                  return;
              }
 
-             // If the current hash doesn't match the state (e.g., user used browser back/forward)
              if (PAGES.includes(currentHash) && currentHash !== this.state.currentPage) {
-                 this.navigateTo(currentHash, false); // Sync state to the hash
+                 this.navigateTo(currentHash, false);
                  event.preventDefault();
              }
-             // Navigate back to home
              else if (this.state.currentPage !== 'home') {
                  event.preventDefault(); 
                  this.navigateTo('home');
@@ -571,7 +538,7 @@
         },
 
         applyTheme(){ document.body.dataset.theme = this.state.theme; },
-        toggleTheme(t){ ui.closeModal('brand-switcher-modal'); this.state.theme = t; localStorage.setItem('brand-theme', t); this.applyTheme(); this.refreshPage(); },
+        toggleTheme(t){ ui.closeModal('brand-switcher-modal'); this.state.theme = t; localStorage.setItem('brand-theme', t); this.refreshPage(); },
 
         addOrUpdateCart(itemId, quantityChange) {
             const item = this.state.allMenuItems.find(i => i.id === itemId);
@@ -723,9 +690,11 @@
             let orderData;
 
             try {
+                // Verify table exists
                 const { data: tableData, error: tableError } = await supabase.from('tables').select('id').eq('table_number', this.state.tableNumber).single();
                 if (tableError || !tableData) throw new Error(`Table #${this.state.tableNumber} invalid or not found.`);
 
+                // Check points again just before order
                 if (pointsToRedeem > 0) {
                     const { data: currentProfile, error: profileError } = await supabase.from('customers').select('loyalty_points').eq('id', this.state.customerProfile.id).single();
                     if (profileError || !currentProfile || currentProfile.loyalty_points < pointsToRedeem) {
@@ -738,7 +707,7 @@
                 const orderPayload = {
                     customer_id: this.state.customerProfile.id,
                     table_id: tableData.id,
-                    total_amount: finalTotal,
+                    total_amount: subtotal, // Store pre-discount total
                     discount_percentage: effectiveDiscountPercent,
                     discount_points_redeemed: pointsToRedeem,
                     discount_amount: discountAmount,
@@ -747,25 +716,30 @@
                     special_instructions: $('#special-instructions')?.value || '',
                     feedback_submitted: false
                 };
+                
+                // Insert order
                 const { data: insertedOrder, error: orderError } = await supabase.from('orders').insert(orderPayload).select().single();
                 if (orderError) {
                     throw new Error(`Order placement failed. ${orderError.message}`);
                 }
                 orderData = insertedOrder;
 
+                // Insert order items
                 const orderItems = this.state.cart.map(i => ({
                     order_id: orderData.id,
                     product_id: i.id,
                     quantity: i.quantity,
-                    price_at_time_of_order: i.price
+                    price_at_time_of_order: i.price,
+                    product_name: i.name // Denormalize product name
                 }));
                 const { error: itemsError } = await supabase.from('order_items').insert(orderItems);
                 if (itemsError) {
+                    // Rollback order
                     await supabase.from('orders').delete().eq('id', orderData.id);
                     throw new Error(`Order items failed. ${itemsError.message}`);
                 }
 
-                // Points transactions
+                // Handle points transactions using RPC functions
                 try {
                     if (pointsToRedeem > 0) {
                          await supabase.rpc('redeem_loyalty_points', { customer_id_input: this.state.customerProfile.id, points_to_redeem: pointsToRedeem });
@@ -780,7 +754,7 @@
                 } catch (pointsError) {
                     console.warn("Points transaction failed after order success:", pointsError.message);
                     ui.showToast("Order placed, but points update failed.");
-                    await this.fetchCustomerProfile();
+                    await this.fetchCustomerProfile(); // Re-sync points
                 }
 
                 // Success flow
@@ -947,7 +921,14 @@
     // --- UI RENDERING ---
     const ui = {
         showModal(id, content) {
-            location.hash = id;
+            // Store the current hash to return to it when the modal closes
+            const currentHash = location.hash.substring(1);
+            if (!currentHash.startsWith('modal-')) {
+                history.replaceState({ previousHash: currentHash }, '', '#' + id);
+            } else {
+                 history.pushState(null, '', '#' + id);
+            }
+
             const existingModal = $(`#${id}`);
             if (existingModal) existingModal.remove();
 
@@ -964,26 +945,25 @@
             const modal = $(`#${id}`);
             if (modal) modal.remove();
             
-            // Check if we are closing the modal that corresponds to the current hash
             if (location.hash.substring(1) === id) {
-                // FIX: Use manual hash assignment instead of history.replaceState to avoid SecurityError
-                location.hash = '#' + app.state.currentPage;
-                
-                // Use a slight delay to ensure the browser registers the hash change before the navigation logic runs
-                setTimeout(() => {
-                    // Call navigateTo with pushToHistory=false to ensure UI update without history change
-                    app.navigateTo(app.state.currentPage, false);
-                }, 0);
+                // Go back to the previous page hash
+                 history.back();
             }
+            // Ensure the main UI is refreshed
+            setTimeout(() => app.refreshPage(), 10);
         },
 
-        showToast(message, duration = 3000) {
+        showToast(message, type = 'success', duration = 3000) {
             const toast = $('#toast'), p = $('#toast-message');
             p.textContent = message;
-            toast.classList.remove('hidden');
-            toast.style.backgroundColor = 'var(--brand-primary)';
+            
+            let color = 'var(--brand-primary)';
+            if (type === 'error') color = '#dc2626'; // Tailwind red-600
+
+            toast.style.backgroundColor = color;
             toast.style.color = 'var(--bg-primary)';
 
+            toast.classList.remove('hidden');
             toast.style.animation = `toast-in 0.5s ease, toast-out 0.5s ease ${duration / 1000 - 0.5}s forwards`;
             setTimeout(() => {
                 toast.classList.add('hidden');
@@ -1085,7 +1065,7 @@
                 <div class="space-y-6">
                     <!-- Video Hero Section -->
                     <div class="relative h-48 overflow-hidden rounded-b-2xl">
-                        <video src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/WhatsApp%20Video%202025-11-01%20at%2020.52.47_2473f7b8.mp4" autoplay loop muted playsinline preload="metadata" class="absolute top-1/2 left-1/2 w-full h-full object-cover -translate-x-1/2 -translate-y-1/2"></video>
+                        <video src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/WhatsApp%20Video%202025-11-01%20at%2020.52.47_2473f7b8.mp4" autoplay loop muted playsinline preload="metadata" class="absolute top-1/2 left-1/2 w-full h-full object-cover -translate-x-1/2 -translate-y-1/2" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\\'absolute inset-0 bg-gray-500 flex items-center justify-center text-white\\'>Video Placeholder</div>'"></video>
                         <div class="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white text-center p-4">
                             <h1 class="text-4xl font-bold font-brand">${currentBrandName}</h1>
                         </div>
@@ -1116,6 +1096,8 @@
 
             if (app.state.allMenuItems.length === 0) {
                 content.innerHTML = `<div class="p-4 text-center text-secondary">Loading menu...</div>`;
+                // Try fetching menu again if it failed on init
+                if(app.state.menuData.length === 0) app.fetchMenuData();
                 return;
             }
             
@@ -1138,7 +1120,7 @@
             }, {});
             
             // Build tab list (All Menu + Categories)
-            const allCategories = [{ category: 'All Menu' }, ...Object.keys(categoryMap).map(c => ({ category: c }))];
+            const allCategories = [{ category: 'All Menu' }, ...Object.keys(categoryMap).sort().map(c => ({ category: c }))];
 
             if (!app.state.currentMenuCategory || !allCategories.some(c => c.category === app.state.currentMenuCategory)) {
                  app.state.currentMenuCategory = 'All Menu';
@@ -1230,7 +1212,7 @@
 
                 if (isViewOnly) {
                     actionButtonHTML = `<button class="add-to-cart-btn bg-secondary text-secondary" disabled title="View Only">
-                        <svg xmlns="http://www.w3.org/2300/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.575 3.01 9.963 7.182.074.207.074.441 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.575-3.01-9.963-7.182Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.575 3.01 9.963 7.182.074.207.074.441 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.575-3.01-9.963-7.182Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
                     </button>`;
                 } else if (cartItem) {
                     actionButtonHTML = `<div class="quantity-control" onclick="event.stopPropagation();">
@@ -1482,6 +1464,13 @@
             `);
         },
         
+        // This is a mock function, in a real app it would send a notification
+        async sendStaffCall(type) {
+            ui.showToast(`Staff alerted for: ${type}`);
+            // Example of how you *could* log this to Supabase
+            // await supabase.from('staff_calls').insert({ table_id: this.state.tableNumber, type: type });
+        },
+
         showBrandSwitcherModal(){
             const currentBrand = app.state.theme === 'bulb' ? 'Bulb Cafe' : 'Gulabi Thali';
             const switchTheme = app.state.theme === 'bulb' ? 'gulabi' : 'bulb';
@@ -1510,8 +1499,8 @@
         },
 
         showItemDetailModal(itemId){
-            const item = app.state.allMenuItems.find(i => i.id === itemId); if (!item) return;
-            const cartItem = app.state.cart.find(ci => ci.id === itemId);
+            const item = this.state.allMenuItems.find(i => i.id === itemId); if (!item) return;
+            const cartItem = this.state.cart.find(ci => ci.id === itemId);
             const currentQuantity = cartItem ? cartItem.quantity : 0;
             const isViewOnly = app.state.theme === 'gulabi';
 
@@ -1555,9 +1544,20 @@
         },
 
         async showOrderHistoryModal() {
-            if (!app.state.customerProfile || !app.state.customerProfile.id) return ui.showToast("Error: Profile not loaded.");
-            const { data } = await supabase.from('orders').select(`*, order_items (product_name, quantity), discount_amount, discount_points_redeemed`).eq('customer_id', app.state.customerProfile.id).order('created_at', { ascending: false });
+            if (!this.state.customerProfile || !this.state.customerProfile.id) return ui.showToast("Error: Profile not loaded.");
             
+            // Fetch orders from Supabase
+            const { data, error } = await supabase.from('orders')
+                .select(`*, order_items (product_name, quantity)`) // Assuming 'order_items' has product_name
+                .eq('customer_id', this.state.customerProfile.id)
+                .order('created_at', { ascending: false });
+            
+            if(error) {
+                console.error("Error fetching order history:", error);
+                ui.showToast("Could not load order history.");
+                return;
+            }
+
             const historyHTML = data?.length > 0 ? data.map(o => {
                 const itemsList = o.order_items?.length > 0 ? o.order_items.map(i => `${i.product_name} (x${i.quantity})`).join(', ') : 'No items found';
                 return `
@@ -1694,7 +1694,7 @@
         app.init();
     });
 
-    // CRITICAL FIX: Move global exposure to the end of the script
+    // CRITICAL: Expose to global scope for HTML onclick handlers
     window.app = app;
     window.ui = ui;
     window.GAMES = GAMES; 
@@ -1702,3 +1702,4 @@
 </script>
 </body>
 </html>
+
