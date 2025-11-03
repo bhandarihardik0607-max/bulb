@@ -14,7 +14,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,400..900&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Supabase Client (loaded before module script) -->
+    <!-- Supabase Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
@@ -135,9 +135,12 @@
         <p id="toast-message"></p>
     </div>
 
+<!-- Load Supabase as a standard script before the module script -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script type="module">
     
-    // --- APP SETUP ---
+    // Accessing createClient from the global window.supabase object.
     const $ = (selector) => document.querySelector(selector);
     const $$ = (selector) => document.querySelectorAll(selector);
 
@@ -147,8 +150,7 @@
     window.addEventListener('resize', setAppHeight);
     setAppHeight();
 
-    // --- SUPABASE CONFIG ---
-    // Updated to the new project keys
+    // --- SUPABASE CONFIG (Using new keys) ---
     const SUPABASE_URL = 'https://vrvlvvlfzbdqwfsdlrkv.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZydmx2dmxmemJkcXdmc2Rscmt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NzI2NzAsImV4cCI6MjA3NzU0ODY3MH0.yYnxeipLuO0DlTvGITI5ajHDeoWZ80N2PS3rPhuOyp8';
     
@@ -282,7 +284,8 @@
                 $('#app').classList.remove('hidden');
                 $('#app').classList.add('flex');
 
-                if (!this.state.customerProfile || !this.state.customerProfile.name || !this.state.customerProfile.whatsapp_number) {
+                // FIX: Check if name is default 'Guest' or phone is missing to trigger onboarding
+                if (!this.state.customerProfile || this.state.customerProfile.name === 'Guest' || !this.state.customerProfile.whatsapp_number) {
                      this.showOnboardingModal();
                 } else if (this.state.tableNumber) {
                     this.startSession();
@@ -313,7 +316,7 @@
                     .single();
 
                 if (error && error.code === 'PGRST116') {
-                    // Profile not found, create it
+                    // No profile found for this auth.uid(), create one.
                     return this.createUserProfile(userId);
                 }
                 
@@ -326,35 +329,39 @@
                     return data;
                 }
                 
-                // Fallback just in case
+                // Fallback just in case, though 'PGRST116' should handle the "not found" case.
                 return this.createUserProfile(userId);
 
             } catch (error) {
                 console.error('Error fetching/creating profile:', error.message);
                 ui.showToast('Could not load user profile.');
-                // Create a temporary guest profile to allow app to function
+                // Create a local fallback profile to avoid app crash
                 this.state.customerProfile = { id: userId, name: 'Guest', loyalty_points: 0, whatsapp_number: null };
             }
         },
         
         async createUserProfile(userId) {
             try {
+                // Create a new user with the default name 'Guest'
                 const newProfile = { id: userId, name: 'Guest', loyalty_points: 0, whatsapp_number: null };
                 const { data, error } = await supabase
                     .from('customers')
                     .insert(newProfile)
-                    .select()
+                    .select('*, loyalty_points') // Select loyalty_points
                     .single();
                 
                 if (error) throw error;
                 
+                // Ensure loyalty_points is set, even if DB returns null
+                data.loyalty_points = data.loyalty_points || 0;
                 this.state.customerProfile = data;
                 return data;
                 
             } catch (error) {
+                // Handle race condition where profile was created by another process
                 if (error.code === '23505') { // Unique violation
-                    // This can happen in a race condition, try fetching again
-                    return this.fetchCustomerProfile();
+                    console.warn("Race condition: Profile already exists. Fetching.");
+                    return this.fetchCustomerProfile(); // Re-fetch the profile
                 }
                 console.error("Error creating profile:", error.message);
                 throw new Error(`Profile creation failed: ${error.message}`);
@@ -368,13 +375,10 @@
 
                 this.state.allMenuItems = data.filter(i => i.is_available);
 
-                // Group menu items by category
                 const groupedMenu = data.reduce((acc, item) => {
-                    if (!item.is_available) return acc; // Skip unavailable items
-                    
+                    if (!item.is_available) return acc;
                     const categoryName = item.category || 'Uncategorized';
                     let category = acc.find(c => c.category === categoryName);
-                    
                     if (!category) {
                         category = { category: categoryName, items: [] };
                         acc.push(category);
@@ -405,11 +409,16 @@
             const tableInputHTML = !this.state.tableNumber
                 ? `<input type="number" id="table-number-input" class="w-full p-3 border border-custom rounded-lg bg-secondary text-primary" placeholder="Your Table Number" required>`
                 : '';
+            
+            // Use profile data, but clear 'Guest'
+            const currentName = this.state.customerProfile?.name === 'Guest' ? '' : this.state.customerProfile?.name;
+            const currentPhone = this.state.customerProfile?.whatsapp_number || '';
+
             ui.showModal('onboarding-modal', `
                 <h2 class="text-2xl font-bold text-primary mb-2">Welcome to Bulb!</h2><p class="text-secondary mb-6">A few details to get you started.</p>
                 <div class="space-y-4">
-                    <input type="text" id="user-name-input" class="w-full p-3 border border-custom rounded-lg bg-secondary text-primary" placeholder="Your Name" required value="${this.state.customerProfile?.name || ''}">
-                    <input type="tel" id="mobile-number-input" class="w-full p-3 border border-custom rounded-lg bg-secondary text-primary" placeholder="Mobile Number (for Loyalty Points)" required value="${this.state.customerProfile?.whatsapp_number || ''}">
+                    <input type="text" id="user-name-input" class="w-full p-3 border border-custom rounded-lg bg-secondary text-primary" placeholder="Your Name" required value="${currentName || ''}">
+                    <input type="tel" id="mobile-number-input" class="w-full p-3 border border-custom rounded-lg bg-secondary text-primary" placeholder="Mobile Number (for Loyalty Points)" required value="${currentPhone || ''}">
                     ${tableInputHTML}
                 </div>
                 <button onclick="app.completeOnboarding()" class="w-full mt-6 brand-bg font-semibold py-3 px-6 rounded-lg">Let's Go</button>
@@ -430,48 +439,30 @@
             if (!phone || !/^\d{10}$/.test(phone.replace(/\D/g,''))) return ui.showToast("Please enter a valid 10-digit mobile number for loyalty points.");
             const cleanPhone = phone.replace(/\D/g,'');
 
-            let finalProfileData;
             try {
-                // Logic to handle existing users
-                
-                // 1. Check if profile exists by phone number (for returning users)
-                let { data: existingProfile, error: selectError } = await supabase.from('customers')
-                    .select('*, loyalty_points')
-                    .eq('whatsapp_number', cleanPhone)
-                    .maybeSingle();
-
-                if (selectError && selectError.code !== 'PGRST116') throw selectError;
-
-                if (existingProfile) {
-                    // Profile found by phone number. Link the current auth ID to it.
-                    finalProfileData = existingProfile;
-                    const { error: updateError } = await supabase.from('customers')
-                        .update({ id: this.state.user.id, name: name }) // Update auth ID and name
-                        .eq('whatsapp_number', cleanPhone);
-                    
-                    if (updateError) console.warn("Failed to update ID/Name on existing profile:", updateError);
-                    
-                    finalProfileData.id = this.state.user.id; // Update local state immediately
-                    finalProfileData.name = name;
-
-                } else {
-                    // Profile not found by phone. Update the current auth profile.
-                    const { data: updatedData, error: updateError } = await supabase.from('customers').update({
+                // User is already authenticated (anonymously). We are just UPDATING their profile.
+                const { data: updatedProfile, error } = await supabase
+                    .from('customers')
+                    .update({
                         name: name,
                         whatsapp_number: cleanPhone
                     })
-                    .eq('id', this.state.user.id)
+                    .eq('id', this.state.user.id) // Update the record matching the auth user's ID
                     .select('*, loyalty_points')
                     .single();
-                    
-                    if (updateError) throw updateError;
-                    finalProfileData = updatedData;
+
+                if (error) {
+                    // Handle potential error where phone number is already in use by another account
+                    if (error.code === '23505') { // unique_violation
+                        ui.showToast('This phone number is already linked to another account.');
+                        return; // Stop execution
+                    }
+                    throw error; // Throw other errors
                 }
                 
-                // If loyalty_points is missing from DB response for any reason, default it.
-                finalProfileData.loyalty_points = finalProfileData.loyalty_points || 0;
-                
-                this.state.customerProfile = finalProfileData;
+                // Update local state
+                updatedProfile.loyalty_points = updatedProfile.loyalty_points || 0;
+                this.state.customerProfile = updatedProfile;
                 this.state.tableNumber = tableNumber;
                 
                 // Call startSession/showMainInterface before closing modal
@@ -480,14 +471,8 @@
                 this.navigateTo('home', false); // Ensure UI updates
 
             } catch (error) {
-                console.error("Onboarding/Linking Error:", error);
-                if (error.message.includes('duplicate key value violates unique constraint')) {
-                    ui.showToast('This phone number might be linked to another session. Please retry.');
-                } else if (error.message.includes('violates row-level security policy for table')) {
-                     ui.showToast('Could not save profile due to security policy. Please contact support.');
-                } else {
-                     ui.showToast(`Could not save profile: ${error.message}`);
-                }
+                console.error("Onboarding Update Error:", error);
+                ui.showToast(`Could not save profile: ${error.message}`);
             }
         },
 
@@ -521,6 +506,7 @@
             ui.renderBottomNav();
             // Initial navigation is handled by the caller (onboarding/table entry)
             // or by init() when loading from hash
+            this.navigateTo(this.state.currentPage, false);
         },
 
         navigateTo(page, pushToHistory = true){
@@ -723,6 +709,10 @@
 
             btnElement.disabled = true; const originalBtnHTML = btnElement.innerHTML;
             btnElement.innerHTML = `<span class="flex items-center justify-center"><div class="spinner mr-2"></div> Processing...</span>`;
+            
+            // Disable the other button too
+            const otherBtn = [...$$('.payment-btn')].find(b => b !== btnElement);
+            if(otherBtn) otherBtn.disabled = true;
 
             const { subtotal, discountAmount, finalTotal } = this.calculateCartTotal();
             const pointsToRedeem = this.state.pointsToRedeem;
@@ -730,29 +720,31 @@
             let orderData;
 
             try {
-                // Verify Table
+                // 1. Verify Table
                 const { data: tableData, error: tableError } = await supabase.from('tables').select('id').eq('table_number', this.state.tableNumber).single();
                 if (tableError || !tableData) throw new Error(`Table #${this.state.tableNumber} invalid or not found.`);
 
-                // Verify Points
+                // 2. Verify Points
                 if (pointsToRedeem > 0) {
+                    // Re-fetch profile to prevent race conditions with points
                     const { data: currentProfile, error: profileError } = await supabase.from('customers').select('loyalty_points').eq('id', this.state.customerProfile.id).single();
                     if (profileError || !currentProfile || currentProfile.loyalty_points < pointsToRedeem) {
                          throw new Error('Insufficient points. Please refresh cart.');
                     }
                 }
 
+                // 3. Calculate effective discount
                 const effectiveDiscountPercent = (subtotal > 0) ? (discountAmount / subtotal) * 100 : 0;
 
-                // Create Order
+                // 4. Create Order
                 const orderPayload = {
                     customer_id: this.state.customerProfile.id,
                     table_id: tableData.id,
-                    total_amount: finalTotal,
+                    total_amount: finalTotal, // This is the final amount after discount+gst
                     discount_percentage: effectiveDiscountPercent,
                     discount_points_redeemed: pointsToRedeem,
                     discount_amount: discountAmount,
-                    final_amount: finalTotal,
+                    final_amount: finalTotal, // Field name redundancy for safety
                     payment_method: paymentMethod,
                     special_instructions: $('#special-instructions')?.value || '',
                     feedback_submitted: false
@@ -763,64 +755,67 @@
                 }
                 orderData = insertedOrder;
 
-                // Create Order Items
-                // Note: The `product_name` is now handled by the SQL trigger
+                // 5. Create Order Items
                 const orderItems = this.state.cart.map(i => ({
                     order_id: orderData.id,
                     product_id: i.id,
                     quantity: i.quantity,
                     price_at_time_of_order: i.price
-                    // product_name will be added by the trigger
+                    // product_name is now handled by a trigger in Supabase
                 }));
                 const { error: itemsError } = await supabase.from('order_items').insert(orderItems);
                 if (itemsError) {
-                    // Rollback order
+                    // Rollback: Delete the main order if items fail
                     await supabase.from('orders').delete().eq('id', orderData.id);
                     throw new Error(`Order items failed. ${itemsError.message}`);
                 }
 
-                // Points transactions
+                // 6. Handle Loyalty Points Transactions
                 try {
+                    // Redeem points
                     if (pointsToRedeem > 0) {
-                         await supabase.rpc('redeem_loyalty_points', { customer_id_input: this.state.customerProfile.id, points_to_redeem: pointsToRedeem });
+                         const { error: redeemError } = await supabase.rpc('redeem_loyalty_points', { customer_id_input: this.state.customerProfile.id, points_to_redeem: pointsToRedeem });
+                         if(redeemError) throw new Error(`Redeem RPC failed: ${redeemError.message}`);
                          this.state.customerProfile.loyalty_points -= pointsToRedeem;
                     }
 
+                    // Earn points
                     const pointsEarned = Math.floor(subtotal / 500) * 50;
                     if (pointsEarned > 0) {
-                         await supabase.rpc('increment_loyalty_points', { customer_id_input: this.state.customerProfile.id, points_to_add: pointsEarned });
+                         const { error: earnError } = await supabase.rpc('increment_loyalty_points', { customer_id_input: this.state.customerProfile.id, points_to_add: pointsEarned });
+                         if(earnError) throw new Error(`Earn RPC failed: ${earnError.message}`);
                          this.state.customerProfile.loyalty_points += pointsEarned;
                     }
                 } catch (pointsError) {
-                    // Log error but don't fail the order
+                    // Log error, but don't fail the whole order
                     console.warn("Points transaction failed after order success:", pointsError.message);
                     ui.showToast("Order placed, but points update failed.");
                     await this.fetchCustomerProfile(); // Re-sync profile
                 }
 
-                // Success flow
+                // 7. Success Flow
                 ui.closeModal('payment-modal');
                 this.state.activeOrder = orderData;
-                this.listenToOrderUpdates(orderData.id);
-                this.state.cart = [];
-                this.state.pointsToRedeem = 0;
-                this.refreshPage();
+                this.listenToOrderUpdates(orderData.id); // Start listening
+                this.state.cart = []; // Clear cart
+                this.state.pointsToRedeem = 0; // Reset points
+                this.refreshPage(); // Update UI
                 sound.play('success');
-                this.navigateTo('cart');
+                this.navigateTo('cart'); // Navigate to tracking page
 
             } catch (error) {
                 ui.showToast(`Order failed: ${error.message}`);
-                // Re-enable button on failure
+                // Re-enable buttons on failure
+                btnElement.disabled = false;
+                btnElement.innerHTML = originalBtnHTML;
+                if(otherBtn) otherBtn.disabled = false;
+                
+                // If error was points/profile related, re-sync
                 if (error.message.includes('points') || error.message.includes('profile')) {
-                    // Re-sync profile if points was the issue
                     await this.fetchCustomerProfile();
                     this.state.pointsToRedeem = 0;
                     this.refreshPage();
                 }
-                btnElement.disabled = false;
-                btnElement.innerHTML = originalBtnHTML;
-                const otherBtn = [...$$('.payment-btn')].find(b => b !== btnElement);
-                if(otherBtn) otherBtn.disabled = false;
             }
         },
 
@@ -942,7 +937,6 @@
         },
 
         copyCaption(text) {
-            // Use execCommand for reliability in iFrames
             const textArea = document.createElement("textarea");
             textArea.value = text;
             textArea.style.position = "fixed";
@@ -959,6 +953,15 @@
                 ui.showToast('Copy failed.');
             }
             document.body.removeChild(textArea);
+        },
+
+        async sendStaffCall(type) {
+            // This is a placeholder as we don't have a 'staff_calls' table
+            // In a real app, this would insert a row into a 'staff_calls' table
+            // which the admin panel would be listening to.
+            console.log(`Staff call: ${type} for table ${this.state.tableNumber}`);
+            ui.showToast('Staff has been notified!');
+            sound.play('success');
         }
     };
 
@@ -984,14 +987,11 @@
             
             // Check if we are closing the modal that corresponds to the current hash
             if (location.hash.substring(1) === id) {
-                // Use history.replaceState to avoid triggering popstate/navigation
+                // Use history.replaceState to clean up the URL without triggering popstate
                 history.replaceState(null, '', '#' + app.state.currentPage);
                 
                 // Call navigateTo with pushToHistory=false to ensure UI update without history change
-                // Use a slight delay to ensure the browser registers the hash change
-                setTimeout(() => {
-                    app.navigateTo(app.state.currentPage, false);
-                }, 0);
+                app.navigateTo(app.state.currentPage, false);
             }
         },
 
@@ -1002,11 +1002,15 @@
             toast.style.backgroundColor = 'var(--brand-primary)';
             toast.style.color = 'var(--bg-primary)';
 
-            // Simple show/hide, animations were causing issues
+            // Simple fade in/out, avoids complex keyframes
             toast.style.opacity = 1;
+            toast.style.transition = 'opacity 0.5s ease';
+
             setTimeout(() => {
                 toast.style.opacity = 0;
-                setTimeout(() => toast.classList.add('hidden'), 500);
+                setTimeout(() => {
+                   toast.classList.add('hidden');
+                }, 500);
             }, duration - 500);
         },
 
@@ -1500,14 +1504,6 @@
                  <button onclick="ui.closeModal('staff-modal')" class="w-full mt-6 bg-secondary font-semibold py-3 rounded-lg">Cancel</button>
             `);
         },
-
-        // This function is illustrative, it just shows a toast.
-        // For a real app, this would send a notification to the admin panel.
-        async sendStaffCall(type) {
-            ui.showToast(`A staff member has been called for ${type}.`);
-            // In a real app, you might insert into a 'staff_calls' table
-            // supabase.from('staff_calls').insert({ table_id: ..., type: type })
-        },
         
         showBrandSwitcherModal(){
             const currentBrand = app.state.theme === 'bulb' ? 'Bulb Cafe' : 'Gulabi Thali';
@@ -1584,18 +1580,26 @@
         async showOrderHistoryModal() {
             if (!app.state.customerProfile || !app.state.customerProfile.id) return ui.showToast("Error: Profile not loaded.");
             
-            // Fetch orders for the current customer
+            // Fetch orders and related items in one go
             const { data, error } = await supabase
                 .from('orders')
-                .select(`*, order_items (product_name, quantity), discount_amount, discount_points_redeemed`)
+                .select(`
+                    id,
+                    created_at,
+                    final_amount,
+                    total_amount,
+                    discount_amount,
+                    discount_points_redeemed,
+                    order_items ( product_name, quantity )
+                `)
                 .eq('customer_id', app.state.customerProfile.id)
                 .order('created_at', { ascending: false });
-            
-            if (error) {
-                ui.showToast(`Error fetching history: ${error.message}`);
-                return;
-            }
 
+            if (error) {
+                console.error("Error fetching history:", error);
+                return ui.showToast("Could not load order history.");
+            }
+            
             const historyHTML = data?.length > 0 ? data.map(o => {
                 const itemsList = o.order_items?.length > 0 ? o.order_items.map(i => `${i.product_name || 'Item'} (x${i.quantity})`).join(', ') : 'No items found';
                 return `
@@ -1732,7 +1736,7 @@
         app.init();
     });
 
-    // Expose app functions to be callable from inline HTML
+    // CRITICAL FIX: Move global exposure to the end of the script
     window.app = app;
     window.ui = ui;
     window.GAMES = GAMES; 
