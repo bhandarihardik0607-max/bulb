@@ -862,15 +862,15 @@
                         supabase.removeChannel(this.state.orderSubscription);
                         this.state.orderSubscription = null;
 
+                        // FIX: Redirect to Google Review
                         if (updatedOrder.status === 'delivered' && !updatedOrder.feedback_submitted) {
                              ui.showModal('review-modal', `
                                 <div class="text-center">
                                     <span class="text-3xl">⭐</span>
                                     <h2 class="text-2xl font-bold mt-4">Order Delivered!</h2>
-                                    <p class="text-secondary my-2">How was your experience? <br/>(+10 Loyalty Points for feedback!)</p>
-                                    <textarea id="feedback-text" class="w-full p-3 border border-custom rounded-lg bg-secondary" rows="3" placeholder="Tell us more..."></textarea>
-                                    <button onclick="app.submitFeedback('${orderId}')" class="w-full mt-4 brand-bg font-semibold py-3 rounded-lg">Submit Feedback</button>
-                                    <button onclick="ui.closeModal('review-modal')" class="w-full mt-2 bg-secondary py-3 rounded-lg">Maybe Later</button>
+                                    <p class="text-secondary my-2">Thank you for your order! We'd love to hear your feedback.</p>
+                                    <button onclick="app.handleReviewRedirect('${orderId}')" class="w-full mt-4 brand-bg font-semibold py-3 rounded-lg">Leave a Review on Google</button>
+                                    <button onclick="app.handleReviewSkip('${orderId}')" class="w-full mt-2 bg-secondary py-3 rounded-lg">No Thanks</button>
                                 </div>`);
                         } else if (updatedOrder.status === 'cancelled') {
                             ui.showToast('Your order has been cancelled.');
@@ -884,57 +884,35 @@
                 }).subscribe();
         },
 
-
-        async submitFeedback(orderId){
-            if (!this.state.customerProfile || !this.state.customerProfile.id) return ui.showToast("Error: Profile not loaded.");
-            const content = $('#feedback-text').value.trim();
-            if (!content) return ui.showToast("Please enter your feedback.");
-
-            const submitBtn = $('#review-modal button:first-of-type');
-            if (submitBtn) submitBtn.disabled = true;
-
+        // NEW: Helper function to mark feedback as submitted
+        async markFeedbackAsSubmitted(orderId) {
             try {
-                const { data: orderData, error: fetchError } = await supabase.from('orders').select('feedback_submitted').eq('id', orderId).single();
-                if (fetchError || !orderData) throw new Error("Could not verify order status.");
-                if (orderData.feedback_submitted) {
-                    ui.showToast("Feedback already submitted for this order.");
-                    ui.closeModal('review-modal');
-                    return;
-                }
-
-                // 1. Insert feedback
-                const { error: insertError } = await supabase.from('feedback').insert({
-                    order_id: orderId,
-                    customer_id: this.state.customerProfile.id,
-                    content: content,
-                    rating: 5 // Defaulting to 5 stars for simplicity
-                });
-                if (insertError) throw insertError;
-
-                // 2. Mark order as feedback submitted
-                 const { error: updateError } = await supabase.from('orders')
-                     .update({ feedback_submitted: true })
-                     .eq('id', orderId);
-                 if (updateError) console.warn("Could not mark order as feedback submitted:", updateError);
-
-                // 3. Award loyalty points
-                const { error: incrementError } = await supabase.rpc('increment_loyalty_points', { customer_id_input: this.state.customerProfile.id, points_to_add: 10 });
-                if (incrementError) {
-                    ui.showToast("Feedback submitted, but points award failed.");
-                }
-                else {
-                     this.state.customerProfile.loyalty_points += 10;
-                     ui.showToast("Thank you for your feedback! +10 Points added.");
-                }
-
-                ui.closeModal('review-modal');
-                this.refreshPage();
-
+                await supabase.from('orders')
+                    .update({ feedback_submitted: true })
+                    .eq('id', orderId);
             } catch (error) {
-                 ui.showToast(`Feedback failed: ${error.message}`);
-                 if (submitBtn) submitBtn.disabled = false;
+                console.warn("Could not mark feedback as submitted:", error);
             }
         },
+        
+        // NEW: Function to handle Google Review redirect
+        handleReviewRedirect(orderId) {
+            // This link is for "Bulb Cafe, Jaipur"
+            const reviewUrl = 'https://g.page/r/CbzP-Vv-pS4GEBM/review'; 
+            window.open(reviewUrl, '_blank');
+            this.markFeedbackAsSubmitted(orderId);
+            ui.closeModal('review-modal');
+        },
+
+        // NEW: Function to handle skipping the review
+        handleReviewSkip(orderId) {
+            this.markFeedbackAsSubmitted(orderId);
+            ui.closeModal('review-modal');
+        },
+
+        // OLD submitFeedback function is no longer needed
+        /* async submitFeedback(orderId){ ... } */
+
 
         copyCaption(text) {
             const textArea = document.createElement("textarea");
@@ -956,12 +934,29 @@
         },
 
         async sendStaffCall(type) {
-            // This is a placeholder as we don't have a 'staff_calls' table
-            // In a real app, this would insert a row into a 'staff_calls' table
-            // which the admin panel would be listening to.
-            console.log(`Staff call: ${type} for table ${this.state.tableNumber}`);
-            ui.showToast('Staff has been notified!');
-            sound.play('success');
+            // FIX: This now sends a real request to the 'staff_calls' table
+            if (!this.state.tableNumber) {
+                return ui.showToast("Please enter table number first.");
+            }
+            
+            try {
+                const { error } = await supabase
+                    .from('staff_calls')
+                    .insert({
+                        table_number: this.state.tableNumber,
+                        call_type: type,
+                        status: 'pending'
+                    });
+                
+                if (error) throw error;
+                
+                ui.showToast('Staff has been notified!');
+                sound.play('success');
+
+            } catch (error) {
+                console.error("Error calling staff:", error);
+                ui.showToast('Could not send call. Please alert staff manually.');
+            }
         }
     };
 
