@@ -176,9 +176,10 @@
         // Placeholder IDs (These are just for structure and won't filter out items incorrectly now)
         bestSellers: [1, 2, 3, 4], 
         captionIdeas: {
-            cafe_vibes: [ "Fueling my day with the best coffee @bulbcafe! 💡☕️", "Cozy corners and great beans at Bulb Cafe. #CafeVibes" ],
-            thali_time: [ "Feast mode ON! Enjoying the delicious thali at Gulabi Thali. 🍽️💖 #IndianFood", "Nothing beats a traditional thali! @gulabithali." ],
-            friends: [ "Great food and great company! Cheers from Bulb Cafe. 🎉", "Lunch plans sorted! @bulbcafe" ]
+            // UPDATED social handles
+            cafe_vibes: [ "Fueling my day with the best coffee @a_bulbcafejaipur! 💡☕️", "Cozy corners and great beans at Bulb Cafe. #CafeVibes" ],
+            thali_time: [ "Feast mode ON! Enjoying the delicious thali at Gulabi Thali. 🍽️💖 #IndianFood", "Nothing beats a traditional thali! @gulabithali_thecloudkitchen." ],
+            friends: [ "Great food and great company! Cheers from Bulb Cafe. 🎉", "Lunch plans sorted! @a_bulbcafejaipur" ]
         }
     };
     
@@ -1404,12 +1405,17 @@
         },
 
         renderSocialPage(){
-            const currentBrandName = app.state.theme === 'bulb' ? 'Bulb Cafe' : 'Gulabi Thali';
-            const switchTheme = app.state.theme === 'bulb' ? 'gulabi' : 'bulb';
-            const switchBrandName = switchTheme === 'bulb' ? 'BULB CAFE' : 'GULABI THALI';
-            const switchButtonColor = switchTheme === 'bulb' ? 'bg-yellow-500' : 'bg-pink-500';
+            // UPDATED: Dynamically show correct social handle based on theme
+            const isBulb = app.state.theme === 'bulb';
+            const socialHandle = isBulb ? '@a_bulbcafejaipur' : '@gulabithali_thecloudkitchen';
+            const socialUrl = isBulb ? 'https://instagram.com/a_bulbcafejaipur' : 'https://instagram.com/gulabithali_thecloudkitchen';
+            
+            const currentBrandName = isBulb ? 'Bulb Cafe' : 'Gulabi Thali';
+            const switchTheme = isBulb ? 'gulabi' : 'bulb';
+            const switchBrandName = isBulb ? 'GULABI THALI' : 'BULB CAFE';
+            const switchButtonColor = isBulb ? 'bg-pink-500' : 'bg-yellow-500'; // Colors updated to match switch target
 
-            const socialCaption = currentBrandName === 'Bulb Cafe' 
+            const socialCaption = isBulb 
                 ? "Post your coffee pics! Tag us for a shoutout." 
                 : "Share your thali feast! Tag us to be featured.";
 
@@ -1419,7 +1425,7 @@
                         <h2 class="text-2xl font-bold text-primary">Join Our Community!</h2>
                         <p class="text-secondary mt-1">${socialCaption}</p>
                         
-                        <a href="https://instagram.com/gulabithali" target="_blank" class="social-card-gradient text-2xl font-bold my-4 block">@gulabithali</a>
+                        <a href="${socialUrl}" target="_blank" class="social-card-gradient text-2xl font-bold my-4 block">${socialHandle}</a>
                         <p class="text-xs text-secondary mt-2">Scan to follow the official account!</p>
                     </div>
 
@@ -1503,8 +1509,8 @@
         showBrandSwitcherModal(){
             const currentBrand = app.state.theme === 'bulb' ? 'Bulb Cafe' : 'Gulabi Thali';
             const switchTheme = app.state.theme === 'bulb' ? 'gulabi' : 'bulb';
-            const switchBrandName = switchTheme === 'bulb' ? 'BULB CAFE' : 'GULABI THALI';
-            const switchButtonColor = switchTheme === 'bulb' ? 'bg-yellow-500' : 'bg-pink-500';
+            const switchBrandName = switchTheme === 'bulb' ? 'GULABI THALI' : 'BULB CAFE';
+            const switchButtonColor = switchTheme === 'bulb' ? 'bg-pink-500' : 'bg-yellow-500'; // Colors updated to match switch target
 
             ui.showModal('brand-switcher-modal', `
                 <h2 class="text-2xl font-bold text-center mb-4">Switch Menu View</h2>
@@ -1739,4 +1745,3 @@
 </script>
 </body>
 </html>
-
