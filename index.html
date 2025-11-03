@@ -664,8 +664,16 @@
             const redeemablePercentage = 0.70;
             const redeemablePoints = Math.floor(availablePoints * redeemablePercentage);
 
+            // --- FIX START ---
+            // Calculate max redeemable based on subtotal (1 point = 1 rupee)
+            const maxRedeemableBySubtotal = Math.floor(subtotal);
+            
+            // The actual max redeemable is the minimum of what they have (70%) and the order total
+            const maxRedeemableForOrder = Math.min(redeemablePoints, maxRedeemableBySubtotal);
+            // --- FIX END ---
+
             // 2. Clamp current discount
-            const actualPointsToRedeem = Math.min(this.state.pointsToRedeem, maxRedeemableForOrder);
+            const actualPointsToRedeem = Math.min(this.state.pointsToRedeem, maxRedeemableForOrder); // This line is now correct
             const discountAmount = actualPointsToRedeem;
 
             // 3. Update state if clamped
@@ -1769,4 +1777,5 @@
 </script>
 </body>
 </html>
+
 
