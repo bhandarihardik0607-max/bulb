@@ -288,7 +288,8 @@
                 if (!this.state.customerProfile || this.state.customerProfile.name === 'Guest' || !this.state.customerProfile.whatsapp_number) {
                      this.showOnboardingModal();
                 } else if (this.state.tableNumber) {
-                    this.startSession();
+                    // this.startSession(); // OLD: Directly start session
+                    ui.showBrandChoiceModal(); // NEW: Returning user with table in URL, ask for brand
                 } else {
                     this.showTableNumberModal();
                 }
@@ -442,25 +443,38 @@
             const cleanPhone = phone.replace(/\D/g,'');
 
             try {
-                // User is already authenticated (anonymously). We are just UPDATING their profile.
-                const { data: updatedProfile, error } = await supabase
+                // --- FIX START ---
+                // Step 1: Perform the update WITHOUT select().
+                const { error: updateError } = await supabase
                     .from('customers')
                     .update({
                         name: name,
                         whatsapp_number: cleanPhone
                     })
-                    .eq('id', this.state.user.id) // Update the record matching the auth user's ID
-                    .select('*, loyalty_points')
-                    .single();
+                    .eq('id', this.state.user.id); // Update the record matching the auth user's ID
 
-                if (error) {
+                if (updateError) {
                     // Handle potential error where phone number is already in use by another account
-                    if (error.code === '23505') { // unique_violation
+                    if (updateError.code === '23505') { // unique_violation
                         ui.showToast('This phone number is already linked to another account.');
                         return; // Stop execution
                     }
-                    throw error; // Throw other errors
+                    throw updateError; // Throw other errors
                 }
+
+                // Step 2: Now, fetch the updated profile data separately.
+                const { data: updatedProfile, error: selectError } = await supabase
+                    .from('customers')
+                    .select('*, loyalty_points')
+                    .eq('id', this.state.user.id)
+                    .single();
+                
+                if (selectError) {
+                    // This is where the PGRST116 might happen, but it shouldn't if the update worked.
+                    // If it does, it's an RLS issue or a logic flow problem.
+                    throw selectError;
+                }
+                // --- FIX END ---
                 
                 // Update local state
                 updatedProfile.loyalty_points = updatedProfile.loyalty_points || 0;
@@ -468,9 +482,10 @@
                 this.state.tableNumber = tableNumber;
                 
                 // Call startSession/showMainInterface before closing modal
-                await this.startSession();
+                // await this.startSession(); // OLD
                 ui.closeModal('onboarding-modal');
-                this.navigateTo('home', false); // Ensure UI updates
+                ui.showBrandChoiceModal(); // NEW: Show brand choice
+                // this.navigateTo('home', false); // OLD
 
             } catch (error) {
                 console.error("Onboarding Update Error:", error);
@@ -492,8 +507,22 @@
             const tableNumber = $('#table-number-input').value;
             if (!tableNumber) return ui.showToast("Please enter your table number.");
             this.state.tableNumber = parseInt(tableNumber);
-            this.startSession();
+            // this.startSession(); // OLD
             ui.closeModal('table-number-modal');
+            ui.showBrandChoiceModal(); // NEW: Show brand choice
+            // this.navigateTo('home', false); // OLD
+        },
+
+        // NEW: This function is called AFTER user chooses a brand
+        async selectBrand(theme) {
+            this.state.theme = theme;
+            localStorage.setItem('brand-theme', theme);
+            this.applyTheme();
+            
+            ui.closeModal('brand-choice-modal');
+            
+            // This is the logic that used to be in onboarding/table entry
+            await this.startSession();
             this.navigateTo('home', false);
         },
 
@@ -1488,6 +1517,34 @@
                 </div>`;
         },
 
+        // NEW: Modal to ask user for brand choice
+        showBrandChoiceModal() {
+            ui.showModal('brand-choice-modal', `
+                <h2 class="text-2xl font-bold text-primary mb-4 text-center">Where are you dining?</h2>
+                <p class="text-secondary text-center mb-8">Please select your destination to see the correct menu.</p>
+                <div class="space-y-4">
+                    <!-- Bulb Cafe Option -->
+                    <button onclick="app.selectBrand('bulb')" class="w-full text-left bg-secondary p-6 rounded-xl border-2 border-custom hover:border-yellow-500 transition-all transform hover:scale-[1.02]">
+                        <div class="flex items-center mb-2">
+                            <span class="text-4xl mr-4">💡</span>
+                            <h3 class="text-2xl font-bold" style="color: var(--brand-primary-yellow);">Bulb Cafe</h3>
+                        </div>
+                        <p class="text-secondary">Your all-day destination for specialty coffee, quick bites, snacks, and a vibrant co-working atmosphere.</p>
+                    </button>
+                    
+                    <!-- Gulabi Thali Option -->
+                    <button onclick="app.selectBrand('gulabi')" class="w-full text-left bg-secondary p-6 rounded-xl border-2 border-custom hover:border-pink-500 transition-all transform hover:scale-[1.02]">
+                        <div class="flex items-center mb-2">
+                            <span class="text-4xl mr-4">🍛</span>
+                            <h3 class="text-2xl font-bold" style="color: var(--brand-primary-pink);">Gulabi Thali</h3>
+                        </div>
+                        <p class="text-secondary">Experience authentic Indian cuisine with our specialized dine-in thalis, operating from our kitchen inside Bulb Cafe.</p>
+                    </button>
+                </div>
+                <!-- This modal is not cancellable, a choice is required -->
+            `);
+        },
+
         showCallStaffModal() {
             ui.showModal('staff-modal', `
                  <h2 class="text-2xl font-bold text-center mb-4">Call Assistance</h2>
@@ -1528,7 +1585,7 @@
         },
 
         showItemDetailModal(itemId){
-            const item = app.state.allMenuItems.find(i => i.id === itemId); if (!item) return;
+            const item = this.state.allMenuItems.find(i => i.id === itemId); if (!item) return;
             const cartItem = app.state.cart.find(ci => ci.id === itemId);
             const currentQuantity = cartItem ? cartItem.quantity : 0;
             const isViewOnly = app.state.theme === 'gulabi';
@@ -1739,3 +1796,4 @@
 </script>
 </body>
 </html>
+
