@@ -21,7 +21,10 @@
         :root {
             /* Theme Variables */
             --bg-primary-light: #FFFFFF; --bg-secondary-light: #F3F4F6; --text-primary-light: #111827; --text-secondary-light: #6B7280; --border-light: #E5E7EB; --brand-primary-light: #111827;
+            
+            /* UPDATED: Dark theme is now the neutral base for intro */
             --bg-primary-dark: #111111; --bg-secondary-dark: #1F2023; --text-primary-dark: #F9FAFB; --text-secondary-dark: #9CA3AF; --border-dark: #374151; --brand-primary-dark: #FFFFFF;
+            
             --bg-primary-yellow: #FFFBEB; --bg-secondary-yellow: #FEF3C7; --text-primary-yellow: #92400E; --text-secondary-yellow: #B45309; --border-yellow: #FDE68A; --brand-primary-yellow: #F59E0B;
             --bg-primary-pink: #FFF5F7; --bg-secondary-pink: #FCE7F6; --text-primary-pink: #9D174D; --text-secondary-pink: #E94C8F; --border-pink: #FBCFE8; --brand-primary-pink: #DB2777;
             --app-height: 100vh;
@@ -34,7 +37,14 @@
 
         /* Base & Utility Styles */
         html, body { height: 100%; overflow: hidden; }
-        body { font-family: 'Poppins', sans-serif; background-color: #000000; color: var(--text-primary); -webkit-tap-highlight-color: transparent; transition: background-color 0.5s ease; }
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            /* Start with dark bg for intro */
+            background-color: var(--bg-primary-dark); 
+            color: var(--text-primary-dark); 
+            -webkit-tap-highlight-color: transparent; 
+            transition: background-color 0.5s ease; 
+        }
         .app-container { background-color: var(--bg-primary); transition: background-color 0.5s ease; height: var(--app-height); }
         .text-primary { color: var(--text-primary); } .text-secondary { color: var(--text-secondary); }
         .bg-primary { background-color: var(--bg-primary); } .bg-secondary { background-color: var(--bg-secondary); }
@@ -52,8 +62,16 @@
             overflow-y: auto;
         }
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        #splash-screen .brand-logo { animation: pulse 2s infinite ease-in-out; }
-        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        
+        /* New Pulse for choice screen */
+        .pulse-choice {
+            animation: pulseChoice 2s infinite ease-in-out;
+        }
+        @keyframes pulseChoice {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.1); }
+            50% { transform: scale(1.03); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+        }
+
 
         /* Custom UI Elements */
         .horizontal-scroll::-webkit-scrollbar { display: none; }
@@ -109,17 +127,97 @@
             -webkit-text-fill-color: transparent;
         }
 
+        /* NEW: Menu Accordion Styles */
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding: 1rem; /* 16px */
+            background-color: var(--bg-secondary);
+            border-radius: 0.5rem; /* 8px */
+            border: 1px solid var(--border-color);
+        }
+        .category-header h3 {
+            font-size: 1.25rem; /* 20px */
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .category-header span {
+            font-size: 1.5rem; /* 24px */
+            font-weight: 700;
+            color: var(--brand-primary);
+            transition: transform 0.3s ease;
+        }
+        .category-header[aria-expanded="true"] span {
+            transform: rotate(45deg);
+        }
+        .category-items {
+            padding: 0.5rem;
+            border-left: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            border-radius: 0 0 0.5rem 0.5rem;
+            background-color: var(--bg-primary);
+            transition: all 0.3s ease-in-out;
+            overflow: hidden;
+        }
+        .category-items.hidden {
+            display: none;
+        }
+
     </style>
 </head>
-<body data-theme="bulb">
+<!-- Default theme is dark for intro -->
+<body data-theme="dark">
 
-    <!-- Splash Screen with Brand Logo -->
-    <div id="splash-screen" class="fixed inset-0 bg-primary flex flex-col items-center justify-center z-[100]">
-        <!-- Bulb Logo -->
-        <div class="brand-logo text-7xl mb-4" style="color: var(--brand-primary);">💡</div>
-        <h1 class="text-3xl font-bold brand-text">BULB CAFE</h1>
+    <!-- Splash Screen with INTRO VIDEO -->
+    <div id="splash-screen" class="fixed inset-0 bg-primary flex flex-col items-center justify-center z-[100] p-4">
+        <video id="intro-video" 
+               src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/have_this_bulb_glowing_up_and.mp4" 
+               autoplay 
+               muted 
+               playsinline 
+               preload="auto" 
+               class="max-w-sm w-full rounded-lg shadow-2xl">
+        </video>
+        <p class="text-secondary mt-4">Loading...</p>
     </div>
 
+    <!-- NEW: Choice Screen -->
+    <div id="choice-screen" class="fixed inset-0 bg-primary z-[99] flex flex-col items-center justify-center p-6 space-y-8 hidden fade-in">
+        <h1 class="text-3xl font-bold text-primary text-center">Welcome</h1>
+        <p class="text-xl text-secondary text-center max-w-md">Please select your destination</p>
+        
+        <div class="w-full max-w-sm space-y-6">
+            <!-- Bulb Cafe Choice -->
+            <div onclick="app.selectBrand('bulb')" 
+                 class="bg-secondary rounded-2xl p-6 text-center cursor-pointer border border-custom transition-all duration-300 transform hover:scale-105 pulse-choice"
+                 style="animation-delay: 0s;">
+                <img src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/429351096_763581305304798_8823152985320369357_n.jpg" 
+                     alt="Bulb Cafe Logo" 
+                     class="w-24 h-24 object-cover rounded-full mx-auto mb-4 border-4 border-yellow-500"
+                     onerror="this.style.display='none';">
+                <h2 class="text-2xl font-bold text-yellow-500 mb-2">BULB CAFE</h2>
+                <p class="text-secondary">Our vibrant cafe experience. Order from your table for coffee, snacks, and co-working.</p>
+            </div>
+            
+            <!-- Gulabi Thali Choice -->
+            <div onclick="app.selectBrand('gulabi')" 
+                 class="bg-secondary rounded-2xl p-6 text-center cursor-pointer border border-custom transition-all duration-300 transform hover:scale-105 pulse-choice"
+                 style="animation-delay: 0.5s;">
+                <img src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/403946165_1014623216287649_4686052002313628516_n%20(1).jpg" 
+                     alt="Gulabi Thali Logo" 
+                     class="w-24 h-24 object-cover rounded-full mx-auto mb-4 border-4 border-pink-500"
+                     onerror="this.style.display='none';">
+                <h2 class="text-2xl font-bold text-pink-500 mb-2">GULABI THALI</h2>
+                <p class="text-secondary">Our cloud kitchen. View the menu for catering and bulk orders.</p>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Main App Container (hidden until choice is made) -->
     <div id="app" class="app-container max-w-lg mx-auto shadow-2xl flex flex-col hidden">
         <main class="flex-grow overflow-y-auto">
             <div id="main-interface" class="hidden">
@@ -228,12 +326,12 @@
             tableNumber: null,
             user: null,
             customerProfile: null,
-            theme: localStorage.getItem('brand-theme') || 'bulb', // Default to Bulb brand theme
+            theme: 'dark', // Start with neutral theme
             menuData: [],
             allMenuItems: [],
             appSettings: {},
             orderSubscription: null,
-            currentMenuCategory: null,
+            // currentMenuCategory: null, // No longer needed for accordion
             searchQuery: '',
             searchResults: [],
             pointsToRedeem: 0,
@@ -246,10 +344,25 @@
                 return; 
             }
 
-            // Apply theme first to style splash screen
+            // Apply 'dark' theme first for intro
             this.applyTheme();
             $('#splash-screen').classList.remove('hidden');
 
+            // Add video end listener
+            const introVideo = $('#intro-video');
+            if (introVideo) {
+                introVideo.onended = () => ui.showChoiceScreen();
+                // Fallback for browsers that don't fire 'onended' quickly
+                setTimeout(() => {
+                    if (!$('#choice-screen').classList.contains('hidden')) return; // Already shown
+                    ui.showChoiceScreen();
+                }, 5000); // 5 sec fallback
+            } else {
+                // If video fails to load, go straight to choice
+                ui.showChoiceScreen();
+            }
+
+            // Set up hardware back button, but don't navigate yet
             const initialHash = location.hash.substring(1);
             if (PAGES.includes(initialHash)) {
                  this.state.currentPage = initialHash;
@@ -259,6 +372,22 @@
             }
             window.addEventListener('popstate', this.handleHardwareBack.bind(this));
 
+            // DO NOT call startAppFlow() here. It will be called by selectBrand().
+        },
+        
+        // NEW: Show the choice screen
+        selectBrand(theme) {
+            sound.play('click');
+            this.state.theme = theme;
+            localStorage.setItem('brand-theme', theme);
+            this.applyTheme(); // Apply the chosen brand theme
+            
+            $('#choice-screen').classList.add('fade-out');
+            setTimeout(() => {
+                $('#choice-screen').classList.add('hidden');
+            }, 500);
+            
+            // Now start the main app flow
             this.startAppFlow();
         },
 
@@ -290,7 +419,7 @@
                 await Promise.all([ this.fetchMenuData(), this.fetchAppSettings() ]);
 
                 // 4. START UI
-                $('#splash-screen').style.display = 'none';
+                // Splash screen is already gone, choice screen is fading out.
                 $('#app').classList.remove('hidden');
                 $('#app').classList.add('flex');
 
@@ -309,9 +438,11 @@
                     }
                 }
 
-            } catch (error) {
+            } catch (error)
+            {
                 console.error("CRITICAL: App Initialization failed.", error);
-                $('#splash-screen').innerHTML = `<div class="text-primary text-center p-4">Could not load app: ${error.message}</div>`;
+                // If app flow fails, show error on a dark screen
+                document.body.innerHTML = `<div class="text-white text-center p-4">Could not load app: ${error.message}</div>`;
             }
         },
 
@@ -604,6 +735,9 @@
         applyTheme(){ document.body.dataset.theme = this.state.theme; },
         
         toggleTheme(t){ 
+            // This function is now just for switching *from* a brand
+            // The choice screen handles the initial selection
+            sound.play('click');
             ui.closeModal('brand-switcher-modal'); 
             this.state.theme = t; 
             localStorage.setItem('brand-theme', t); 
@@ -621,8 +755,8 @@
                 ui.renderBottomNav(); // Re-render to ensure correct state
             }
             
-            // Force content re-render
-            this.navigateTo(this.state.currentPage, false); 
+            // Force content re-render to the 'home' page of the new theme
+            this.navigateTo('home', true); 
         },
 
         addOrUpdateCart(itemId, quantityChange) {
@@ -648,7 +782,17 @@
                 if (quantityChange > 0) sound.play('add_to_cart');
             }
             this.state.pointsToRedeem = 0; // Reset points on cart change
-            this.refreshPage();
+
+            // --- NO-JUMP REFRESH ---
+            // this.refreshPage(); // OLD
+            ui.updateMenuItemUI(itemId); // NEW: Update just the item
+            ui.refreshCartDependentUI(); // NEW: Update cart icon
+            
+            // NEW: If we are on the cart page, we must refresh its content
+            if (this.state.currentPage === 'cart') {
+                ui.renderPageContent('cart');
+            }
+            // --- END NO-JUMP REFRESH ---
         },
 
         setCartItemQuantity(itemId, quantity) {
@@ -676,21 +820,31 @@
                 ui.showToast('Cart updated!');
             }
             this.state.pointsToRedeem = 0; // Reset points on quantity change
-            ui.closeModal('item-detail-modal');
-            this.refreshPage();
+            
+            // --- NO-JUMP REFRESH ---
+            // this.refreshPage(); // OLD
+            ui.updateMenuItemUI(itemId); // NEW: Update just the item
+            ui.refreshCartDependentUI(); // NEW: Update cart icon
+            ui.closeModal('item-detail-modal'); // Already here, good
+            
+            // NEW: If we are on the cart page, we must refresh its content
+            if (this.state.currentPage === 'cart') {
+                ui.renderPageContent('cart');
+            }
+            // --- END NO-JUMP REFRESH ---
         },
 
         performSearch(query) {
              const searchContainer = $('#search-results-container');
-             const menuContainer = $('#menu-items');
-             const tabsContainer = $('#category-tabs-container');
+             const menuContainer = $('#menu-items'); // This is now the accordion
+             // const tabsContainer = $('#category-tabs-container'); // This is gone
              const activeBrand = this.state.theme === 'bulb' ? 'Bulb Cafe' : 'Gulabi Thali';
              this.state.searchQuery = query.toLowerCase().trim();
 
              if (this.state.searchQuery.length > 1) {
                 if (searchContainer) searchContainer.classList.remove('hidden');
-                if (menuContainer) menuContainer.classList.add('hidden');
-                if (tabsContainer) tabsContainer.classList.add('hidden');
+                if (menuContainer) menuContainer.classList.add('hidden'); // Hide accordion
+                // if (tabsContainer) tabsContainer.classList.add('hidden'); // Gone
                 
                 this.state.searchResults = this.state.allMenuItems.filter(item => {
                     // Safe check for brand and null properties
@@ -702,15 +856,16 @@
                     
                     return itemName.includes(this.state.searchQuery) || itemDesc.includes(this.state.searchQuery);
                 });
+                // Render search results into their own container
                 ui.renderMenuItems(this.state.searchResults, 'search-results-container');
              } else {
+                // Clear search
                 if (searchContainer) searchContainer.classList.add('hidden');
-                if (menuContainer) menuContainer.classList.remove('hidden');
-                if (tabsContainer) tabsContainer.classList.remove('hidden');
+                if (menuContainer) menuContainer.classList.remove('hidden'); // Show accordion
+                // if (tabsContainer) tabsContainer.classList.remove('hidden'); // Gone
                 this.state.searchResults = [];
                 
-                // Go back to the currently selected category when search is cleared
-                this.filterMenuByCategory(this.state.currentMenuCategory || 'All Menu', null);
+                // No need to filter, just show the main accordion
              }
         },
 
@@ -764,6 +919,8 @@
         },
 
         refreshPage(){
+            // This function is now only for full-page refreshes (like nav)
+            // NOT for cart updates
             this.applyTheme();
             ui.refreshCartDependentUI();
             if (PAGES.includes(this.state.currentPage)) {
@@ -980,10 +1137,6 @@
             ui.closeModal('review-modal');
         },
 
-        // OLD submitFeedback function is no longer needed
-        /* async submitFeedback(orderId){ ... } */
-
-
         copyCaption(text) {
             const textArea = document.createElement("textarea");
             textArea.value = text;
@@ -1032,6 +1185,16 @@
 
     // --- UI RENDERING ---
     const ui = {
+        // NEW: Show choice screen
+        showChoiceScreen() {
+            $('#splash-screen').classList.add('fade-out');
+            setTimeout(() => {
+                $('#splash-screen').classList.add('hidden');
+            }, 500);
+            
+            $('#choice-screen').classList.remove('hidden');
+        },
+
         showModal(id, content) {
             location.hash = id;
             const existingModal = $(`#${id}`);
@@ -1056,7 +1219,7 @@
                 history.replaceState(null, '', '#' + app.state.currentPage);
                 
                 // Call navigateTo with pushToHistory=false to ensure UI update without history change
-                app.navigateTo(app.state.currentPage, false);
+                // app.navigateTo(app.state.currentPage, false); // This line is not strictly needed
             }
         },
 
@@ -1095,6 +1258,9 @@
             if (app.state.theme === 'gulabi') {
                  header.innerHTML = `
                     <div class="flex items-center space-x-2">
+                         <img src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/403946165_1014623216287649_4686052002313628516_n%20(1).jpg" 
+                             alt="Gulabi Thali" class="h-10 w-10 rounded-full object-cover"
+                             onerror="this.style.display='none';">
                         <h1 class="text-2xl font-bold brand-text">GULABI THALI</h1>
                     </div>
                     <div class="text-right">
@@ -1108,6 +1274,9 @@
             const config = pageConfigs[page] || { title: currentBrandName };
             header.innerHTML = `
                 <div class="flex items-center space-x-2">
+                    <img src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/429351096_763581305304798_8823152985320369357_n.jpg" 
+                         alt="Bulb Cafe" class="h-10 w-10 rounded-full object-cover"
+                         onerror="this.style.display='none';">
                     <h1 class="text-2xl font-bold brand-text">${config.title}</h1>
                 </div>
                 <div class="text-right">
@@ -1191,7 +1360,12 @@
                     <div class="relative h-48 overflow-hidden rounded-lg shadow-lg">
                         <video src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/WhatsApp%20Video%202025-11-01%20at%2020.52.47_2473f7b8.mp4" autoplay loop muted playsinline preload="metadata" class="absolute top-1/2 left-1/2 w-full h-full object-cover -translate-x-1/2 -translate-y-1/2"></video>
                         <div class="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white text-center p-4">
-                            <h1 class="text-4xl font-bold">GULABI THALI</h1>
+                            <!-- LOGO ADDED HERE -->
+                            <img src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/403946165_1014623216287649_4686052002313628516_n%20(1).jpg" 
+                                 alt="Gulabi Thali Logo" 
+                                 class="w-28 h-28 object-cover rounded-full mx-auto mb-2 border-4 border-pink-500"
+                                 onerror="this.style.display='none';">
+                            <!-- <h1 class="text-4xl font-bold">GULABI THALI</h1> -->
                             <p class="text-lg font-medium">Cloud Kitchen</p>
                         </div>
                     </div>
@@ -1269,13 +1443,43 @@
             }
         },
 
+        // NEW: Function to update just one item's UI on the menu
+        updateMenuItemUI(itemId) {
+            const item = app.state.allMenuItems.find(i => i.id === itemId);
+            if (!item) return;
+            const cartItem = app.state.cart.find(ci => ci.id === itemId);
+            
+            // Find all instances of this item on the page (e.g., in accordion and in search)
+            const itemElements = $$(`[data-item-id="${item.id}"]`);
+            if (itemElements.length === 0) return;
+
+            let actionButtonHTML;
+            if (cartItem) {
+                actionButtonHTML = `<div class="quantity-control" onclick="event.stopPropagation();">
+                       <button onclick="app.addOrUpdateCart(${item.id}, -1)">-</button>
+                       <span>${cartItem.quantity}</span>
+                       <button onclick="app.addOrUpdateCart(${item.id}, 1)">+</button>
+                   </div>`;
+            } else {
+                actionButtonHTML = `<button class="add-to-cart-btn" onclick="event.stopPropagation(); app.addOrUpdateCart(${item.id}, 1)">
+                       +
+                   </button>`;
+            }
+
+            itemElements.forEach(itemElement => {
+                const container = itemElement.querySelector('.item-action-container');
+                if (container) {
+                    container.innerHTML = actionButtonHTML;
+                }
+            });
+        },
+
+
         renderHomePage(){
             const currentBrandName = app.state.theme === 'bulb' ? 'BULB CAFE' : 'GULABI THALI';
-            const switchTheme = app.state.theme === 'bulb' ? 'gulabi' : 'bulb';
-            // FIX: The logic for the button text was inverted.
-            // It should show the name of the brand you are *switching to*.
-            const switchBrandName = app.state.theme === 'bulb' ? 'GULABI THALI' : 'BULB CAFE';
-            const switchButtonColor = switchTheme === 'bulb' ? 'bg-pink-500' : 'bg-yellow-500';
+            const switchTheme = 'gulabi';
+            const switchBrandName = 'GULABI THALI';
+            const switchButtonColor = 'bg-pink-500';
 
             const activeOrderHTML = app.state.activeOrder ? `<div class="bg-blue-500/10 border-2 border-blue-500/20 rounded-xl p-4 text-center"> <h2 class="font-bold text-primary">Your order is ${app.state.activeOrder.status}!</h2> <p class="text-secondary text-sm">Order ID: #${app.state.activeOrder.id.slice(0,6)}</p> <button onclick="app.navigateTo('cart')" class="mt-2 text-sm font-semibold text-blue-600 hover:underline">View Details &rarr;</button> </div>` : '';
             
@@ -1324,6 +1528,7 @@
                 </div>`;
         },
 
+        // --- NEW: Vertical Accordion Menu Page ---
         renderMenuPage(){
             const content = $('#page-content');
             const activeBrand = app.state.theme === 'bulb' ? 'Bulb Cafe' : 'Gulabi Thali';
@@ -1341,7 +1546,7 @@
                  return;
             }
 
-            // Group filtered items by category for tab creation
+            // Group filtered items by category for accordion creation
             const categoryMap = brandItems.reduce((acc, item) => {
                 const category = item.category || 'Uncategorized';
                 if (!acc[category]) {
@@ -1351,27 +1556,40 @@
                 return acc;
             }, {});
             
-            // Build tab list (All Menu + Categories)
-            const allCategories = [{ category: 'All Menu' }, ...Object.keys(categoryMap).map(c => ({ category: c }))];
-
-            if (!app.state.currentMenuCategory || !allCategories.some(c => c.category === app.state.currentMenuCategory)) {
-                 app.state.currentMenuCategory = 'All Menu';
-            }
+            const categories = Object.keys(categoryMap);
 
             content.innerHTML = `
                 <div id="active-order-banner" class="p-4 hidden"></div>
                 <div class="p-4">
                     <input type="text" id="menu-search-input" placeholder="Search menu..." class="w-full p-3 border-2 border-custom rounded-lg bg-secondary text-primary text-lg" oninput="app.performSearch(this.value)" value="${app.state.searchQuery}">
                 </div>
-                <div id="category-tabs-container" class="horizontal-scroll sticky top-16 bg-primary z-10 flex space-x-4 px-4 pb-3 overflow-x-auto border-b border-custom">
-                    ${allCategories.map(c => `
-                        <button class="category-tab whitespace-nowrap font-semibold py-2 px-1 ${app.state.currentMenuCategory === c.category ? 'brand-text border-b-2 border-current' : 'text-secondary'}"
-                                data-category="${c.category}"
-                                onclick="ui.filterMenuByCategory('${c.category}', this)">
-                            ${c.category}
-                        </button>`).join('')}
+                
+                <!-- NEW: Vertical Accordion -->
+                <div id="menu-items" class="p-4 space-y-4">
+                    ${categories.map(category => {
+                        const categoryId = category.replace(/[^a-zA-Z0-9]/g, '');
+                        const items = categoryMap[category];
+                        return `
+                        <div class="category-section">
+                            <button class="category-header" 
+                                    aria-expanded="false" 
+                                    aria-controls="items-${categoryId}"
+                                    onclick="ui.toggleCategory('items-${categoryId}', this)">
+                                <h3>${category}</h3>
+                                <span>+</span>
+                            </button>
+                            <div id="items-${categoryId}" class="category-items hidden">
+                                <!-- Items will be rendered here -->
+                                <div class="grid grid-cols-1 gap-4">
+                                ${items.map(item => this.renderMenuItemHTML(item)).join('')}
+                                </div>
+                            </div>
+                        </div>
+                        `;
+                    }).join('')}
                 </div>
-                <div id="menu-items" class="p-4 grid grid-cols-1 gap-4"></div>
+                
+                <!-- Search results container -->
                 <div id="search-results-container" class="p-4 grid grid-cols-1 gap-4 hidden"></div>`;
 
             if (app.state.activeOrder) {
@@ -1384,94 +1602,84 @@
                     </div>`;
             }
             
-            // Initial render call after DOM is built
+            // If search query exists, trigger search to hide accordion and show results
             if (app.state.searchQuery.length > 1) {
                 app.performSearch(app.state.searchQuery);
+            }
+        },
+
+        // NEW: Helper to toggle accordion
+        toggleCategory(targetId, button) {
+            sound.play('click');
+            const target = $(`#${targetId}`);
+            const isExpanded = button.getAttribute('aria-expanded') === 'true';
+
+            if (isExpanded) {
+                target.classList.add('hidden');
+                button.setAttribute('aria-expanded', 'false');
+                button.querySelector('span').style.transform = 'rotate(0deg)';
             } else {
-                ui.filterMenuByCategory(app.state.currentMenuCategory, $(`.category-tab[data-category="${app.state.currentMenuCategory}"]`));
+                target.classList.remove('hidden');
+                button.setAttribute('aria-expanded', 'true');
+                button.querySelector('span').style.transform = 'rotate(45deg)';
             }
         },
 
-        filterMenuByCategory(category, tabElement) {
-            const activeBrand = app.state.theme === 'bulb' ? 'Bulb Cafe' : 'Gulabi Thali';
-            app.state.currentMenuCategory = category;
+        // NEW: Helper to generate single item HTML
+        renderMenuItemHTML(item) {
+            const cartItem = app.state.cart.find(ci => ci.id === item.id);
+            const currentPrice = item.price || 0;
+            const isViewOnly = app.state.theme === 'gulabi'; // Should be false here, but good check
             
-            // Clear search input on category switch
-            const searchInput = $('#menu-search-input');
-            if (searchInput) searchInput.value = '';
-            app.state.searchQuery = '';
+            let actionButtonHTML;
 
-            $('#search-results-container')?.classList.add('hidden');
-            $('#menu-items')?.classList.remove('hidden');
-            $('#category-tabs-container')?.classList.remove('hidden');
-
-            if (tabElement) {
-                $$('.category-tab').forEach(tab => {
-                    tab.classList.remove('brand-text', 'border-b-2', 'border-current');
-                    tab.classList.add('text-secondary');
-                });
-                tabElement.classList.add('brand-text', 'border-b-2', 'border-current');
+            if (isViewOnly) {
+                // This case won't happen in Bulb theme, but good to have
+                 actionButtonHTML = `<button class="add-to-cart-btn bg-secondary text-secondary" disabled title="View Only">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.575 3.01 9.963 7.182.074.207.074.441 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.575-3.01-9.963-7.182Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
+                    </button>`;
+            } else if (cartItem) {
+                actionButtonHTML = `<div class="quantity-control" onclick="event.stopPropagation();">
+                       <button onclick="app.addOrUpdateCart(${item.id}, -1)">-</button>
+                       <span>${cartItem.quantity}</span>
+                       <button onclick="app.addOrUpdateCart(${item.id}, 1)">+</button>
+                   </div>`;
+            } else {
+                actionButtonHTML = `<button class="add-to-cart-btn" onclick="event.stopPropagation(); app.addOrUpdateCart(${item.id}, 1)">
+                       +
+                   </button>`;
             }
 
-            let itemsToShow = app.state.allMenuItems.filter(item => 
-                (item.brand?.toLowerCase() === activeBrand.toLowerCase())
-            );
-            
-            if (category !== 'All Menu') {
-                itemsToShow = itemsToShow.filter(item => 
-                    item.category?.toLowerCase() === category.toLowerCase()
-                );
-            }
-            
-            ui.renderMenuItems(itemsToShow, 'menu-items');
+            return `
+                <div class="bg-secondary rounded-lg shadow-sm overflow-hidden cursor-pointer" 
+                     data-item-id="${item.id}" 
+                     onclick="ui.showItemDetailModal(${item.id})">
+                    <div class="p-3 flex items-center justify-between">
+                        <div class="flex-1 pr-4">
+                            <h3 class="font-semibold text-base truncate text-primary">${item.name || 'Untitled Item'}</h3>
+                            <p class="font-bold text-sm text-secondary mt-1">₹${currentPrice.toFixed(2)}</p>
+                        </div>
+                        <div class="flex-shrink-0 item-action-container">
+                            ${actionButtonHTML}
+                        </div>
+                    </div>
+                </div>`;
         },
 
+        // This function now just renders search results
         renderMenuItems(items, containerId) {
             const container = $(`#${containerId}`);
             if (!container) return;
             
-            const isViewOnly = app.state.theme === 'gulabi';
-            
             if (!items || items.length === 0) {
-                container.innerHTML = `<p class="text-secondary text-center col-span-full mt-8">${isViewOnly ? 'Gulabi Thali menu is view-only.' : 'No items found for this selection.'}</p>`;
+                container.innerHTML = `<p class="text-secondary text-center col-span-full mt-8">No items found.</p>`;
                 return;
             }
-            container.innerHTML = items.map(item => {
-                const cartItem = app.state.cart.find(ci => ci.id === item.id);
-                const currentPrice = item.price || 0;
-                
-                let actionButtonHTML;
-
-                if (isViewOnly) {
-                    actionButtonHTML = `<button class="add-to-cart-btn bg-secondary text-secondary" disabled title="View Only">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.575 3.01 9.963 7.182.074.207.074.441 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.575-3.01-9.963-7.182Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
-                    </button>`;
-                } else if (cartItem) {
-                    actionButtonHTML = `<div class="quantity-control" onclick="event.stopPropagation();">
-                           <button onclick="app.addOrUpdateCart(${item.id}, -1)">-</button>
-                           <span>${cartItem.quantity}</span>
-                           <button onclick="app.addOrUpdateCart(${item.id}, 1)">+</button>
-                       </div>`;
-                } else {
-                    actionButtonHTML = `<button class="add-to-cart-btn" onclick="event.stopPropagation(); app.addOrUpdateCart(${item.id}, 1)">
-                           +
-                       </button>`;
-                }
-
-                return `
-                    <div class="bg-secondary rounded-lg shadow-sm overflow-hidden cursor-pointer" onclick="ui.showItemDetailModal(${item.id})">
-                        <div class="p-3 flex items-center justify-between">
-                            <div class="flex-1 pr-4">
-                                <h3 class="font-semibold text-base truncate text-primary">${item.name || 'Untitled Item'}</h3>
-                                <p class="font-bold text-sm text-secondary mt-1">₹${currentPrice.toFixed(2)}</p>
-                            </div>
-                            <div class="flex-shrink-0">
-                                ${actionButtonHTML}
-                            </div>
-                        </div>
-                    </div>`;
-            }).join('');
+            // Use the HTML helper to render items
+            container.innerHTML = items.map(item => this.renderMenuItemHTML(item)).join('');
         },
+        // --- END NEW MENU ---
+
 
         renderCartPage() {
             const content = $('#page-content');
@@ -1606,7 +1814,6 @@
         },
 
         renderSocialPage(){
-            const currentBrandName = 'Bulb Cafe'; // This page is only on Bulb theme
             const socialCaption = "Post your coffee pics! Tag us for a shoutout.";
 
             $('#page-content').innerHTML = `
@@ -1695,7 +1902,6 @@
         
         showBrandSwitcherModal(){
              // This is no longer used, as the toggle is directly on other pages.
-             // Kept here in case it's needed later.
              app.toggleTheme('gulabi');
         },
 
@@ -1921,6 +2127,3 @@
 </script>
 </body>
 </html>
-
-
-
