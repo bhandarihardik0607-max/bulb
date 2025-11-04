@@ -34,7 +34,7 @@
 
         /* Base & Utility Styles */
         html, body { height: 100%; overflow: hidden; }
-        body { font-family: 'Poppins', sans-serif; background-color: #1f2937; color: var(--text-primary); -webkit-tap-highlight-color: transparent; transition: background-color 0.5s ease; }
+        body { font-family: 'Poppins', sans-serif; background-color: #000000; color: var(--text-primary); -webkit-tap-highlight-color: transparent; transition: background-color 0.5s ease; }
         .app-container { background-color: var(--bg-primary); transition: background-color 0.5s ease; height: var(--app-height); }
         .text-primary { color: var(--text-primary); } .text-secondary { color: var(--text-secondary); }
         .bg-primary { background-color: var(--bg-primary); } .bg-secondary { background-color: var(--bg-secondary); }
@@ -52,8 +52,21 @@
             overflow-y: auto;
         }
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        #splash-screen .brand-logo { animation: pulse 2s infinite ease-in-out; }
-        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        /* Removed pulse animation for video */
+        /* #splash-screen .brand-logo { animation: pulse 2s infinite ease-in-out; } */
+        /* @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } } */
+
+        /* Splash Screen Video */
+        #splash-video {
+            width: 90%; /* Made slightly smaller */
+            height: 90%; /* Made slightly smaller */
+            object-fit: cover; /* Cover the entire area */
+            border-radius: 1.5rem; /* Added rounded corners */
+        }
+        #splash-screen {
+            background-color: #000; /* Black background for video */
+        }
+
 
         /* Custom UI Elements */
         .horizontal-scroll::-webkit-scrollbar { display: none; }
@@ -105,11 +118,14 @@
 </head>
 <body data-theme="bulb">
 
-    <!-- Splash Screen with Brand Logo -->
-    <div id="splash-screen" class="fixed inset-0 bg-primary flex flex-col items-center justify-center z-[100]">
-        <!-- Bulb Logo -->
-        <div class="brand-logo text-7xl mb-4" style="color: var(--brand-primary);">💡</div>
-        <h1 class="text-3xl font-bold brand-text">BULB CAFE</h1>
+    <!-- Splash Screen with Brand Logo Video -->
+    <div id="splash-screen" class="fixed inset-0 flex flex-col items-center justify-center z-[100]">
+        <!-- Bulb Logo Glowing Up Video -->
+        <video id="splash-video" src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/have_this_bulb_glowing_up_and.mp4" autoplay muted playsinline preload="auto">
+            Your browser does not support the video tag.
+        </video>
+        <!-- Fallback content if video fails to load or play -->
+        <!-- <h1 class="text-3xl font-bold brand-text" style="color: white;">BULB CAFE</h1> -->
     </div>
 
     <div id="app" class="app-container max-w-lg mx-auto shadow-2xl flex flex-col hidden">
@@ -229,10 +245,23 @@
             searchQuery: '',
             searchResults: [],
             pointsToRedeem: 0,
+            splashCompleted: false, // Track if splash video ended
         },
 
-        async init() {
+        init() {
             document.body.addEventListener('click', () => sound.init(), { once: true });
+            
+            // Splash screen logic
+            const splashVideo = $('#splash-video');
+            if (splashVideo) {
+                splashVideo.onended = () => this.hideSplash();
+                // Fallback timer in case onended doesn't fire (e.g., video stalls)
+                setTimeout(() => this.hideSplash(), 7000); // 7s timeout
+            } else {
+                // If video element not found, hide splash immediately
+                this.hideSplash();
+            }
+
             if (!supabase) {
                 console.error("Supabase failed to initialize. Cannot start app.");
                 return; 
@@ -250,9 +279,25 @@
             this.startAppFlow();
         },
 
+        hideSplash() {
+            if (this.state.splashCompleted) return; // Prevent double-fire
+            this.state.splashCompleted = true;
+
+            const splash = $('#splash-screen');
+            if (splash) {
+                splash.classList.add('fade-out');
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                }, 500); // Match fade-out duration
+            }
+            
+            $('#app').classList.remove('hidden');
+            $('#app').classList.add('flex', 'fade-in');
+        },
+
         async startAppFlow() {
             this.applyTheme();
-            $('#splash-screen').classList.remove('hidden');
+            // Splash screen is already visible by default
             this.getTableNumberFromURL();
 
             try {
@@ -279,11 +324,9 @@
                 // 3. LOAD REMAINING DATA
                 await Promise.all([ this.fetchMenuData(), this.fetchAppSettings() ]);
 
-                // 4. START UI
-                $('#splash-screen').style.display = 'none';
-                $('#app').classList.remove('hidden');
-                $('#app').classList.add('flex');
-
+                // 4. START UI (Wait for splash to finish if it hasn't)
+                // The splash hide logic will show the app
+                
                 // FIX: Check if name is default 'Guest' or phone is missing to trigger onboarding
                 if (!this.state.customerProfile || this.state.customerProfile.name === 'Guest' || !this.state.customerProfile.whatsapp_number) {
                      this.showOnboardingModal();
@@ -297,6 +340,8 @@
             } catch (error) {
                 console.error("CRITICAL: App Initialization failed.", error);
                 $('#splash-screen').innerHTML = `<div class="text-primary text-center p-4">Could not load app: ${error.message}</div>`;
+                // Ensure splash is hidden on error
+                this.hideSplash(); 
             }
         },
 
@@ -597,21 +642,11 @@
         applyTheme(){ document.body.dataset.theme = this.state.theme; },
         toggleTheme(t){ ui.closeModal('brand-switcher-modal'); this.state.theme = t; localStorage.setItem('brand-theme', t); this.applyTheme(); this.refreshPage(); },
 
-        // NEW: Function to switch brand AND navigate to the menu
-        switchBrandAndNavigate(theme) {
-            this.state.theme = theme; 
-            localStorage.setItem('brand-theme', theme); 
-            this.applyTheme(); 
-            this.navigateTo('order'); // Always navigate to menu
-        },
-
         addOrUpdateCart(itemId, quantityChange) {
             const item = this.state.allMenuItems.find(i => i.id === itemId);
-            /* REMOVED: Gulabi Thali view-only check
             if (item && item.brand?.toLowerCase() === 'gulabi thali') {
                 return ui.showToast("Gulabi Thali is view-only. Please select Bulb Cafe items.", 'error');
             }
-            */
 
             sound.play('click');
             if (!item) return;
@@ -636,12 +671,10 @@
         setCartItemQuantity(itemId, quantity) {
             const item = this.state.allMenuItems.find(i => i.id === itemId);
             
-            /* REMOVED: Gulabi Thali view-only check
             if (item && item.brand?.toLowerCase() === 'gulabi thali' && quantity > 0) {
                  ui.closeModal('item-detail-modal');
                  return ui.showToast("Gulabi Thali is view-only. Please select Bulb Cafe items.", 'error');
             }
-            */
 
             if (!item) return;
 
@@ -688,7 +721,7 @@
                 });
                 
                 // --- MODIFIED: Render search results directly ---
-                // const isViewOnly = app.state.theme === 'gulabi'; // REMOVED
+                const isViewOnly = app.state.theme === 'gulabi';
                 if (!this.state.searchResults || this.state.searchResults.length === 0) {
                     searchContainer.innerHTML = `<p class="text-secondary text-center col-span-full mt-8">No items found for "${app.state.searchQuery}".</p>`;
                 } else {
@@ -698,13 +731,11 @@
                         const currentPrice = item.price || 0;
                         let actionButtonHTML;
 
-                        /* REMOVED: isViewOnly check
                         if (isViewOnly) {
                             actionButtonHTML = `<button class="add-to-cart-btn bg-secondary text-secondary" disabled title="View Only">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.575 3.01 9.963 7.182.074.207.074.441 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.575-3.01-9.963-7.182Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
                             </button>`;
-                        } else */
-                        if (cartItem) {
+                        } else if (cartItem) {
                             actionButtonHTML = `<div class="quantity-control" onclick="event.stopPropagation();">
                                    <button onclick="app.addOrUpdateCart(${item.id}, -1)">-</button>
                                    <span>${cartItem.quantity}</span>
@@ -1184,13 +1215,19 @@
             const switchBrandName = switchTheme === 'bulb' ? 'BULB CAFE' : 'GULABI THALI';
             const switchButtonColor = switchTheme === 'bulb' ? 'bg-yellow-500' : 'bg-pink-500';
 
+            // --- NEW: Dynamic video URLs based on theme ---
+            const bulbVideoUrl = "https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/WhatsApp%20Video%202025-11-01%20at%2020.52.47_2473f7b8.mp4";
+            const gulabiVideoUrl = "https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/4th%20sep.%20reel%20with%20animation.mp4";
+            const heroVideoUrl = app.state.theme === 'bulb' ? bulbVideoUrl : gulabiVideoUrl;
+            // --- END NEW ---
+
             const activeOrderHTML = app.state.activeOrder ? `<div class="bg-blue-500/10 border-2 border-blue-500/20 rounded-xl p-4 text-center"> <h2 class="font-bold text-primary">Your order is ${app.state.activeOrder.status}!</h2> <p class="text-secondary text-sm">Order ID: #${app.state.activeOrder.id.slice(0,6)}</p> <button onclick="app.navigateTo('cart')" class="mt-2 text-sm font-semibold text-blue-600 hover:underline">View Details &rarr;</button> </div>` : '';
 
             $('#page-content').innerHTML = `
                 <div class="space-y-6">
                     <!-- Video Hero Section -->
                     <div class="relative h-48 overflow-hidden rounded-b-2xl">
-                        <video src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/WhatsApp%20Video%202025-11-01%20at%2020.52.47_2473f7b8.mp4" autoplay loop muted playsinline preload="metadata" class="absolute top-1/2 left-1/2 w-full h-full object-cover -translate-x-1/2 -translate-y-1/2"></video>
+                        <video src="${heroVideoUrl}" autoplay loop muted playsinline preload="metadata" class="absolute top-1/2 left-1/2 w-full h-full object-cover -translate-x-1/2 -translate-y-1/2"></video>
                         <div class="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white text-center p-4">
                             <h1 class="text-4xl font-bold font-brand">${currentBrandName}</h1>
                         </div>
@@ -1201,7 +1238,7 @@
                         <!-- Brand Switcher -->
                         <div class="mt-8 text-center">
                             <h2 class="text-2xl font-bold text-primary mb-4 px-1">You are viewing the ${currentBrandName} menu.</h2>
-                            <button onclick="app.switchBrandAndNavigate('${switchTheme}')" class="w-full ${switchButtonColor} text-white font-extrabold py-4 px-6 rounded-xl shadow-lg transition transform hover:scale-[1.02] text-lg">
+                            <button onclick="app.toggleTheme('${switchTheme}')" class="w-full ${switchButtonColor} text-white font-extrabold py-4 px-6 rounded-xl shadow-lg transition transform hover:scale-[1.02] text-lg">
                                 CLICK TO SWITCH TO ${switchBrandName}
                             </button>
                         </div>
@@ -1244,7 +1281,7 @@
             }, {});
             
             const categoryNames = Object.keys(categoryMap).sort(); // A-Z sort
-            // const isViewOnly = app.state.theme === 'gulabi'; // REMOVED
+            const isViewOnly = app.state.theme === 'gulabi';
 
             content.innerHTML = `
                 <div id="active-order-banner" class="p-4 ${app.state.activeOrder ? '' : 'hidden'}">
@@ -1276,13 +1313,11 @@
                                     const currentPrice = item.price || 0;
                                     let actionButtonHTML;
 
-                                    /* REMOVED: isViewOnly check
                                     if (isViewOnly) {
                                         actionButtonHTML = `<button class="add-to-cart-btn bg-secondary text-secondary" disabled title="View Only">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.575 3.01 9.963 7.182.074.207.074.441 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.575-3.01-9.963-7.182Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
                                         </button>`;
-                                    } else */
-                                    if (cartItem) {
+                                    } else if (cartItem) {
                                         actionButtonHTML = `<div class="quantity-control" onclick="event.stopPropagation();">
                                                <button onclick="app.addOrUpdateCart(${item.id}, -1)">-</button>
                                                <span>${cartItem.quantity}</span>
@@ -1471,7 +1506,7 @@
                     <div class="bg-secondary p-6 rounded-xl shadow-sm border border-custom">
                         <h2 class="text-2xl font-bold text-primary">Switch Brand View</h2>
                         <p class="text-secondary mt-1 mb-4">View the menu of the other brand quickly.</p>
-                        <button onclick="app.switchBrandAndNavigate('${switchTheme}')" class="w-full ${switchButtonColor} text-white font-extrabold py-3 px-6 rounded-xl shadow-lg transition transform hover:scale-[1.02]">
+                        <button onclick="app.toggleTheme('${switchTheme}')" class="w-full ${switchButtonColor} text-white font-extrabold py-3 px-6 rounded-xl shadow-lg transition transform hover:scale-[1.02]">
                             View ${switchBrandName} Menu
                         </button>
                     </div>
@@ -1487,7 +1522,8 @@
             $('#page-content').innerHTML = `
                 <div class="p-6 space-y-6 text-center">
                      <div class="bg-secondary p-8 rounded-xl shadow-lg border border-custom">
-                        <span class="text-5xl mb-4 block">🍛</span>
+                        <!-- Gulabi Thali Logo -->
+                        <img src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/403946165_1014623216287649_4686052002313628516_n%20(1).jpg" alt="Gulabi Thali Logo" class="h-20 w-20 mx-auto mb-4 rounded-full object-cover">
                         <h2 class="text-3xl font-bold text-primary mb-2">GULABI THALI KITCHEN</h2>
                         <p class="text-lg text-secondary mb-6">
                             Gulabi Thali operates as our specialized Dine-In Kitchen inside Bulb Cafe.
@@ -1499,7 +1535,7 @@
                             <li>All orders are placed through our service counter.</li>
                         </ul>
                         <p class="text-primary font-semibold mb-4">Ready to order quick bites and coffee?</p>
-                        <button onclick="app.switchBrandAndNavigate('${switchTheme}')" class="w-full ${switchButtonColor} text-white font-extrabold py-3 px-6 rounded-lg transition hover:opacity-90">
+                        <button onclick="app.toggleTheme('${switchTheme}')" class="w-full ${switchButtonColor} text-white font-extrabold py-3 px-6 rounded-lg transition hover:opacity-90">
                             CLICK TO SWITCH TO ${switchBrandName}
                         </button>
                     </div>
@@ -1542,7 +1578,8 @@
                     <!-- Bulb Cafe Option -->
                     <button onclick="app.selectBrand('bulb')" class="w-full text-left bg-secondary p-6 rounded-xl border-2 border-custom hover:border-yellow-500 transition-all transform hover:scale-[1.02]">
                         <div class="flex items-center mb-2">
-                            <span class="text-4xl mr-4">💡</span>
+                            <!-- Bulb Logo -->
+                            <img src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/429351096_763581305304798_8823152985320369357_n.jpg" alt="Bulb Cafe Logo" class="h-12 w-12 mr-4 rounded-full object-cover">
                             <h3 class="text-2xl font-bold" style="color: var(--brand-primary-yellow);">Bulb Cafe</h3>
                         </div>
                         <p class="text-secondary">Your all-day destination for specialty coffee, quick bites, snacks, and a vibrant co-working atmosphere.</p>
@@ -1551,7 +1588,8 @@
                     <!-- Gulabi Thali Option -->
                     <button onclick="app.selectBrand('gulabi')" class="w-full text-left bg-secondary p-6 rounded-xl border-2 border-custom hover:border-pink-500 transition-all transform hover:scale-[1.02]">
                         <div class="flex items-center mb-2">
-                            <span class="text-4xl mr-4">🍛</span>
+                            <!-- Gulabi Thali Logo -->
+                            <img src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/403946165_1014623216287649_4686052002313628516_n%20(1).jpg" alt="Gulabi Thali Logo" class="h-12 w-12 mr-4 rounded-full object-cover">
                             <h3 class="text-2xl font-bold" style="color: var(--brand-primary-pink);">Gulabi Thali</h3>
                         </div>
                         <p class="text-secondary">Experience authentic Indian cuisine with our specialized dine-in thalis, operating from our kitchen inside Bulb Cafe.</p>
@@ -1604,7 +1642,7 @@
             const item = this.state.allMenuItems.find(i => i.id === itemId); if (!item) return;
             const cartItem = app.state.cart.find(ci => ci.id === itemId);
             const currentQuantity = cartItem ? cartItem.quantity : 0;
-            // const isViewOnly = app.state.theme === 'gulabi'; // REMOVED
+            const isViewOnly = app.state.theme === 'gulabi';
 
             let optionsHTML = Array.from({ length: 10 }, (_, i) => `<option value="${i + 1}" ${i + 1 === currentQuantity ? 'selected' : ''}>${i + 1}</option>`).join('');
             optionsHTML = `<option value="0" ${!cartItem ? 'selected' : ''}>0 (Remove)</option>` + optionsHTML;
@@ -1620,12 +1658,12 @@
                 <p class="text-secondary mt-2">${item.description || 'No description available.'}</p>
                 <div class="flex items-center justify-between my-6 bg-secondary p-3 rounded-lg">
                     <label for="modal-quantity-select" class="font-semibold text-primary">Quantity:</label>
-                    <select id="modal-quantity-select" class="bg-primary border border-custom text-primary font-semibold rounded-lg p-2" ${/*isViewOnly ? 'disabled' : ''*/''}>${optionsHTML}</select>
+                    <select id="modal-quantity-select" class="bg-primary border border-custom text-primary font-semibold rounded-lg p-2" ${isViewOnly ? 'disabled' : ''}>${optionsHTML}</select>
                 </div>
                 <div class="mt-6 grid grid-cols-2 gap-4">
                     <button onclick="ui.closeModal('item-detail-modal')" class="w-full bg-secondary font-semibold py-3 rounded-lg">Back</button>
-                    <button ${/*isViewOnly ? 'disabled' : ''*/''} onclick="app.setCartItemQuantity(${item.id}, parseInt($('#modal-quantity-select').value))" class="w-full ${/*isViewOnly ? 'bg-gray-400' :*/ 'brand-bg'} font-semibold py-3 rounded-lg">
-                        ${/*isViewOnly ? 'VIEW ONLY' :*/ (cartItem ? 'Update Quantity' : 'Add to Cart')}
+                    <button ${isViewOnly ? 'disabled' : ''} onclick="app.setCartItemQuantity(${item.id}, parseInt($('#modal-quantity-select').value))" class="w-full ${isViewOnly ? 'bg-gray-400' : 'brand-bg'} font-semibold py-3 rounded-lg">
+                        ${isViewOnly ? 'VIEW ONLY' : (cartItem ? 'Update Quantity' : 'Update Cart')}
                     </button>
                 </div>`);
         },
@@ -1812,6 +1850,5 @@
 </script>
 </body>
 </html>
-
 
 
