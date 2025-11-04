@@ -607,9 +607,11 @@
 
         addOrUpdateCart(itemId, quantityChange) {
             const item = this.state.allMenuItems.find(i => i.id === itemId);
+            /* REMOVED: Gulabi Thali view-only check
             if (item && item.brand?.toLowerCase() === 'gulabi thali') {
                 return ui.showToast("Gulabi Thali is view-only. Please select Bulb Cafe items.", 'error');
             }
+            */
 
             sound.play('click');
             if (!item) return;
@@ -634,10 +636,12 @@
         setCartItemQuantity(itemId, quantity) {
             const item = this.state.allMenuItems.find(i => i.id === itemId);
             
+            /* REMOVED: Gulabi Thali view-only check
             if (item && item.brand?.toLowerCase() === 'gulabi thali' && quantity > 0) {
                  ui.closeModal('item-detail-modal');
                  return ui.showToast("Gulabi Thali is view-only. Please select Bulb Cafe items.", 'error');
             }
+            */
 
             if (!item) return;
 
@@ -684,7 +688,7 @@
                 });
                 
                 // --- MODIFIED: Render search results directly ---
-                const isViewOnly = app.state.theme === 'gulabi';
+                // const isViewOnly = app.state.theme === 'gulabi'; // REMOVED
                 if (!this.state.searchResults || this.state.searchResults.length === 0) {
                     searchContainer.innerHTML = `<p class="text-secondary text-center col-span-full mt-8">No items found for "${app.state.searchQuery}".</p>`;
                 } else {
@@ -694,11 +698,13 @@
                         const currentPrice = item.price || 0;
                         let actionButtonHTML;
 
+                        /* REMOVED: isViewOnly check
                         if (isViewOnly) {
                             actionButtonHTML = `<button class="add-to-cart-btn bg-secondary text-secondary" disabled title="View Only">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.575 3.01 9.963 7.182.074.207.074.441 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.575-3.01-9.963-7.182Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
                             </button>`;
-                        } else if (cartItem) {
+                        } else */
+                        if (cartItem) {
                             actionButtonHTML = `<div class="quantity-control" onclick="event.stopPropagation();">
                                    <button onclick="app.addOrUpdateCart(${item.id}, -1)">-</button>
                                    <span>${cartItem.quantity}</span>
@@ -1238,7 +1244,7 @@
             }, {});
             
             const categoryNames = Object.keys(categoryMap).sort(); // A-Z sort
-            const isViewOnly = app.state.theme === 'gulabi';
+            // const isViewOnly = app.state.theme === 'gulabi'; // REMOVED
 
             content.innerHTML = `
                 <div id="active-order-banner" class="p-4 ${app.state.activeOrder ? '' : 'hidden'}">
@@ -1270,11 +1276,13 @@
                                     const currentPrice = item.price || 0;
                                     let actionButtonHTML;
 
+                                    /* REMOVED: isViewOnly check
                                     if (isViewOnly) {
                                         actionButtonHTML = `<button class="add-to-cart-btn bg-secondary text-secondary" disabled title="View Only">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.575 3.01 9.963 7.182.074.207.074.441 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.575-3.01-9.963-7.182Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
                                         </button>`;
-                                    } else if (cartItem) {
+                                    } else */
+                                    if (cartItem) {
                                         actionButtonHTML = `<div class="quantity-control" onclick="event.stopPropagation();">
                                                <button onclick="app.addOrUpdateCart(${item.id}, -1)">-</button>
                                                <span>${cartItem.quantity}</span>
@@ -1596,7 +1604,7 @@
             const item = this.state.allMenuItems.find(i => i.id === itemId); if (!item) return;
             const cartItem = app.state.cart.find(ci => ci.id === itemId);
             const currentQuantity = cartItem ? cartItem.quantity : 0;
-            const isViewOnly = app.state.theme === 'gulabi';
+            // const isViewOnly = app.state.theme === 'gulabi'; // REMOVED
 
             let optionsHTML = Array.from({ length: 10 }, (_, i) => `<option value="${i + 1}" ${i + 1 === currentQuantity ? 'selected' : ''}>${i + 1}</option>`).join('');
             optionsHTML = `<option value="0" ${!cartItem ? 'selected' : ''}>0 (Remove)</option>` + optionsHTML;
@@ -1612,12 +1620,12 @@
                 <p class="text-secondary mt-2">${item.description || 'No description available.'}</p>
                 <div class="flex items-center justify-between my-6 bg-secondary p-3 rounded-lg">
                     <label for="modal-quantity-select" class="font-semibold text-primary">Quantity:</label>
-                    <select id="modal-quantity-select" class="bg-primary border border-custom text-primary font-semibold rounded-lg p-2" ${isViewOnly ? 'disabled' : ''}>${optionsHTML}</select>
+                    <select id="modal-quantity-select" class="bg-primary border border-custom text-primary font-semibold rounded-lg p-2" ${/*isViewOnly ? 'disabled' : ''*/''}>${optionsHTML}</select>
                 </div>
                 <div class="mt-6 grid grid-cols-2 gap-4">
                     <button onclick="ui.closeModal('item-detail-modal')" class="w-full bg-secondary font-semibold py-3 rounded-lg">Back</button>
-                    <button ${isViewOnly ? 'disabled' : ''} onclick="app.setCartItemQuantity(${item.id}, parseInt($('#modal-quantity-select').value))" class="w-full ${isViewOnly ? 'bg-gray-400' : 'brand-bg'} font-semibold py-3 rounded-lg">
-                        ${isViewOnly ? 'VIEW ONLY' : (cartItem ? 'Update Quantity' : 'Add to Cart')}
+                    <button ${/*isViewOnly ? 'disabled' : ''*/''} onclick="app.setCartItemQuantity(${item.id}, parseInt($('#modal-quantity-select').value))" class="w-full ${/*isViewOnly ? 'bg-gray-400' :*/ 'brand-bg'} font-semibold py-3 rounded-lg">
+                        ${/*isViewOnly ? 'VIEW ONLY' :*/ (cartItem ? 'Update Quantity' : 'Add to Cart')}
                     </button>
                 </div>`);
         },
@@ -1804,5 +1812,6 @@
 </script>
 </body>
 </html>
+
 
 
