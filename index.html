@@ -52,8 +52,20 @@
             overflow-y: auto;
         }
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        #splash-screen .brand-logo { animation: pulse 2s infinite ease-in-out; }
-        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        /* Removed pulse animation for video */
+        /* #splash-screen .brand-logo { animation: pulse 2s infinite ease-in-out; } */
+        /* @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } } */
+
+        /* Splash Screen Video */
+        #splash-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Cover the entire area */
+        }
+        #splash-screen {
+            background-color: #000; /* Black background for video */
+        }
+
 
         /* Custom UI Elements */
         .horizontal-scroll::-webkit-scrollbar { display: none; }
@@ -105,11 +117,14 @@
 </head>
 <body data-theme="bulb">
 
-    <!-- Splash Screen with Brand Logo -->
-    <div id="splash-screen" class="fixed inset-0 bg-primary flex flex-col items-center justify-center z-[100]">
-        <!-- Bulb Logo -->
-        <div class="brand-logo text-7xl mb-4" style="color: var(--brand-primary);">💡</div>
-        <h1 class="text-3xl font-bold brand-text">BULB CAFE</h1>
+    <!-- Splash Screen with Brand Logo Video -->
+    <div id="splash-screen" class="fixed inset-0 flex flex-col items-center justify-center z-[100]">
+        <!-- Bulb Logo Glowing Up Video -->
+        <video id="splash-video" src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/have_this_bulb_glowing_up_and.mp4" autoplay muted playsinline preload="auto">
+            Your browser does not support the video tag.
+        </video>
+        <!-- Fallback content if video fails to load or play -->
+        <!-- <h1 class="text-3xl font-bold brand-text" style="color: white;">BULB CAFE</h1> -->
     </div>
 
     <div id="app" class="app-container max-w-lg mx-auto shadow-2xl flex flex-col hidden">
@@ -229,10 +244,23 @@
             searchQuery: '',
             searchResults: [],
             pointsToRedeem: 0,
+            splashCompleted: false, // Track if splash video ended
         },
 
-        async init() {
+        init() {
             document.body.addEventListener('click', () => sound.init(), { once: true });
+            
+            // Splash screen logic
+            const splashVideo = $('#splash-video');
+            if (splashVideo) {
+                splashVideo.onended = () => this.hideSplash();
+                // Fallback timer in case onended doesn't fire (e.g., video stalls)
+                setTimeout(() => this.hideSplash(), 7000); // 7s timeout
+            } else {
+                // If video element not found, hide splash immediately
+                this.hideSplash();
+            }
+
             if (!supabase) {
                 console.error("Supabase failed to initialize. Cannot start app.");
                 return; 
@@ -250,9 +278,25 @@
             this.startAppFlow();
         },
 
+        hideSplash() {
+            if (this.state.splashCompleted) return; // Prevent double-fire
+            this.state.splashCompleted = true;
+
+            const splash = $('#splash-screen');
+            if (splash) {
+                splash.classList.add('fade-out');
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                }, 500); // Match fade-out duration
+            }
+            
+            $('#app').classList.remove('hidden');
+            $('#app').classList.add('flex', 'fade-in');
+        },
+
         async startAppFlow() {
             this.applyTheme();
-            $('#splash-screen').classList.remove('hidden');
+            // Splash screen is already visible by default
             this.getTableNumberFromURL();
 
             try {
@@ -279,11 +323,9 @@
                 // 3. LOAD REMAINING DATA
                 await Promise.all([ this.fetchMenuData(), this.fetchAppSettings() ]);
 
-                // 4. START UI
-                $('#splash-screen').style.display = 'none';
-                $('#app').classList.remove('hidden');
-                $('#app').classList.add('flex');
-
+                // 4. START UI (Wait for splash to finish if it hasn't)
+                // The splash hide logic will show the app
+                
                 // FIX: Check if name is default 'Guest' or phone is missing to trigger onboarding
                 if (!this.state.customerProfile || this.state.customerProfile.name === 'Guest' || !this.state.customerProfile.whatsapp_number) {
                      this.showOnboardingModal();
@@ -297,6 +339,8 @@
             } catch (error) {
                 console.error("CRITICAL: App Initialization failed.", error);
                 $('#splash-screen').innerHTML = `<div class="text-primary text-center p-4">Could not load app: ${error.message}</div>`;
+                // Ensure splash is hidden on error
+                this.hideSplash(); 
             }
         },
 
@@ -1471,7 +1515,8 @@
             $('#page-content').innerHTML = `
                 <div class="p-6 space-y-6 text-center">
                      <div class="bg-secondary p-8 rounded-xl shadow-lg border border-custom">
-                        <span class="text-5xl mb-4 block">🍛</span>
+                        <!-- Gulabi Thali Logo -->
+                        <img src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/403946165_1014623216287649_4686052002313628516_n%20(1).jpg" alt="Gulabi Thali Logo" class="h-20 w-20 mx-auto mb-4 rounded-full object-cover">
                         <h2 class="text-3xl font-bold text-primary mb-2">GULABI THALI KITCHEN</h2>
                         <p class="text-lg text-secondary mb-6">
                             Gulabi Thali operates as our specialized Dine-In Kitchen inside Bulb Cafe.
@@ -1526,7 +1571,8 @@
                     <!-- Bulb Cafe Option -->
                     <button onclick="app.selectBrand('bulb')" class="w-full text-left bg-secondary p-6 rounded-xl border-2 border-custom hover:border-yellow-500 transition-all transform hover:scale-[1.02]">
                         <div class="flex items-center mb-2">
-                            <span class="text-4xl mr-4">💡</span>
+                            <!-- Bulb Logo -->
+                            <img src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/429351096_763581305304798_8823152985320369357_n.jpg" alt="Bulb Cafe Logo" class="h-12 w-12 mr-4 rounded-full object-cover">
                             <h3 class="text-2xl font-bold" style="color: var(--brand-primary-yellow);">Bulb Cafe</h3>
                         </div>
                         <p class="text-secondary">Your all-day destination for specialty coffee, quick bites, snacks, and a vibrant co-working atmosphere.</p>
@@ -1535,7 +1581,8 @@
                     <!-- Gulabi Thali Option -->
                     <button onclick="app.selectBrand('gulabi')" class="w-full text-left bg-secondary p-6 rounded-xl border-2 border-custom hover:border-pink-500 transition-all transform hover:scale-[1.02]">
                         <div class="flex items-center mb-2">
-                            <span class="text-4xl mr-4">🍛</span>
+                            <!-- Gulabi Thali Logo -->
+                            <img src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/403946165_1014623216287649_4686052002313628516_n%20(1).jpg" alt="Gulabi Thali Logo" class="h-12 w-12 mr-4 rounded-full object-cover">
                             <h3 class="text-2xl font-bold" style="color: var(--brand-primary-pink);">Gulabi Thali</h3>
                         </div>
                         <p class="text-secondary">Experience authentic Indian cuisine with our specialized dine-in thalis, operating from our kitchen inside Bulb Cafe.</p>
@@ -1609,7 +1656,7 @@
                 <div class="mt-6 grid grid-cols-2 gap-4">
                     <button onclick="ui.closeModal('item-detail-modal')" class="w-full bg-secondary font-semibold py-3 rounded-lg">Back</button>
                     <button ${isViewOnly ? 'disabled' : ''} onclick="app.setCartItemQuantity(${item.id}, parseInt($('#modal-quantity-select').value))" class="w-full ${isViewOnly ? 'bg-gray-400' : 'brand-bg'} font-semibold py-3 rounded-lg">
-                        ${isViewOnly ? 'VIEW ONLY' : (cartItem ? 'Update Quantity' : 'Add to Cart')}
+                        ${isViewOnly ? 'VIEW ONLY' : (cartItem ? 'Update Quantity' : 'Update Cart')}
                     </button>
                 </div>`);
         },
@@ -1796,4 +1843,3 @@
 </script>
 </body>
 </html>
-
