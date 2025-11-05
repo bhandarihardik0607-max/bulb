@@ -682,15 +682,15 @@
 
         performSearch(query) {
              const searchContainer = $('#search-results-container');
-             const menuContainer = $('#menu-items');
-             const tabsContainer = $('#category-tabs-container');
+             // MODIFIED: Get new accordion container
+             const accordionContainer = $('#accordion-menu');
              const activeBrand = this.state.theme === 'bulb' ? 'Bulb Cafe' : 'Gulabi Thali';
              this.state.searchQuery = query.toLowerCase().trim();
 
              if (this.state.searchQuery.length > 1) {
                 if (searchContainer) searchContainer.classList.remove('hidden');
-                if (menuContainer) menuContainer.classList.add('hidden');
-                if (tabsContainer) tabsContainer.classList.add('hidden');
+                // MODIFIED: Hide accordion
+                if (accordionContainer) accordionContainer.classList.add('hidden');
                 
                 this.state.searchResults = this.state.allMenuItems.filter(item => {
                     // Safe check for brand and null properties
@@ -702,15 +702,15 @@
                     
                     return itemName.includes(this.state.searchQuery) || itemDesc.includes(this.state.searchQuery);
                 });
+                // MODIFIED: This now calls the updated renderMenuItems
                 ui.renderMenuItems(this.state.searchResults, 'search-results-container');
              } else {
                 if (searchContainer) searchContainer.classList.add('hidden');
-                if (menuContainer) menuContainer.classList.remove('hidden');
-                if (tabsContainer) tabsContainer.classList.remove('hidden');
+                // MODIFIED: Show accordion
+                if (accordionContainer) accordionContainer.classList.remove('hidden');
                 this.state.searchResults = [];
                 
-                // Go back to the currently selected category when search is cleared
-                this.filterMenuByCategory(this.state.currentMenuCategory || 'All Menu', null);
+                // MODIFIED: No need to filter, just show the accordion
              }
         },
 
@@ -1324,6 +1324,59 @@
                 </div>`;
         },
 
+        // +++ NEW HELPER FUNCTION +++
+        // Returns an HTML string for a list of menu items
+        getMenuItemsHTML(items) {
+            const isViewOnly = app.state.theme === 'gulabi';
+            
+            if (!items || items.length === 0) {
+                return `<p class="text-secondary text-center col-span-full">${isViewOnly ? 'Gulabi Thali menu is view-only.' : 'No items found for this selection.'}</p>`;
+            }
+            
+            // Render items in a vertical list
+            return `
+                <div class="space-y-3"> 
+                ${items.map(item => {
+                    const cartItem = app.state.cart.find(ci => ci.id === item.id);
+                    const currentPrice = item.price || 0;
+                    
+                    let actionButtonHTML;
+
+                    if (isViewOnly) {
+                        actionButtonHTML = `<button class="add-to-cart-btn bg-secondary text-secondary" disabled title="View Only">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.575 3.01 9.963 7.182.074.207.074.441 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.575-3.01-9.963-7.182Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
+                        </button>`;
+                    } else if (cartItem) {
+                        actionButtonHTML = `<div class="quantity-control" onclick="event.stopPropagation();">
+                               <button onclick="app.addOrUpdateCart(${item.id}, -1)">-</button>
+                               <span>${cartItem.quantity}</span>
+                               <button onclick="app.addOrUpdateCart(${item.id}, 1)">+</button>
+                           </div>`;
+                    } else {
+                        actionButtonHTML = `<button class="add-to-cart-btn" onclick="event.stopPropagation(); app.addOrUpdateCart(${item.id}, 1)">
+                               +
+                           </button>`;
+                    }
+                    
+                    // Render the item card. We use bg-primary here so it stands out against the accordion's bg-secondary
+                    return `
+                        <div class="bg-primary rounded-lg shadow-sm overflow-hidden cursor-pointer border border-custom" onclick="ui.showItemDetailModal(${item.id})">
+                            <div class="p-3 flex items-center justify-between">
+                                <div class="flex-1 pr-4">
+                                    <h3 class="font-semibold text-base truncate text-primary">${item.name || 'Untitled Item'}</h3>
+                                    <p class="font-bold text-sm text-secondary mt-1">₹${currentPrice.toFixed(2)}</p>
+                                </div>
+                                <div class="flex-shrink-0">
+                                    ${actionButtonHTML}
+                                </div>
+                            </div>
+                        </div>`;
+                }).join('')}
+                </div>`; // Close space-y-3
+        },
+
+        // +++ MODIFIED FUNCTION +++
+        // Renders the new Accordion Menu page
         renderMenuPage(){
             const content = $('#page-content');
             const activeBrand = app.state.theme === 'bulb' ? 'Bulb Cafe' : 'Gulabi Thali';
@@ -1341,7 +1394,7 @@
                  return;
             }
 
-            // Group filtered items by category for tab creation
+            // Group filtered items by category
             const categoryMap = brandItems.reduce((acc, item) => {
                 const category = item.category || 'Uncategorized';
                 if (!acc[category]) {
@@ -1351,11 +1404,11 @@
                 return acc;
             }, {});
             
-            // Build tab list (All Menu + Categories)
-            const allCategories = [{ category: 'All Menu' }, ...Object.keys(categoryMap).map(c => ({ category: c }))];
-
-            if (!app.state.currentMenuCategory || !allCategories.some(c => c.category === app.state.currentMenuCategory)) {
-                 app.state.currentMenuCategory = 'All Menu';
+            const categories = Object.keys(categoryMap);
+            
+            // Set currentMenuCategory to the first category by default if not set
+            if (!app.state.currentMenuCategory || !categories.includes(app.state.currentMenuCategory)) {
+                 app.state.currentMenuCategory = categories[0] || null;
             }
 
             content.innerHTML = `
@@ -1363,15 +1416,36 @@
                 <div class="p-4">
                     <input type="text" id="menu-search-input" placeholder="Search menu..." class="w-full p-3 border-2 border-custom rounded-lg bg-secondary text-primary text-lg" oninput="app.performSearch(this.value)" value="${app.state.searchQuery}">
                 </div>
-                <div id="category-tabs-container" class="horizontal-scroll sticky top-16 bg-primary z-10 flex space-x-4 px-4 pb-3 overflow-x-auto border-b border-custom">
-                    ${allCategories.map(c => `
-                        <button class="category-tab whitespace-nowrap font-semibold py-2 px-1 ${app.state.currentMenuCategory === c.category ? 'brand-text border-b-2 border-current' : 'text-secondary'}"
-                                data-category="${c.category}"
-                                onclick="ui.filterMenuByCategory('${c.category}', this)">
-                            ${c.category}
-                        </button>`).join('')}
+                
+                <!-- This is the new accordion menu container -->
+                <div id="accordion-menu" class="p-4 pt-0 space-y-3">
+                    ${categories.map((category, index) => {
+                        // Check if this category should be open by default
+                        const isOpen = category === app.state.currentMenuCategory;
+                        return `
+                        <div classid="menu-category-section" class="bg-secondary rounded-lg shadow-sm overflow-hidden border border-custom">
+                            <!-- Accordion Header -->
+                            <button 
+                                class="w-full flex justify-between items-center p-4 text-left" 
+                                onclick="ui.toggleAccordion(this, 'category-items-${index}', '${category}')"
+                            >
+                                <h3 class="text-xl font-bold text-primary">${category}</h3>
+                                <!-- Chevron icon for expansion -->
+                                <svg class="chevron-icon w-6 h-6 text-secondary transition-transform transform ${isOpen ? 'rotate-180' : ''}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                                </svg>
+                            </button>
+                            
+                            <!-- Accordion Content (Items) -->
+                            <div id="category-items-${index}" class="${isOpen ? '' : 'hidden'} p-4 pt-0">
+                                <!-- Render items for this category -->
+                                ${this.getMenuItemsHTML(categoryMap[category])} 
+                            </div>
+                        </div>
+                    `}).join('')}
                 </div>
-                <div id="menu-items" class="p-4 grid grid-cols-1 gap-4"></div>
+                
+                <!-- Search results container remains the same -->
                 <div id="search-results-container" class="p-4 grid grid-cols-1 gap-4 hidden"></div>`;
 
             if (app.state.activeOrder) {
@@ -1384,93 +1458,23 @@
                     </div>`;
             }
             
-            // Initial render call after DOM is built
+            // Handle search persistence
             if (app.state.searchQuery.length > 1) {
                 app.performSearch(app.state.searchQuery);
-            } else {
-                ui.filterMenuByCategory(app.state.currentMenuCategory, $(`.category-tab[data-category="${app.state.currentMenuCategory}"]`));
             }
         },
 
-        filterMenuByCategory(category, tabElement) {
-            const activeBrand = app.state.theme === 'bulb' ? 'Bulb Cafe' : 'Gulabi Thali';
-            app.state.currentMenuCategory = category;
-            
-            // Clear search input on category switch
-            const searchInput = $('#menu-search-input');
-            if (searchInput) searchInput.value = '';
-            app.state.searchQuery = '';
-
-            $('#search-results-container')?.classList.add('hidden');
-            $('#menu-items')?.classList.remove('hidden');
-            $('#category-tabs-container')?.classList.remove('hidden');
-
-            if (tabElement) {
-                $$('.category-tab').forEach(tab => {
-                    tab.classList.remove('brand-text', 'border-b-2', 'border-current');
-                    tab.classList.add('text-secondary');
-                });
-                tabElement.classList.add('brand-text', 'border-b-2', 'border-current');
-            }
-
-            let itemsToShow = app.state.allMenuItems.filter(item => 
-                (item.brand?.toLowerCase() === activeBrand.toLowerCase())
-            );
-            
-            if (category !== 'All Menu') {
-                itemsToShow = itemsToShow.filter(item => 
-                    item.category?.toLowerCase() === category.toLowerCase()
-                );
-            }
-            
-            ui.renderMenuItems(itemsToShow, 'menu-items');
-        },
-
+        // +++ MODIFIED FUNCTION +++
+        // This function now renders search results
         renderMenuItems(items, containerId) {
             const container = $(`#${containerId}`);
             if (!container) return;
             
-            const isViewOnly = app.state.theme === 'gulabi';
+            // Set styling for the search results container
+            container.className = "p-4 grid grid-cols-1 gap-4";
             
-            if (!items || items.length === 0) {
-                container.innerHTML = `<p class="text-secondary text-center col-span-full mt-8">${isViewOnly ? 'Gulabi Thali menu is view-only.' : 'No items found for this selection.'}</p>`;
-                return;
-            }
-            container.innerHTML = items.map(item => {
-                const cartItem = app.state.cart.find(ci => ci.id === item.id);
-                const currentPrice = item.price || 0;
-                
-                let actionButtonHTML;
-
-                if (isViewOnly) {
-                    actionButtonHTML = `<button class="add-to-cart-btn bg-secondary text-secondary" disabled title="View Only">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.575 3.01 9.963 7.182.074.207.074.441 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.575-3.01-9.963-7.182Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
-                    </button>`;
-                } else if (cartItem) {
-                    actionButtonHTML = `<div class="quantity-control" onclick="event.stopPropagation();">
-                           <button onclick="app.addOrUpdateCart(${item.id}, -1)">-</button>
-                           <span>${cartItem.quantity}</span>
-                           <button onclick="app.addOrUpdateCart(${item.id}, 1)">+</button>
-                       </div>`;
-                } else {
-                    actionButtonHTML = `<button class="add-to-cart-btn" onclick="event.stopPropagation(); app.addOrUpdateCart(${item.id}, 1)">
-                           +
-                       </button>`;
-                }
-
-                return `
-                    <div class="bg-secondary rounded-lg shadow-sm overflow-hidden cursor-pointer" onclick="ui.showItemDetailModal(${item.id})">
-                        <div class="p-3 flex items-center justify-between">
-                            <div class="flex-1 pr-4">
-                                <h3 class="font-semibold text-base truncate text-primary">${item.name || 'Untitled Item'}</h3>
-                                <p class="font-bold text-sm text-secondary mt-1">₹${currentPrice.toFixed(2)}</p>
-                            </div>
-                            <div class="flex-shrink-0">
-                                ${actionButtonHTML}
-                            </div>
-                        </div>
-                    </div>`;
-            }).join('');
+            // Call the new helper function to get the item HTML
+            container.innerHTML = this.getMenuItemsHTML(items);
         },
 
         renderCartPage() {
@@ -1679,6 +1683,46 @@
                            </div>`
                     ).join("")}
                 </div>`;
+        },
+
+        // +++ NEW FUNCTION +++
+        // Handles opening and closing the accordion items
+        toggleAccordion(buttonElement, contentId, categoryName) {
+            const content = $(`#${contentId}`);
+            const chevron = buttonElement.querySelector('.chevron-icon');
+
+            const isOpen = !content.classList.contains('hidden');
+
+            // --- Close all other accordions ---
+            // Find all content panels in the #accordion-menu
+            const allContentPanels = $$('#accordion-menu [id^="category-items-"]');
+            allContentPanels.forEach(panel => {
+                if (panel.id !== contentId) {
+                    panel.classList.add('hidden');
+                }
+            });
+            
+            // Reset all chevrons
+            const allChevrons = $$('#accordion-menu .chevron-icon');
+            allChevrons.forEach(icon => {
+                if (icon !== chevron) {
+                    icon.classList.remove('rotate-180');
+                }
+            });
+            // --- End close all ---
+
+            if (isOpen) {
+                // Close the current one
+                content.classList.add('hidden');
+                chevron.classList.remove('rotate-180');
+                // When closing, we set the category to null
+                app.state.currentMenuCategory = null; 
+            } else {
+                // Open the current one
+                content.classList.remove('hidden');
+                chevron.classList.add('rotate-180');
+                app.state.currentMenuCategory = categoryName; // Set the new active category
+            }
         },
 
         showCallStaffModal() {
@@ -1921,6 +1965,3 @@
 </script>
 </body>
 </html>
-
-
-
