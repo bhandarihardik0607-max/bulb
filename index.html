@@ -176,8 +176,6 @@
         });
     }
 
-    const PAGES = ['home', 'order', 'cart', 'social', 'cowork', 'more'];
-
     // --- STATIC DATA ---
     const STATIC_DATA = {
         // Placeholder IDs (These are just for structure and won't filter out items incorrectly now)
@@ -239,6 +237,16 @@
             isGulabiOrderingEnabled: false, // NEW: State to track admin toggle for Gulabi ordering
         },
 
+        // NEW: Getter for theme-aware page list
+        get pages() {
+            if (this.state.theme === 'gulabi') {
+                // Gulabi theme only gets menu and cart
+                return ['order', 'cart'];
+            }
+            // Bulb theme gets everything
+            return ['home', 'order', 'cart', 'social', 'cowork', 'more'];
+        },
+
         async init() {
             document.body.addEventListener('click', () => sound.init(), { once: true });
             if (!supabase) {
@@ -250,13 +258,19 @@
             this.applyTheme();
             $('#splash-screen').classList.remove('hidden');
 
+            // UPDATED: Use theme-aware page getter
             const initialHash = location.hash.substring(1);
-            if (PAGES.includes(initialHash)) {
+            // Get default page based on theme (which was set from localStorage)
+            const defaultPage = this.state.theme === 'gulabi' ? 'order' : 'home';
+            const availablePages = this.pages; // Use the new getter
+
+            if (availablePages.includes(initialHash)) {
                  this.state.currentPage = initialHash;
             } else {
-                 this.state.currentPage = 'home';
-                 location.hash = 'home';
+                 this.state.currentPage = defaultPage;
+                 location.hash = defaultPage; // Set hash to the default
             }
+            
             window.addEventListener('popstate', this.handleHardwareBack.bind(this));
 
             this.startAppFlow();
@@ -599,21 +613,23 @@
                  return;
              }
              
-             // 2. Handle Page Back (Prevent double back/exit from home)
-             if (this.state.currentPage === 'home') {
-                 // Already on home, allow default back behavior (or do nothing)
-                 return;
-             }
-
-             // If the current hash doesn't match the state (e.g., user used browser back/forward)
-             if (PAGES.includes(currentHash) && currentHash !== this.state.currentPage) {
+             // 2. Handle Page Back (Prevent double back/exit from default page)
+             // UPDATED: Use theme-aware page getter
+             if (this.pages.includes(currentHash) && currentHash !== this.state.currentPage) {
                  this.navigateTo(currentHash, false); // Sync state to the hash
                  event.preventDefault();
              }
-             // Navigate back to home
-             else if (this.state.currentPage !== 'home') {
+             
+             // UPDATED: Navigate back to theme-aware default page
+             const defaultPage = this.state.theme === 'gulabi' ? 'order' : 'home';
+             if (this.state.currentPage === defaultPage) {
+                 // Already on default page, allow default back behavior
+                 return;
+             }
+
+             if (this.state.currentPage !== defaultPage) {
                  event.preventDefault(); 
-                 this.navigateTo('home');
+                 this.navigateTo(defaultPage);
              }
         },
 
@@ -637,8 +653,9 @@
                 ui.renderBottomNav(); 
             }
             
-            // Force content re-render
-            this.navigateTo(this.state.currentPage, false); 
+            // UPDATED: Force re-render AND navigate to the default page for the new theme
+            const defaultPage = this.state.theme === 'gulabi' ? 'order' : 'home';
+            this.navigateTo(defaultPage, false); // Force navigate to the new default
         },
 
         addOrUpdateCart(itemId, quantityChange) {
@@ -785,7 +802,9 @@
         refreshPage(){
             this.applyTheme();
             ui.refreshCartDependentUI();
-            if (PAGES.includes(this.state.currentPage)) {
+            
+            // UPDATED: Use theme-aware page getter
+            if (this.pages.includes(this.state.currentPage)) {
                 ui.renderPageContent(this.state.currentPage);
             }
         },
@@ -1121,6 +1140,8 @@
         renderHeader(page) {
             const header = $('#page-header');
             const currentBrandName = app.state.theme === 'bulb' ? 'BULB CAFE' : 'GULABI THALI';
+            
+            // UPDATED: Use theme-aware page list
             const pageConfigs = {
                 home: { title: currentBrandName},
                 order: { title: 'Menu'},
@@ -1159,14 +1180,14 @@
             const content = $('#page-content');
             content.innerHTML = ''; // Clear content
             
-            // --- Gulabi Thali (Custom Theme) Render Logic ---
+            // --- UPDATED: Gulabi Thali (Custom Theme) Render Logic ---
             if (app.state.theme === 'gulabi') {
-                 // 1. If ordering is disabled (View-Only Mode) OR if we are on a non-core page, show the custom landing view.
-                 if (!app.state.isGulabiOrderingEnabled || page === 'home' || page === 'cowork' || page === 'social' || page === 'more') {
+                 // If ordering is disabled, ALWAYS show the custom landing page, regardless of 'page'
+                 if (!app.state.isGulabiOrderingEnabled) {
                      this.renderGulabiThaliPage(content);
                      return;
                  }
-                 // 2. If ordering is enabled and we are on 'order' or 'cart', fall through to the standard renderers below.
+                 // If ordering is enabled, fall through to standard renderers ('order' and 'cart')
             }
 
             // --- Standard (Bulb Cafe / Gulabi Ordering Enabled) Render Logic ---
@@ -1181,7 +1202,17 @@
             content.classList.remove('fade-in');
             void content.offsetWidth;
             content.classList.add('fade-in');
-            renderers[page]?.call(this);
+            
+            // UPDATED: Check if renderer exists for the page
+            if (renderers[page]) {
+                renderers[page].call(this);
+            } else {
+                // Fallback for invalid page (e.g., if theme switched)
+                const defaultPage = app.state.theme === 'gulabi' ? 'order' : 'home';
+                if (renderers[defaultPage]) {
+                    renderers[defaultPage].call(this);
+                }
+            }
         },
         
         // +++ NEW: GULABI THALI PAGE RENDERER +++
@@ -1291,18 +1322,25 @@
             
             // Renamed 'cowork' to 'Kitchen'
             const labels = { home: 'Home', order: 'Menu', cart: 'Cart', social: 'Social', cowork: 'Kitchen', more: 'More' };
-            $('#bottom-nav').innerHTML = PAGES.map(p => `<button onclick="app.navigateTo('${p}')" class="nav-item flex-1 p-2 text-secondary" data-page="${p}">${icons[p]}<span id="${p}-tab-label" class="text-xs font-bold capitalize">${labels[p]}</span></button>`).join('');
+            
+            // UPDATED: Use theme-aware app.pages getter
+            $('#bottom-nav').innerHTML = app.pages.map(p => `<button onclick="app.navigateTo('${p}')" class="nav-item flex-1 p-2 text-secondary" data-page="${p}">${icons[p]}<span id="${p}-tab-label" class="text-xs font-bold capitalize">${labels[p]}</span></button>`).join('');
         },
 
         updateActiveNav(page) {
             const cartLabel = $('#cart-tab-label'), cartIcon = $('#cart-icon-svg');
-            if (app.state.activeOrder) {
-                cartLabel.textContent = 'Track';
-                cartIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />`;
-            } else {
-                cartLabel.textContent = 'Cart';
-                cartIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />`;
+            
+            // Handle case where cart tab might not exist
+            if (cartLabel && cartIcon) {
+                if (app.state.activeOrder) {
+                    cartLabel.textContent = 'Track';
+                    cartIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />`;
+                } else {
+                    cartLabel.textContent = 'Cart';
+                    cartIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />`;
+                }
             }
+            
             $$('.nav-item').forEach(item => {
                 const isActive = item.dataset.page === page;
                 item.classList.toggle('brand-text', isActive);
