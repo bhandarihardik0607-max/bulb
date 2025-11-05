@@ -236,6 +236,7 @@
             searchQuery: '',
             searchResults: [],
             pointsToRedeem: 0,
+            isGulabiOrderingEnabled: false, // NEW: State to track admin toggle for Gulabi ordering
         },
 
         async init() {
@@ -287,6 +288,9 @@
                 
                 // 3. LOAD REMAINING DATA
                 await Promise.all([ this.fetchMenuData(), this.fetchAppSettings() ]);
+                
+                // Set initial Gulabi ordering state after fetching settings
+                this.state.isGulabiOrderingEnabled = this.state.appSettings.gulabi_ordering_enabled === 'true';
 
                 // 4. START UI
                 $('#splash-screen').style.display = 'none';
@@ -418,7 +422,13 @@
                 const { data, error } = await supabase.from('app_settings').select('key, value');
                 if (error) throw error;
                 this.state.appSettings = data.reduce((acc, { key, value }) => ({ ...acc, [key]: value }), {});
-            } catch (error) { console.error('Error fetching app settings:', error); }
+                // Set the flag from the fetched settings
+                this.state.isGulabiOrderingEnabled = this.state.appSettings.gulabi_ordering_enabled === 'true';
+            } catch (error) { 
+                console.error('Error fetching app settings:', error); 
+                // Default to disabled on error
+                this.state.isGulabiOrderingEnabled = false; 
+            }
         },
 
         showOnboardingModal(){
@@ -469,7 +479,7 @@
 
                 if (error) {
                     // Handle potential error where phone number is already in use by another account
-                    if (error.code === '23505') { // unique_violation
+                    if (error.code === '23505') { // Unique violation
                         ui.showToast('This phone number is already linked to another account.');
                         return; // Stop execution
                     }
@@ -522,8 +532,8 @@
         showMainInterface(){
             $('#main-interface').classList.remove('hidden');
             
-            // NEW: Only show nav for Bulb Cafe
-            if (this.state.theme === 'bulb') {
+            // NEW: Only show nav for Bulb Cafe, or Gulabi if ordering is enabled
+            if (this.state.theme === 'bulb' || this.state.isGulabiOrderingEnabled) {
                 $('#bottom-nav').classList.remove('hidden');
                 $('#footer-spacer').classList.remove('hidden');
                 ui.renderBottomNav();
@@ -558,7 +568,7 @@
              ui.renderPageContent(page);
              
              // NEW: Only update nav if it's visible
-             if (this.state.theme === 'bulb') {
+             if (this.state.theme === 'bulb' || this.state.isGulabiOrderingEnabled) {
                 ui.updateActiveNav(page);
              }
         },
@@ -583,8 +593,8 @@
                  return;
              }
              
-             // NEW: Don't allow back navigation in Gulabi theme
-             if (this.state.theme === 'gulabi') {
+             // NEW: Don't allow back navigation in Gulabi theme if ordering is disabled
+             if (this.state.theme === 'gulabi' && !this.state.isGulabiOrderingEnabled) {
                  event.preventDefault();
                  return;
              }
@@ -615,16 +625,16 @@
             localStorage.setItem('brand-theme', t); 
             this.applyTheme(); 
             
-            // NEW: Show/Hide nav based on theme
+            // Re-check visibility of nav based on new theme/ordering status
             const nav = $('#bottom-nav');
             const spacer = $('#footer-spacer');
-            if (t === 'gulabi') {
+            if (t === 'gulabi' && !this.state.isGulabiOrderingEnabled) {
                 nav.classList.add('hidden');
                 spacer.classList.add('hidden');
             } else {
                 nav.classList.remove('hidden');
                 spacer.classList.remove('hidden');
-                ui.renderBottomNav(); // Re-render to ensure correct state
+                ui.renderBottomNav(); 
             }
             
             // Force content re-render
@@ -633,10 +643,12 @@
 
         addOrUpdateCart(itemId, quantityChange) {
             const item = this.state.allMenuItems.find(i => i.id === itemId);
-            if (item && item.brand?.toLowerCase() === 'gulabi thali') {
-                return ui.showToast("Gulabi Thali is view-only. Please select Bulb Cafe items.", 'error');
+            
+            // MODIFIED: Check if theme is gulabi AND ordering is disabled
+            if (this.state.theme === 'gulabi' && !this.state.isGulabiOrderingEnabled) {
+                return ui.showToast("Gulabi Thali is view-only. Ordering must be enabled by admin.", 'error');
             }
-
+            
             sound.play('click');
             if (!item) return;
 
@@ -660,9 +672,10 @@
         setCartItemQuantity(itemId, quantity) {
             const item = this.state.allMenuItems.find(i => i.id === itemId);
             
-            if (item && item.brand?.toLowerCase() === 'gulabi thali' && quantity > 0) {
+            // MODIFIED: Check if theme is gulabi AND ordering is disabled
+            if (this.state.theme === 'gulabi' && !this.state.isGulabiOrderingEnabled && quantity > 0) {
                  ui.closeModal('item-detail-modal');
-                 return ui.showToast("Gulabi Thali is view-only. Please select Bulb Cafe items.", 'error');
+                 return ui.showToast("Gulabi Thali is view-only. Ordering must be enabled by admin.", 'error');
             }
 
             if (!item) return;
@@ -738,7 +751,7 @@
 
             // 3. Update state if clamped
             if (this.state.pointsToRedeem !== actualPointsToRedeem) {
-                this.state.pointsToRedeem = actualPointsToRedeem;
+                this.state.pointsToRedeem = actualPointsPointsToRedeem;
             }
             
             // 4. Calculate final totals WITH GST
@@ -779,7 +792,12 @@
 
         async placeOrder(paymentMethod, btnElement){
             if (!supabase) return ui.showToast("Order failed: Supabase not initialized.");
-            if (this.state.cart.length === 0 || !this.state.tableNumber) return ui.showToast("Cart empty or table missing.");
+            
+            // Check table number based on current theme
+            if (this.state.theme === 'bulb' && !this.state.tableNumber) return ui.showToast("Table number missing.");
+            // Gulabi Thali does not require a table number
+            
+            if (this.state.cart.length === 0) return ui.showToast("Cart empty.");
             if (!this.state.customerProfile || !this.state.customerProfile.id) {
                 return ui.showToast("Error: Your profile is not loaded correctly. Please refresh.");
             }
@@ -797,10 +815,14 @@
             let orderData;
 
             try {
-                // 1. Verify Table
-                const { data: tableData, error: tableError } = await supabase.from('tables').select('id').eq('table_number', this.state.tableNumber).single();
-                if (tableError || !tableData) throw new Error(`Table #${this.state.tableNumber} invalid or not found.`);
-
+                // 1. Verify Table (Only for Bulb Cafe)
+                let tableData = { id: null };
+                if (this.state.theme === 'bulb') {
+                    const { data, error: tableError } = await supabase.from('tables').select('id').eq('table_number', this.state.tableNumber).single();
+                    if (tableError || !data) throw new Error(`Table #${this.state.tableNumber} invalid or not found.`);
+                    tableData = data;
+                }
+                
                 // 2. Verify Points
                 if (pointsToRedeem > 0) {
                     // Re-fetch profile to prevent race conditions with points
@@ -816,7 +838,7 @@
                 // 4. Create Order
                 const orderPayload = {
                     customer_id: this.state.customerProfile.id,
-                    table_id: tableData.id,
+                    table_id: tableData.id, // Will be null for Gulabi Thali
                     total_amount: finalTotal, // This is the final amount after discount+gst
                     discount_percentage: effectiveDiscountPercent,
                     discount_points_redeemed: pointsToRedeem,
@@ -824,7 +846,8 @@
                     final_amount: finalTotal, // Field name redundancy for safety
                     payment_method: paymentMethod,
                     special_instructions: $('#special-instructions')?.value || '',
-                    feedback_submitted: false
+                    feedback_submitted: false,
+                    brand: this.state.theme === 'bulb' ? 'Bulb Cafe' : 'Gulabi Thali' // Track brand of the order
                 };
                 const { data: insertedOrder, error: orderError } = await supabase.from('orders').insert(orderPayload).select().single();
                 if (orderError) {
@@ -1136,19 +1159,23 @@
             const content = $('#page-content');
             content.innerHTML = ''; // Clear content
             
-            // NEW: If Gulabi Thali theme, render its special page and stop
+            // --- Gulabi Thali (Custom Theme) Render Logic ---
             if (app.state.theme === 'gulabi') {
-                this.renderGulabiThaliPage(content);
-                return;
+                 // 1. If ordering is disabled (View-Only Mode) OR if we are on a non-core page, show the custom landing view.
+                 if (!app.state.isGulabiOrderingEnabled || page === 'home' || page === 'cowork' || page === 'social' || page === 'more') {
+                     this.renderGulabiThaliPage(content);
+                     return;
+                 }
+                 // 2. If ordering is enabled and we are on 'order' or 'cart', fall through to the standard renderers below.
             }
-            
-            // --- Original Bulb Cafe Render Logic ---
+
+            // --- Standard (Bulb Cafe / Gulabi Ordering Enabled) Render Logic ---
             const renderers = {
                 home: this.renderHomePage,
                 order: this.renderMenuPage,
                 cart: this.renderCartPage,
                 social: this.renderSocialPage,
-                cowork: this.renderCoworkPage, // Renamed
+                cowork: this.renderCoworkPage, 
                 more: this.renderMorePage,
             };
             content.classList.remove('fade-in');
@@ -1162,6 +1189,7 @@
             const switchTheme = 'bulb';
             const switchBrandName = 'BULB CAFE';
             const switchButtonColor = 'bg-yellow-500'; // Bulb's color
+            const isOrderingEnabled = app.state.isGulabiOrderingEnabled;
             
             // 1. Get Gulabi Thali menu items
             const brandItems = app.state.allMenuItems.filter(item => item.brand?.toLowerCase() === 'gulabi thali');
@@ -1177,35 +1205,46 @@
             }, {});
             const categories = Object.keys(categoryMap);
             
-            // 3. Build Menu HTML
+            // 3. Build Menu HTML - Displayed on the custom landing page
             let menuHTML = '';
-            if (brandItems.length === 0) {
-                menuHTML = `<p class="text-secondary text-center">Menu loading or unavailable.</p>`;
+            let menuTitle = '';
+
+            if (isOrderingEnabled) {
+                menuTitle = 'Order Delicious Thalis!';
+                // If ordering is enabled, show button to navigate to the functional Menu page
+                menuHTML = `<button onclick="app.navigateTo('order')" class="w-full brand-bg text-white font-extrabold py-4 px-6 rounded-xl shadow-lg transition hover:opacity-90">VIEW ORDERABLE MENU</button>`;
             } else {
-                menuHTML = categories.map(category => `
-                    <div class="mb-6">
-                        <h3 class="text-2xl font-bold brand-text mb-3 border-b-2 border-custom pb-1">${category}</h3>
-                        <div class="space-y-2">
-                            ${categoryMap[category].map(item => `
-                                <div class="menu-item-view-only">
-                                    <div class="flex justify-between items-center">
-                                        <h4 class="font-semibold text-base text-primary">${item.name}</h4>
-                                        <p class="font-bold text-sm text-secondary whitespace-nowrap ml-2">₹${item.price.toFixed(2)}</p>
-                                    </div>
-                                    ${item.description ? `<p class="text-sm text-secondary mt-1">${item.description}</p>` : ''}
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `).join('');
+                 menuTitle = 'Our Menu (View Only)';
+                 if (brandItems.length === 0) {
+                     menuHTML = `<p class="text-secondary text-center">Menu loading or unavailable.</p>`;
+                 } else {
+                     // If ordering is disabled, render the view-only menu list
+                     menuHTML = categories.map(category => `
+                         <div class="mb-6">
+                             <h3 class="text-2xl font-bold brand-text mb-3 pb-1">${category}</h3>
+                             <div class="space-y-2">
+                                 ${categoryMap[category].map(item => `
+                                     <div class="menu-item-view-only">
+                                         <div class="flex justify-between items-center">
+                                             <h4 class="font-semibold text-base text-primary">${item.name}</h4>
+                                             <p class="font-bold text-sm text-secondary whitespace-nowrap ml-2">₹${item.price.toFixed(2)}</p>
+                                         </div>
+                                         ${item.description ? `<p class="text-sm text-secondary mt-1">${item.description}</p>` : ''}
+                                     </div>
+                                 `).join('')}
+                             </div>
+                         </div>
+                     `).join('');
+                 }
             }
+
 
             // 4. Build Full Page HTML
             container.innerHTML = `
                 <div class="p-4 space-y-6">
                     <!-- Video Hero -->
                     <div class="relative h-48 overflow-hidden rounded-lg shadow-lg">
-                        <video src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/WhatsApp%20Video%202025-11-01%20at%2020.52.47_2473f7b8.mp4" autoplay loop muted playsinline preload="metadata" class="absolute top-1/2 left-1/2 w-full h-full object-cover -translate-x-1/2 -translate-y-1/2"></video>
+                        <video src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/1105%20(1).mp4" autoplay loop muted playsinline preload="metadata" class="absolute top-1/2 left-1/2 w-full h-full object-cover -translate-x-1/2 -translate-y-1/2"></video>
                         <div class="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white text-center p-4">
                             <h1 class="text-4xl font-bold">GULABI THALI</h1>
                             <p class="text-lg font-medium">Cloud Kitchen</p>
@@ -1223,9 +1262,9 @@
                         <p class="text-sm text-secondary mt-3">Contact: Prateek Arora</p>
                     </div>
                     
-                    <!-- View-Only Menu -->
+                    <!-- View-Only Menu / Order Link -->
                     <div class="mt-8">
-                        <h2 class="text-3xl font-bold text-center text-primary mb-6">Our Menu</h2>
+                        <h2 class="text-3xl font-bold text-center text-primary mb-6">${menuTitle}</h2>
                         ${menuHTML}
                     </div>
                     
@@ -1277,6 +1316,8 @@
             const el = $('#cart-count');
             if (!el) return; // Exit if nav isn't rendered
             const total = app.state.cart.reduce((s, i) => s + i.quantity, 0);
+            
+            // Cart count is only shown if there is no active order
             if (total > 0 && !app.state.activeOrder) {
                 el.textContent = total;
                 el.classList.remove('hidden');
@@ -1310,7 +1351,7 @@
                 <div class="space-y-6">
                     <!-- Video Hero Section -->
                     <div class="relative h-48 overflow-hidden rounded-b-2xl">
-                        <video src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/WhatsApp%20Video%202025-11-01%20at%2020.52.47_2473f7b8.mp4" autoplay loop muted playsinline preload="metadata" class="absolute top-1/2 left-1/2 w-full h-full object-cover -translate-x-1/2 -translate-y-1/2"></video>
+                        <video src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/1105%20(1).mp4" autoplay loop muted playsinline preload="metadata" class="absolute top-1/2 left-1/2 w-full h-full object-cover -translate-x-1/2 -translate-y-1/2"></video>
                         <div class="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white text-center p-4">
                             <h1 class="text-4xl font-bold font-brand">${currentBrandName}</h1>
                         </div>
@@ -1436,11 +1477,12 @@
 
         // RENAMED & REFACTORED: Now returns HTML string instead of updating a container
         renderMenuItemsHTML(items) {
-            const isViewOnly = app.state.theme === 'gulabi';
+            // isViewOnly is now only true if (theme is gulabi AND ordering is disabled)
+            const isViewOnly = app.state.theme === 'gulabi' && !app.state.isGulabiOrderingEnabled;
             
             if (!items || items.length === 0) {
                 // Return a full HTML block here as it's used inside innerHTML
-                return `<p class="text-secondary text-center col-span-full mt-8">${isViewOnly ? 'Gulabi Thali menu is view-only.' : 'No items found for this selection.'}</p>`;
+                return `<p class="text-secondary text-center col-span-full mt-8">No items found for this selection.</p>`;
             }
             
             return items.map(item => {
@@ -1720,7 +1762,7 @@
             const item = app.state.allMenuItems.find(i => i.id === itemId); if (!item) return;
             const cartItem = app.state.cart.find(ci => ci.id === itemId);
             const currentQuantity = cartItem ? cartItem.quantity : 0;
-            const isViewOnly = app.state.theme === 'gulabi';
+            const isViewOnly = app.state.theme === 'gulabi' && !app.state.isGulabiOrderingEnabled;
 
             let optionsHTML = Array.from({ length: 10 }, (_, i) => `<option value="${i + 1}" ${i + 1 === currentQuantity ? 'selected' : ''}>${i + 1}</option>`).join('');
             optionsHTML = `<option value="0" ${!cartItem ? 'selected' : ''}>0 (Remove)</option>` + optionsHTML;
@@ -1878,6 +1920,7 @@
                 { q: "What color are coffee cherries when ripe?", o: ["Green", "Blue", "Red", "Yellow"], a: 2 }
             ],
             start() {
+                this.reset();
                 this.currentQuestion = this.trivia[Math.floor(Math.random() * this.trivia.length)];
                 const item = this.currentQuestion;
                 ui.showModal('trivia-modal', `
@@ -1911,6 +1954,9 @@
                 }
 
                 setTimeout(() => GAMES.coffeeTrivia.start(), 2000);
+            },
+            reset() {
+                this.currentQuestion = null;
             }
         },
     };
