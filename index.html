@@ -22,7 +22,9 @@
             /* Theme Variables */
             --bg-primary-light: #FFFFFF; --bg-secondary-light: #F3F4F6; --text-primary-light: #111827; --text-secondary-light: #6B7280; --border-light: #E5E7EB; --brand-primary-light: #111827;
             --bg-primary-dark: #111111; --bg-secondary-dark: #1F2023; --text-primary-dark: #F9FAFB; --text-secondary-dark: #9CA3AF; --border-dark: #374151; --brand-primary-dark: #FFFFFF;
+            /* Bulb Theme */
             --bg-primary-yellow: #FFFBEB; --bg-secondary-yellow: #FEF3C7; --text-primary-yellow: #92400E; --text-secondary-yellow: #B45309; --border-yellow: #FDE68A; --brand-primary-yellow: #F59E0B;
+            /* Gulabi Theme */
             --bg-primary-pink: #FFF5F7; --bg-secondary-pink: #FCE7F6; --text-primary-pink: #9D174D; --text-secondary-pink: #E94C8F; --border-pink: #FBCFE8; --brand-primary-pink: #DB2777;
             --app-height: 100vh;
         }
@@ -54,6 +56,20 @@
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         #splash-screen .brand-logo { animation: pulse 2s infinite ease-in-out; }
         @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        
+        /* NEW: Brand Selection Screen Styles */
+        #brand-selection-screen { animation: fadeIn 0.3s ease; }
+        .brand-card {
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer;
+        }
+        .brand-card:hover {
+            transform: translateY(-10px) scale(1.03);
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2), 0 10px 10px -5px rgba(0,0,0,0.1);
+        }
+        .brand-card img {
+             object-position: center 20%; /* Focus more on the top-center of the images */
+        }
 
         /* Custom UI Elements */
         .horizontal-scroll::-webkit-scrollbar { display: none; }
@@ -111,10 +127,53 @@
 
     </style>
 </head>
-<body data-theme="bulb">
+<body data-theme="light"> <!-- Default to light, will be overwritten by selection -->
 
-    <!-- Splash Screen with Brand Logo -->
-    <div id="splash-screen" class="fixed inset-0 bg-primary flex flex-col items-center justify-center z-[100]">
+    <!-- 
+      NEW: Brand Selection Screen 
+      This is now the first thing the user sees (if not in localStorage)
+    -->
+    <div id="brand-selection-screen" class="fixed inset-0 bg-gray-900 flex flex-col items-center justify-center z-[200] p-4 hidden">
+        <h1 class="text-3xl font-bold text-white mb-4">Welcome</h1>
+        <h2 class="text-xl text-gray-300 mb-10">Please select a location to continue</h2>
+        
+        <div class="w-full max-w-lg mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Bulb Cafe Card -->
+            <div class="brand-card" onclick="selectBrand('bulb')">
+                <div class="relative rounded-2xl shadow-2xl overflow-hidden aspect-w-3 aspect-h-4">
+                    <img src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/429351096_763581305304798_8823152985320369357_n.jpg"
+                         alt="Bulb Cafe Interior"
+                         class="w-full h-full object-cover"
+                         onerror="this.onerror=null; this.src='https://placehold.co/600x800/F59E0B/92400E?text=Bulb+Cafe';">
+                    
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+                    <div class="absolute bottom-0 left-0 p-6">
+                        <h3 class="text-3xl font-extrabold text-white">BULB CAFE</h3>
+                        <p class="text-yellow-300 font-semibold">Jaipur</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gulabi Thali Card -->
+            <div class="brand-card" onclick="selectBrand('gulabi')">
+                <div class="relative rounded-2xl shadow-2xl overflow-hidden aspect-w-3 aspect-h-4">
+                    <img src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/403946165_1014623216287649_4686052002313628516_n%20(1).jpg"
+                         alt="Gulabi Thali Food"
+                         class="w-full h-full object-cover"
+                         onerror="this.onerror=null; this.src='https://placehold.co/600x800/DB2777/9D174D?text=Gulabi+Thali';">
+                    
+                     <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+                     <div class="absolute bottom-0 left-0 p-6">
+                        <h3 class="text-3xl font-extrabold text-white">GULABI THALI</h3>
+                        <p class="text-pink-300 font-semibold">Cloud Kitchen</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Splash Screen (Now shown *after* brand selection) -->
+    <div id="splash-screen" class="fixed inset-0 bg-primary flex flex-col items-center justify-center z-[100] hidden">
         <!-- Bulb Logo -->
         <div class="brand-logo text-7xl mb-4" style="color: var(--brand-primary);">💡</div>
         <h1 class="text-3xl font-bold brand-text">BULB CAFE</h1>
@@ -172,8 +231,12 @@
     } else {
         console.error("CRITICAL: Supabase client library not found on window.supabase. App cannot function.");
         document.addEventListener('DOMContentLoaded', () => {
-             $('#splash-screen').innerHTML = `<div class="text-white text-center p-4">Error loading data components. Check Console.</div>`;
-             $('#splash-screen').style.backgroundColor = '#FF0000';
+             // Show error on the brand selection screen if it's visible
+             const brandScreen = $('#brand-selection-screen');
+             if (brandScreen) {
+                 brandScreen.innerHTML = `<div class="text-white text-center p-4">Error loading data components. Check Console.</div>`;
+                 brandScreen.classList.remove('hidden');
+             }
         });
     }
 
@@ -228,7 +291,7 @@
             tableNumber: null,
             user: null,
             customerProfile: null,
-            theme: localStorage.getItem('brand-theme') || 'bulb', // Default to Bulb brand theme
+            theme: 'bulb', // Will be overwritten by brand selection
             menuData: [],
             allMenuItems: [],
             appSettings: {},
@@ -237,9 +300,11 @@
             searchQuery: '',
             searchResults: [],
             pointsToRedeem: 0,
+            isGulabiOrderingEnabled: false, // NEW: State to hold the admin toggle
         },
 
         async init() {
+            // This function is now called *after* a brand is selected
             document.body.addEventListener('click', () => sound.init(), { once: true });
             if (!supabase) {
                 console.error("Supabase failed to initialize. Cannot start app.");
@@ -248,7 +313,19 @@
 
             // Apply theme first to style splash screen
             this.applyTheme();
+            
+            // Update splash screen to match selected theme
+            const splashLogo = $('#splash-screen .brand-logo');
+            const splashTitle = $('#splash-screen .text-3xl');
+            if (this.state.theme === 'gulabi') {
+                splashLogo.innerHTML = '🍛'; // Gulabi Thali icon
+                splashTitle.innerHTML = 'GULABI THALI';
+            } else {
+                splashLogo.innerHTML = '💡'; // Bulb Cafe icon
+                splashTitle.innerHTML = 'BULB CAFE';
+            }
             $('#splash-screen').classList.remove('hidden');
+
 
             const initialHash = location.hash.substring(1);
             if (PAGES.includes(initialHash)) {
@@ -290,7 +367,14 @@
                 await Promise.all([ this.fetchMenuData(), this.fetchAppSettings() ]);
 
                 // 4. START UI
-                $('#splash-screen').style.display = 'none';
+                // Short splash screen fade
+                setTimeout(() => {
+                    $('#splash-screen').classList.add('fade-out');
+                    setTimeout(() => {
+                        $('#splash-screen').style.display = 'none';
+                    }, 500);
+                }, 1000); // Show splash for 1 second
+
                 $('#app').classList.remove('hidden');
                 $('#app').classList.add('flex');
 
@@ -419,6 +503,8 @@
                 const { data, error } = await supabase.from('app_settings').select('key, value');
                 if (error) throw error;
                 this.state.appSettings = data.reduce((acc, { key, value }) => ({ ...acc, [key]: value }), {});
+                // NEW: Update our state property based on the fetched settings
+                this.state.isGulabiOrderingEnabled = this.state.appSettings?.gulabi_thali_ordering_enabled || false;
             } catch (error) { console.error('Error fetching app settings:', error); }
         },
 
@@ -603,32 +689,55 @@
 
         applyTheme(){ document.body.dataset.theme = this.state.theme; },
         
+        // This function is now deprecated, as switching is handled by
+        // app.logoutAndClearBrand() to force re-selection.
+        // We will keep the 'gulabi' -> 'bulb' toggle logic inside Gulabi Thali page
+        // as a special case.
+        
+        // This toggle function is called by Gulabi Thali page to switch to Bulb
         toggleTheme(t){ 
-            ui.closeModal('brand-switcher-modal'); 
-            this.state.theme = t; 
-            localStorage.setItem('brand-theme', t); 
-            this.applyTheme(); 
+            ui.closeModal('brand-switcher-modal'); // Keep this for safety
             
-            // NEW: Show/Hide nav based on theme
-            const nav = $('#bottom-nav');
-            const spacer = $('#footer-spacer');
-            if (t === 'gulabi') {
-                nav.classList.add('hidden');
-                spacer.classList.add('hidden');
-            } else {
-                nav.classList.remove('hidden');
-                spacer.classList.remove('hidden');
-                ui.renderBottomNav(); // Re-render to ensure correct state
+            // This function should ONLY be used to switch FROM Gulabi TO Bulb
+            if (this.state.theme === 'gulabi' && t === 'bulb') {
+                app.state.theme = t;
+                localStorage.setItem('brand-theme', t);
+                this.applyTheme();
+                
+                // Force full UI rebuild for Bulb
+                $('#bottom-nav').classList.remove('hidden');
+                $('#footer-spacer').classList.remove('hidden');
+                ui.renderBottomNav();
+                this.navigateTo('home', false); // Go to bulb home
+            }
+        },
+
+        // NEW: Function to clear brand choice and 'logout'
+        async logoutAndClearBrand() {
+            try {
+                // Sign out from Supabase auth
+                const { error } = await supabase.auth.signOut();
+                if (error) {
+                    console.error("Error signing out:", error);
+                    ui.showToast("Logout failed. Please try again.");
+                    return;
+                }
+            } catch (e) {
+                console.error("Exception during sign out:", e);
             }
             
-            // Force content re-render
-            this.navigateTo(this.state.currentPage, false); 
+            // Clear the stored brand theme
+            localStorage.removeItem('brand-theme');
+            
+            // Reload the page to force brand selection
+            location.reload();
         },
 
         addOrUpdateCart(itemId, quantityChange) {
             const item = this.state.allMenuItems.find(i => i.id === itemId);
-            if (item && item.brand?.toLowerCase() === 'gulabi thali') {
-                return ui.showToast("Gulabi Thali is view-only. Please select Bulb Cafe items.", 'error');
+            // MODIFIED: Check against the new state property
+            if (item && item.brand?.toLowerCase() === 'gulabi thali' && !this.state.isGulabiOrderingEnabled) {
+                return ui.showToast("Gulabi Thali is view-only at the moment.", 'error');
             }
 
             sound.play('click');
@@ -654,9 +763,10 @@
         setCartItemQuantity(itemId, quantity) {
             const item = this.state.allMenuItems.find(i => i.id === itemId);
             
-            if (item && item.brand?.toLowerCase() === 'gulabi thali' && quantity > 0) {
+            // MODIFIED: Check against the new state property
+            if (item && item.brand?.toLowerCase() === 'gulabi thali' && quantity > 0 && !this.state.isGulabiOrderingEnabled) {
                  ui.closeModal('item-detail-modal');
-                 return ui.showToast("Gulabi Thali is view-only. Please select Bulb Cafe items.", 'error');
+                 return ui.showToast("Gulabi Thali is view-only at the moment.", 'error');
             }
 
             if (!item) return;
@@ -773,7 +883,17 @@
 
         async placeOrder(paymentMethod, btnElement){
             if (!supabase) return ui.showToast("Order failed: Supabase not initialized.");
-            if (this.state.cart.length === 0 || !this.state.tableNumber) return ui.showToast("Cart empty or table missing.");
+            
+            // NEW: Check theme
+            const isGulabiOrder = app.state.theme === 'gulabi';
+            // NEW: Use 0 as the special table number for Cloud Kitchen
+            const tableLookupNumber = isGulabiOrder ? 0 : this.state.tableNumber; 
+            
+            // MODIFIED: Updated checks
+            if (this.state.cart.length === 0) return ui.showToast("Cart is empty.");
+            if (!isGulabiOrder && !this.state.tableNumber) return ui.showToast("Table number is missing.");
+            if (isGulabiOrder && !this.state.isGulabiOrderingEnabled) return ui.showToast("Ordering is currently disabled.");
+
             if (!this.state.customerProfile || !this.state.customerProfile.id) {
                 return ui.showToast("Error: Your profile is not loaded correctly. Please refresh.");
             }
@@ -792,8 +912,9 @@
 
             try {
                 // 1. Verify Table
-                const { data: tableData, error: tableError } = await supabase.from('tables').select('id').eq('table_number', this.state.tableNumber).single();
-                if (tableError || !tableData) throw new Error(`Table #${this.state.tableNumber} invalid or not found.`);
+                // MODIFIED: Use the new tableLookupNumber
+                const { data: tableData, error: tableError } = await supabase.from('tables').select('id').eq('table_number', tableLookupNumber).single();
+                if (tableError || !tableData) throw new Error(`Could not find table for order. (Ref: ${tableLookupNumber})`);
 
                 // 2. Verify Points
                 if (pointsToRedeem > 0) {
@@ -844,7 +965,7 @@
                 // 6. Handle Loyalty Points Transactions
                 try {
                     // Redeem points
-                    if (pointsToRedeem > 0) {
+                    if (pointsToRedeem > 0) { // <-- FIX WAS HERE
                          const { error: redeemError } = await supabase.rpc('redeem_loyalty_points', { customer_id_input: this.state.customerProfile.id, points_to_redeem: pointsToRedeem });
                          if(redeemError) throw new Error(`Redeem RPC failed: ${redeemError.message}`);
                          this.state.customerProfile.loyalty_points -= pointsToRedeem;
@@ -1032,6 +1153,19 @@
 
     // --- UI RENDERING ---
     const ui = {
+        // NEW: Function to show the brand selection screen or start app
+        showBrandSelection() {
+            const storedTheme = localStorage.getItem('brand-theme');
+            if (storedTheme) {
+                // User has visited before, skip selection and start app
+                app.state.theme = storedTheme;
+                app.init();
+            } else {
+                // First-time visit, show selection screen
+                $('#brand-selection-screen').classList.remove('hidden');
+            }
+        },
+
         showModal(id, content) {
             location.hash = id;
             const existingModal = $(`#${id}`);
@@ -1120,8 +1254,9 @@
             const content = $('#page-content');
             content.innerHTML = ''; // Clear content
             
-            // NEW: If Gulabi Thali theme, render its special page and stop
-            if (app.state.theme === 'gulabi') {
+            // MODIFIED: Check theme AND ordering toggle
+            // FIX: Changed this.state to app.state to correct the TypeError
+            if (app.state.theme === 'gulabi' && !app.state.isGulabiOrderingEnabled) {
                 this.renderGulabiThaliPage(content);
                 return;
             }
@@ -1271,11 +1406,8 @@
 
         renderHomePage(){
             const currentBrandName = app.state.theme === 'bulb' ? 'BULB CAFE' : 'GULABI THALI';
-            const switchTheme = app.state.theme === 'bulb' ? 'gulabi' : 'bulb';
-            // FIX: The logic for the button text was inverted.
-            // It should show the name of the brand you are *switching to*.
-            const switchBrandName = app.state.theme === 'bulb' ? 'GULABI THALI' : 'BULB CAFE';
-            const switchButtonColor = switchTheme === 'bulb' ? 'bg-pink-500' : 'bg-yellow-500';
+            // This button is now for clearing cache/logging out
+            const switchButtonColor = 'bg-red-500';
 
             const activeOrderHTML = app.state.activeOrder ? `<div class="bg-blue-500/10 border-2 border-blue-500/20 rounded-xl p-4 text-center"> <h2 class="font-bold text-primary">Your order is ${app.state.activeOrder.status}!</h2> <p class="text-secondary text-sm">Order ID: #${app.state.activeOrder.id.slice(0,6)}</p> <button onclick="app.navigateTo('cart')" class="mt-2 text-sm font-semibold text-blue-600 hover:underline">View Details &rarr;</button> </div>` : '';
             
@@ -1305,13 +1437,12 @@
                         <!-- Loyalty Card -->
                         ${loyaltyCardHTML}
 
-                        <!-- Brand Switcher (NOW A CLICKABLE CARD) -->
-                        <div onclick="app.toggleTheme('${switchTheme}')" 
-                             class="bg-secondary p-6 rounded-xl shadow-sm border border-custom text-center cursor-pointer transition transform hover:scale-[1.02]">
-                            <span class="text-4xl mb-2">🍛</span>
-                            <h2 class="text-2xl font-bold text-primary mb-4 px-1">View Cloud Kitchen</h2>
-                            <button class="w-full ${switchButtonColor} text-white font-extrabold py-3 px-6 rounded-xl shadow-lg text-lg">
-                                CLICK TO VIEW ${switchBrandName}
+                        <!-- Change Brand Button -->
+                        <div class="bg-secondary p-6 rounded-xl shadow-sm border border-custom text-center">
+                            <span class="text-4xl mb-2">🔄</span>
+                            <h2 class="text-2xl font-bold text-primary mb-4 px-1">Change Location</h2>
+                            <button onclick="app.logoutAndClearBrand()" class="w-full ${switchButtonColor} text-white font-extrabold py-3 px-6 rounded-xl shadow-lg text-lg">
+                                CHANGE BRAND / LOGOUT
                             </button>
                         </div>
                         
@@ -1363,6 +1494,7 @@
                 <div class="p-4">
                     <input type="text" id="menu-search-input" placeholder="Search menu..." class="w-full p-3 border-2 border-custom rounded-lg bg-secondary text-primary text-lg" oninput="app.performSearch(this.value)" value="${app.state.searchQuery}">
                 </div>
+                <!-- This is the horizontal scrolling category list you requested -->
                 <div id="category-tabs-container" class="horizontal-scroll sticky top-16 bg-primary z-10 flex space-x-4 px-4 pb-3 overflow-x-auto border-b border-custom">
                     ${allCategories.map(c => `
                         <button class="category-tab whitespace-nowrap font-semibold py-2 px-1 ${app.state.currentMenuCategory === c.category ? 'brand-text border-b-2 border-current' : 'text-secondary'}"
@@ -1371,6 +1503,7 @@
                             ${c.category}
                         </button>`).join('')}
                 </div>
+                <!-- This is the vertical scrolling item list you requested -->
                 <div id="menu-items" class="p-4 grid grid-cols-1 gap-4"></div>
                 <div id="search-results-container" class="p-4 grid grid-cols-1 gap-4 hidden"></div>`;
 
@@ -1430,10 +1563,11 @@
             const container = $(`#${containerId}`);
             if (!container) return;
             
-            const isViewOnly = app.state.theme === 'gulabi';
+            // MODIFIED: Check theme AND ordering toggle
+            const isViewOnly = app.state.theme === 'gulabi' && !this.state.isGulabiOrderingEnabled;
             
             if (!items || items.length === 0) {
-                container.innerHTML = `<p class="text-secondary text-center col-span-full mt-8">${isViewOnly ? 'Gulabi Thali menu is view-only.' : 'No items found for this selection.'}</p>`;
+                container.innerHTML = `<p class="text-secondary text-center col-span-full mt-8">${isViewOnly ? 'No items found for this selection.' : 'No items found for this selection.'}</p>`;
                 return;
             }
             container.innerHTML = items.map(item => {
@@ -1443,9 +1577,8 @@
                 let actionButtonHTML;
 
                 if (isViewOnly) {
-                    actionButtonHTML = `<button class="add-to-cart-btn bg-secondary text-secondary" disabled title="View Only">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.575 3.01 9.963 7.182.074.207.074.441 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.575-3.01-9.963-7.182Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
-                    </button>`;
+                    // Gulabi Thali is view-only, so no add button
+                    actionButtonHTML = ``;
                 } else if (cartItem) {
                     actionButtonHTML = `<div class="quantity-control" onclick="event.stopPropagation();">
                            <button onclick="app.addOrUpdateCart(${item.id}, -1)">-</button>
@@ -1458,6 +1591,20 @@
                        </button>`;
                 }
 
+                // Simplified view for Gulabi Thali
+                if (isViewOnly) {
+                    return `
+                    <div class="menu-item-view-only" onclick="ui.showItemDetailModal(${item.id})">
+                        <div class="flex justify-between items-center">
+                            <h4 class="font-semibold text-base text-primary">${item.name}</h4>
+                            <p class="font-bold text-sm text-secondary whitespace-nowrap ml-2">₹${item.price.toFixed(2)}</p>
+                        </div>
+                        ${item.description ? `<p class="text-sm text-secondary mt-1">${item.description}</p>` : ''}
+                    </div>
+                    `;
+                }
+
+                // Full card view for Bulb Cafe
                 return `
                     <div class="bg-secondary rounded-lg shadow-sm overflow-hidden cursor-pointer" onclick="ui.showItemDetailModal(${item.id})">
                         <div class="p-3 flex items-center justify-between">
@@ -1519,6 +1666,9 @@
                  loyaltySectionHTML = `<div class="p-4 border-t border-b border-custom"><h3 class="font-bold text-lg mb-2 text-primary">Loyalty Points</h3>${loyaltyExplanation}</div>`;
             }
 
+            // NEW: Check theme for placeholder
+            const isGulabiOrder = app.state.theme === 'gulabi';
+            const instructionsPlaceholder = isGulabiOrder ? "Add Delivery Address & Contact..." : "Add special instructions...";
 
             container.innerHTML = `
                 <div class="p-4 space-y-3">
@@ -1537,7 +1687,8 @@
                     `).join('')}
                 </div>
                 ${loyaltySectionHTML}
-                <div class="p-4"><textarea id="special-instructions" class="w-full p-3 border-custom rounded-lg bg-secondary" placeholder="Add special instructions..."></textarea></div>
+                <!-- MODIFIED: Use dynamic placeholder -->
+                <div class="p-4"><textarea id="special-instructions" class="w-full p-3 border-custom rounded-lg bg-secondary" placeholder="${instructionsPlaceholder}"></textarea></div>
                 <div class="p-4 bg-primary border-t-custom sticky bottom-16">
                      <div id="cart-summary" class="mb-4 space-y-1 text-primary"></div>
                     <button id="place-order-btn" onclick="ui.showPaymentModal()" class="w-full brand-bg font-bold py-4 rounded-lg">Proceed to Payment</button>
@@ -1620,10 +1771,10 @@
                     </div>
 
                     <div class="bg-secondary p-6 rounded-xl shadow-sm border border-custom">
-                        <h2 class="text-2xl font-bold text-primary">Switch Brand View</h2>
-                        <p class="text-secondary mt-1 mb-4">View the menu for our cloud kitchen.</p>
-                        <button onclick="app.toggleTheme('gulabi')" class="w-full bg-pink-500 text-white font-extrabold py-3 px-6 rounded-xl shadow-lg transition transform hover:scale-[1.02]">
-                            View GULABI THALI
+                        <h2 class="text-2xl font-bold text-primary">Change Location</h2>
+                        <p class="text-secondary mt-1 mb-4">Go back to the main selection screen.</p>
+                        <button onclick="app.logoutAndClearBrand()" class="w-full bg-red-500 text-white font-extrabold py-3 px-6 rounded-xl shadow-lg transition transform hover:scale-[1.02]">
+                            CHANGE BRAND / LOGOUT
                         </button>
                     </div>
                 </div>
@@ -1661,7 +1812,8 @@
             const options = [
                 { icon: "🪙", text: `Loyalty Points: ${loyaltyPoints}`, action: "", explanation: loyaltyExplanation },
                 { icon: "🛎", text: "Call Staff for Assistance", action: "ui.showCallStaffModal()" },
-                { icon: "🔄", text: "Switch to Gulabi Thali", action: "app.toggleTheme('gulabi')" },
+                // NEW: Changed to "Change Brand / Logout"
+                { icon: "🔄", text: "Change Brand / Logout", action: "app.logoutAndClearBrand()" },
                 { icon: "🎮", text: "Play Games", action: "ui.showGamesModal()" },
                 { icon: "📜", text: "Order History", action: "ui.showOrderHistoryModal()" },
             ];
@@ -1696,7 +1848,7 @@
         showBrandSwitcherModal(){
              // This is no longer used, as the toggle is directly on other pages.
              // Kept here in case it's needed later.
-             app.toggleTheme('gulabi');
+             app.logoutAndClearBrand();
         },
 
         showPaymentModal(){
@@ -1713,7 +1865,8 @@
             const item = app.state.allMenuItems.find(i => i.id === itemId); if (!item) return;
             const cartItem = app.state.cart.find(ci => ci.id === itemId);
             const currentQuantity = cartItem ? cartItem.quantity : 0;
-            const isViewOnly = app.state.theme === 'gulabi';
+            // MODIFIED: Check theme AND ordering toggle
+            const isViewOnly = app.state.theme === 'gulabi' && !this.state.isGulabiOrderingEnabled;
 
             let optionsHTML = Array.from({ length: 10 }, (_, i) => `<option value="${i + 1}" ${i + 1 === currentQuantity ? 'selected' : ''}>${i + 1}</option>`).join('');
             optionsHTML = `<option value="0" ${!cartItem ? 'selected' : ''}>0 (Remove)</option>` + optionsHTML;
@@ -1727,14 +1880,22 @@
                     <div class="text-5xl">☕️</div>
                 </div>
                 <p class="text-secondary mt-2">${item.description || 'No description available.'}</p>
+                
+                <!-- Only show quantity selector for Bulb Cafe -->
+                ${!isViewOnly ? `
                 <div class="flex items-center justify-between my-6 bg-secondary p-3 rounded-lg">
                     <label for="modal-quantity-select" class="font-semibold text-primary">Quantity:</label>
-                    <select id="modal-quantity-select" class="bg-primary border border-custom text-primary font-semibold rounded-lg p-2" ${isViewOnly ? 'disabled' : ''}>${optionsHTML}</select>
-                </div>
-                <div class="mt-6 grid grid-cols-2 gap-4">
-                    <button onclick="ui.closeModal('item-detail-modal')" class="w-full bg-secondary font-semibold py-3 rounded-lg">Back</button>
-                    <button ${isViewOnly ? 'disabled' : ''} onclick="app.setCartItemQuantity(${item.id}, parseInt($('#modal-quantity-select').value))" class="w-full ${isViewOnly ? 'bg-gray-400' : 'brand-bg'} font-semibold py-3 rounded-lg">
-                        ${isViewOnly ? 'VIEW ONLY' : (cartItem ? 'Update Quantity' : 'Add to Cart')}
+                    <select id="modal-quantity-select" class="bg-primary border border-custom text-primary font-semibold rounded-lg p-2">
+                        ${optionsHTML}
+                    </select>
+                </div>` : ''}
+
+                <div class="mt-6 grid ${isViewOnly ? 'grid-cols-1' : 'grid-cols-2'} gap-4">
+                    ${!isViewOnly ? `<button onclick="ui.closeModal('item-detail-modal')" class="w-full bg-secondary font-semibold py-3 rounded-lg">Back</button>` : ''}
+                    <button ${isViewOnly ? '' : ''} 
+                            onclick="${isViewOnly ? `ui.closeModal('item-detail-modal')` : `app.setCartItemQuantity(${item.id}, parseInt($('#modal-quantity-select').value))`}" 
+                            class="w-full ${isViewOnly ? 'brand-bg' : 'brand-bg'} font-semibold py-3 rounded-lg">
+                        ${isViewOnly ? 'CLOSE' : (cartItem ? 'Update Quantity' : 'Add to Cart')}
                     </button>
                 </div>`);
         },
@@ -1908,15 +2069,41 @@
         },
     };
 
+    // --- NEW: App Entry Point ---
+    
+    // NEW: This function is called by the brand selection buttons
+    function selectBrand(brand) {
+        if (!supabase) {
+            console.error("Supabase not ready, cannot select brand.");
+            return;
+        }
+        
+        // 1. Set state and local storage
+        app.state.theme = brand;
+        localStorage.setItem('brand-theme', brand);
+        
+        // 2. Hide brand selection screen
+        const brandScreen = $('#brand-selection-screen');
+        brandScreen.classList.add('fade-out');
+        setTimeout(() => {
+            brandScreen.style.display = 'none';
+        }, 500); // Hide after fade
+        
+        // 3. Start the main app
+        app.init();
+    }
+    
     // --- START APP ---
     document.addEventListener('DOMContentLoaded', () => {
-        app.init();
+        // Instead of starting app.init(), we show the brand selection.
+        ui.showBrandSelection();
     });
 
-    // CRITICAL FIX: Move global exposure to the end of the script
+    // CRITICAL: Move global exposure to the end of the script
     window.app = app;
     window.ui = ui;
     window.GAMES = GAMES; 
+    window.selectBrand = selectBrand; // Expose selectBrand to the global scope
 
 </script>
 </body>
