@@ -2182,7 +2182,7 @@
                 nextBtn.onclick = () => updateSlide(currentIndex + 1);
             }
             if (prevBtn) {
-                prevBtn.onclick = () => updateSlide(currentIndex - 1);
+                prevBtn.onclick = () => updateSlide(currentIndex + 1);
             }
             dots.forEach(dot => {
                 dot.onclick = () => updateSlide(parseInt(dot.dataset.index));
