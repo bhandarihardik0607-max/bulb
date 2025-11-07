@@ -901,9 +901,8 @@
              ui.renderHeader(page);
              ui.renderPageContent(page);
              
-             if (this.state.theme === 'bulb') {
-                ui.updateActiveNav(page);
-             }
+             // ALWAYS update nav, as it's always shown
+             ui.updateActiveNav(page);
         },
         
         /**
@@ -927,7 +926,10 @@
              
              // Don't allow back navigation in Gulabi theme (it's a single-flow app)
              if (this.state.theme === 'gulabi') {
-                 event.preventDefault(); return;
+                if (this.state.currentPage === 'home') { return; }
+                event.preventDefault(); 
+                this.navigateTo('home');
+                return;
              }
              
              // For Bulb Cafe, navigate to 'home' if not already there
@@ -1513,6 +1515,8 @@
                  let pageTitle;
                  if (page === 'cart') {
                      pageTitle = 'My Cart';
+                 } else if (page === 'social') {
+                     pageTitle = 'Social';
                  } else if (app.state.isGulabiOrderingEnabled) {
                      pageTitle = 'Order Now';
                  } else {
@@ -1585,9 +1589,11 @@
                 cowork: this.renderCoworkPage,
                 more: this.renderMorePage,
             };
-            content.classList.remove('fade-in');
-            void content.offsetWidth;
-            content.classList.add('fade-in');
+            
+            // FIX: Removed fade-in animation to prevent "white screen" bug
+            // content.classList.remove('fade-in');
+            // void content.offsetWidth;
+            // content.classList.add('fade-in');
             renderers[page]?.call(this, content); // Pass content container
         },
         
@@ -1708,6 +1714,7 @@
                 pagesToRender = ['home', 'order', 'cart', 'social', 'cowork', 'more'];
                 labels = { home: 'Home', order: 'Menu', cart: 'Cart', social: 'Social', cowork: 'Kitchen', more: 'More' };
             } else { // Gulabi Thali
+                // Use 'home' for the menu page
                 pagesToRender = ['home', 'cart', 'social'];
                 labels = { home: 'Menu', cart: 'Cart', social: 'Social' };
             }
@@ -1723,12 +1730,12 @@
             const cartLabel = $('#cart-tab-label'), cartIcon = $('#cart-icon-svg');
             
             // Change cart icon to "Track" if an order is active
-            if (app.state.activeOrder) {
-                cartLabel.textContent = 'Track';
-                cartIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />`;
+            if (app.state.activeOrder && app.state.theme === 'bulb') { // Only for bulb
+                if(cartLabel) cartLabel.textContent = 'Track';
+                if(cartIcon) cartIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />`;
             } else {
-                cartLabel.textContent = 'Cart';
-                cartIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />`;
+                if(cartLabel) cartLabel.textContent = 'Cart';
+                if(cartIcon) cartIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />`;
             }
             
             // Highlight active tab
@@ -2013,8 +2020,8 @@
                 // Show empty cart message
                 // Determine correct button text based on theme
                 const buttonText = 'View Menu';
-                // For both themes, 'order' is the correct page
-                const pageToNav = 'order'; 
+                // For both themes, 'home' (which is menu for gulabi) is the correct page
+                const pageToNav = 'home'; 
                 
                 container.innerHTML = `
                 <div class="text-center p-10">
@@ -2069,7 +2076,7 @@
             // <<< FIX: Changed placeholder text to be more generic for pickup/dine-in
             const instructionsPlaceholder = isGulabiOrder ? "Add special instructions (e.g., pickup time)" : "Add special instructions...";
             // Gulabi has no nav bar, so button is lower
-            const bottomClass = isGulabiOrder ? 'sticky bottom-4' : 'sticky bottom-16'; 
+            const bottomClass = 'sticky bottom-16'; // ALWAYS 16 now
 
             container.innerHTML = `
                 <!-- Cart Items -->
@@ -2266,7 +2273,7 @@
                                <span class="text-secondary">&rarr;</span>
                            </button>`
                         : `<div class="w-full bg-secondary p-4 rounded-xl text-left border border-custom">
-                               <div class="flex items-center"><span class="text-2xl mr-4">${opt.icon}</span><span class="font-semibold text-primary">${opt.text}</span></div>
+                               <div classs="flex items-center"><span class="text-2xl mr-4">${opt.icon}</span><span class="font-semibold text-primary">${opt.text}</span></div>
                                ${opt.explanation || ''}
                            </div>`
                     ).join("")}
