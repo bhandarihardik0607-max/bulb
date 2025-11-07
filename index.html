@@ -748,7 +748,7 @@
         /**
          * fetchAppSettings()
          * This is key for the "Gulabi Thali Toggle" request.
-         * It fetches the 'gulabi_thali_ordering_enabled' setting from the admin panel.
+         * It fetches the 'gulabi_ordering_enabled' setting from the admin panel.
          */
         async fetchAppSettings() {
             try {
@@ -758,7 +758,7 @@
                 
                 // This is the toggle from your admin panel
                 // It checks if the value is the string 'true'
-                this.state.isGulabiOrderingEnabled = this.state.appSettings?.gulabi_thali_ordering_enabled === 'true' || false;
+                this.state.isGulabiOrderingEnabled = this.state.appSettings?.gulabi_ordering_enabled === 'true' || false;
                 
                 console.log(`Gulabi Thali Ordering Enabled: ${this.state.isGulabiOrderingEnabled}`);
             } catch (error) { console.error('Error fetching app settings:', error); }
@@ -2491,7 +2491,8 @@
                 dots.forEach((dot, i) => { dot.classList.toggle('active', i === currentIndex); });
             };
             if (nextBtn) { nextBtn.onclick = () => updateSlide(currentIndex + 1); }
-            if (prevBtn) { prevBtn.onclick = () => updateSlide(currentIndex + 1); } // FIX: Changed prev to next for auto-slide (or user can fix)
+            // ***** FIX: Changed from (currentIndex + 1) to (currentIndex - 1) *****
+            if (prevBtn) { prevBtn.onclick = () => updateSlide(currentIndex - 1); }
             dots.forEach(dot => { dot.onclick = () => updateSlide(parseInt(dot.dataset.index)); });
             
             // Autoplay
