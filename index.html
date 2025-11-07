@@ -909,13 +909,8 @@
         toggleTheme(t){ 
             ui.closeModal('brand-switcher-modal');
             if (this.state.theme === 'gulabi' && t === 'bulb') {
-                app.state.theme = t;
-                localStorage.setItem('brand-theme', t);
-                this.applyTheme();
-                $('#bottom-nav').classList.remove('hidden');
-                $('#footer-spacer').classList.remove('hidden');
-                ui.renderBottomNav();
-                this.navigateTo('home', false);
+                // This is incomplete, using switchBrand is safer
+                this.switchBrand();
             }
         },
 
@@ -924,6 +919,20 @@
             localStorage.removeItem('brand-theme');
             location.reload(); // Reloads the page, triggering earlyInit()
         },
+
+        // *** NEW FUNCTION ***
+        // Handles the logic from the new brand switcher modal
+        handleBrandSwitchFromModal(brand) {
+            ui.closeModal('brand-switcher-modal');
+            if (this.state.theme === brand) {
+                // Same brand, do nothing.
+                return;
+            } else {
+                // Different brand, trigger reload flow.
+                this.switchBrand();
+            }
+        },
+
 
         /**
          * addOrUpdateCart()
@@ -1459,6 +1468,8 @@
          * This is the VIEW-ONLY page, shown when the admin toggle is OFF.
          */
         renderGulabiThaliPage(container) {
+            // *** DEBUG FIX: This was pointing to app.toggleTheme, which is incomplete.
+            // Changed to ui.showBrandSwitcherModal() for consistency.
             const switchTheme = 'bulb';
             const switchBrandName = 'BULB CAFE';
             
@@ -1540,7 +1551,8 @@
                     
                     <!-- Switch Button -->
                     <div class="sticky bottom-4 z-10 p-4 bg-primary/80 backdrop-blur-sm rounded-xl border border-custom">
-                        <button onclick="app.toggleTheme('${switchTheme}')" class="w-full bg-yellow-500 text-white font-extrabold py-4 px-6 rounded-xl shadow-lg transition transform hover:scale-[1.02] text-lg">
+                        <!-- *** DEBUG FIX: Changed from app.toggleTheme to ui.showBrandSwitcherModal *** -->
+                        <button onclick="ui.showBrandSwitcherModal()" class="w-full bg-yellow-500 text-white font-extrabold py-4 px-6 rounded-xl shadow-lg transition transform hover:scale-[1.02] text-lg">
                             SWITCH TO ${switchBrandName}
                         </button>
                     </div>
@@ -1593,7 +1605,8 @@
 
         renderHomePage(container){
             const currentBrandName = 'BULB CAFE';
-            const switchButtonColor = 'bg-red-500';
+            // *** DEBUG FIX: Changed color to pink/Gulabi theme
+            const switchButtonColor = 'bg-pink-600'; // Was bg-red-500
 
             const activeOrderHTML = app.state.activeOrder ? `<div class="bg-blue-500/10 border-2 border-blue-500/20 rounded-xl p-4 text-center"> <h2 class="font-bold text-primary">Your order is ${app.state.activeOrder.status}!</h2> <p class="text-secondary text-sm">Order ID: #${app.state.activeOrder.id.slice(0,6)}</p> <button onclick="app.navigateTo('cart')" class="mt-2 text-sm font-semibold text-blue-600 hover:underline">View Details &rarr;</button> </div>` : '';
             
@@ -1622,8 +1635,9 @@
                         <div class="bg-secondary p-6 rounded-xl shadow-sm border border-custom text-center">
                             <span class="text-4xl mb-2">🔄</span>
                             <h2 class="text-2xl font-bold text-primary mb-4 px-1">Change Location</h2>
-                            <button onclick="app.switchBrand()" class="w-full ${switchButtonColor} text-white font-extrabold py-3 px-6 rounded-xl shadow-lg text-lg">
-                                CHANGE BRAND
+                            <!-- *** DEBUG FIX: Changed text and onclick function *** -->
+                            <button onclick="ui.showBrandSwitcherModal()" class="w-full ${switchButtonColor} text-white font-extrabold py-3 px-6 rounded-xl shadow-lg text-lg">
+                                SWITCH TO GULABI THALI
                             </button>
                         </div>
                         <div class="grid grid-cols-1 gap-4">
@@ -1971,8 +1985,9 @@
                     <div class="bg-secondary p-6 rounded-xl shadow-sm border border-custom">
                         <h2 class="text-2xl font-bold text-primary">Change Location</h2>
                         <p class="text-secondary mt-1 mb-4">Go back to the main selection screen.</p>
-                        <button onclick="app.switchBrand()" class="w-full bg-red-500 text-white font-extrabold py-3 px-6 rounded-xl shadow-lg transition transform hover:scale-[1.02]">
-                            CHANGE BRAND
+                        <!-- *** DEBUG FIX: Changed text and onclick function *** -->
+                        <button onclick="ui.showBrandSwitcherModal()" class="w-full bg-red-500 text-white font-extrabold py-3 px-6 rounded-xl shadow-lg transition transform hover:scale-[1.02]">
+                            SWITCH BRAND
                         </button>
                     </div>
                 </div>
@@ -2005,7 +2020,8 @@
             const options = [
                 { icon: "🪙", text: `Loyalty Points: ${loyaltyPoints}`, action: "", explanation: loyaltyExplanation },
                 { icon: "🛎", text: "Call Staff for Assistance", action: "ui.showCallStaffModal()" },
-                { icon: "🔄", text: "Change Brand", action: "app.switchBrand()" },
+                // *** DEBUG FIX: Changed text and action ***
+                { icon: "🔄", text: "Switch Brand", action: "ui.showBrandSwitcherModal()" },
                 { icon: "🎮", text: "Play Games", action: "ui.showGamesModal()" },
                 { icon: "📜", text: "Order History", action: "ui.showOrderHistoryModal()" },
             ];
@@ -2037,7 +2053,45 @@
             `);
         },
         
-        showBrandSwitcherModal(){ app.switchBrand(); },
+        // *** DEBUG FIX: Replaced old function with new modal UI ***
+        showBrandSwitcherModal(){
+            const modalContent = `
+                <h2 class="text-2xl font-bold text-primary mb-6 text-center">Switch Location</h2>
+                <div class="w-full max-w-lg mx-auto grid grid-cols-1 gap-6">
+                    <!-- Bulb Cafe Card -->
+                    <div class="brand-card" onclick="app.handleBrandSwitchFromModal('bulb')">
+                        <div class="relative rounded-2xl shadow-lg overflow-hidden aspect-w-4 aspect-h-3">
+                            <img src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/429351096_763581305304798_8823152985320369357_n.jpg"
+                                 alt="Bulb Cafe Interior" class="w-full h-full object-cover"
+                                 onerror="this.onerror=null; this.src='https://placehold.co/600x800/F59E0B/92400E?text=Bulb+Cafe';">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                            <div class="absolute bottom-0 left-0 p-4">
+                                <h3 class="text-2xl font-extrabold text-white">BULB CAFE</h3>
+                                <p class="text-yellow-300 font-semibold">Jaipur</p>
+                            </div>
+                            ${app.state.theme === 'bulb' ? `<div class="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold py-1 px-2 rounded-full z-10">ACTIVE</div>` : ''}
+                        </div>
+                    </div>
+
+                    <!-- Gulabi Thali Card -->
+                    <div class="brand-card" onclick="app.handleBrandSwitchFromModal('gulabi')">
+                        <div class="relative rounded-2xl shadow-lg overflow-hidden aspect-w-4 aspect-h-3">
+                            <img src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/403946165_1014623216287649_4686052002313628516_n%20(1).jpg"
+                                 alt="Gulabi Thali Food" class="w-full h-full object-cover"
+                                 onerror="this.onerror=null; this.src='https://placehold.co/600x800/DB2777/9D174D?text=Gulabi+Thali';">
+                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                             <div class="absolute bottom-0 left-0 p-4">
+                                <h3 class="text-2xl font-extrabold text-white">GULABI THALI</h3>
+                                <p class="text-pink-300 font-semibold">Cloud Kitchen</p>
+                            </div>
+                            ${app.state.theme === 'gulabi' ? `<div class="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold py-1 px-2 rounded-full z-10">ACTIVE</div>` : ''}
+                        </div>
+                    </div>
+                </div>
+                <button onclick="ui.closeModal('brand-switcher-modal')" class="w-full mt-6 bg-secondary font-semibold py-3 rounded-lg">Cancel</button>
+            `;
+            ui.showModal('brand-switcher-modal', modalContent);
+        },
 
         showPaymentModal(){
              const isGulabi = app.state.theme === 'gulabi';
