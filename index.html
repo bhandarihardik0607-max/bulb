@@ -2,8 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <!-- 
+      Ensuring mobile-first design with viewport settings.
+      user-scalable=no prevents accidental zooming on mobile.
+    -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <!-- Title changed to match brand -->
     <title>Bulb Cafe & Gulabi Thali</title>
     
     <!-- Tailwind CSS -->
@@ -22,27 +25,72 @@
             /* Theme Variables */
             --bg-primary-light: #FFFFFF; --bg-secondary-light: #F3F4F6; --text-primary-light: #111827; --text-secondary-light: #6B7280; --border-light: #E5E7EB; --brand-primary-light: #111827;
             --bg-primary-dark: #111111; --bg-secondary-dark: #1F2023; --text-primary-dark: #F9FAFB; --text-secondary-dark: #9CA3AF; --border-dark: #374151; --brand-primary-dark: #FFFFFF;
-            /* Bulb Theme */
-            --bg-primary-yellow: #FFFBEB; --bg-secondary-yellow: #FEF3C7; --text-primary-yellow: #92400E; --text-secondary-yellow: #B45309; --border-yellow: #FDE68A; --brand-primary-yellow: #F59E0B;
-            /* Gulabi Theme */
-            --bg-primary-pink: #FFF5F7; --bg-secondary-pink: #FCE7F6; --text-primary-pink: #9D174D; --text-secondary-pink: #E94C8F; --border-pink: #FBCFE8; --brand-primary-pink: #DB2777;
+            
+            /* Bulb Theme (Yellow Gradient) */
+            --bg-primary-yellow: #FFFBEB; --bg-secondary-yellow: #FEF3C7; --text-primary-yellow: #92400E; --text-secondary-yellow: #B45309; --border-yellow: #FDE68A; 
+            --brand-primary-yellow-start: #FBBF24; --brand-primary-yellow-end: #F59E0B;
+
+            /* Gulabi Theme (Pink Gradient) */
+            --bg-primary-pink: #FFF5F7; --bg-secondary-pink: #FCE7F6; --text-primary-pink: #9D174D; --text-secondary-pink: #E94C8F; --border-pink: #FBCFE8; 
+            --brand-primary-pink-start: #EC4899; --brand-primary-pink-end: #DB2777;
+
             --app-height: 100vh;
         }
-        /* Theme Selection - Reverted to Light/Dark + new Brand Themes */
-        [data-theme="light"] { --bg-primary: var(--bg-primary-light); --bg-secondary: var(--bg-secondary-light); --text-primary: var(--text-primary-light); --text-secondary: var(--text-secondary-light); --border-color: var(--border-light); --brand-primary: var(--brand-primary-light); }
-        [data-theme="dark"] { --bg-primary: var(--bg-primary-dark); --bg-secondary: var(--bg-secondary-dark); --text-primary: var(--text-primary-dark); --text-secondary: var(--text-secondary-dark); --border-color: var(--border-dark); --brand-primary: var(--brand-primary-dark); }
-        [data-theme="bulb"] { --bg-primary: var(--bg-primary-yellow); --bg-secondary: var(--bg-secondary-yellow); --text-primary: var(--text-primary-yellow); --text-secondary: var(--text-secondary-yellow); --border-color: var(--border-yellow); --brand-primary: var(--brand-primary-yellow); }
-        [data-theme="gulabi"] { --bg-primary: var(--bg-primary-pink); --bg-secondary: var(--bg-secondary-pink); --text-primary: var(--text-primary-pink); --text-secondary: var(--text-secondary-pink); --border-color: var(--border-pink); --brand-primary: var(--brand-primary-pink); }
+        
+        /* Theme Selection */
+        [data-theme="light"] { --bg-primary: var(--bg-primary-light); --bg-secondary: var(--bg-secondary-light); --text-primary: var(--text-primary-light); --text-secondary: var(--text-secondary-light); --border-color: var(--border-light); --brand-primary: var(--brand-primary-light); --brand-gradient-start: var(--brand-primary-light); --brand-gradient-end: var(--brand-primary-light); }
+        [data-theme="dark"] { --bg-primary: var(--bg-primary-dark); --bg-secondary: var(--bg-secondary-dark); --text-primary: var(--text-primary-dark); --text-secondary: var(--text-secondary-dark); --border-color: var(--border-dark); --brand-primary: var(--brand-primary-dark); --brand-gradient-start: var(--brand-primary-dark); --brand-gradient-end: var(--brand-primary-dark); }
+        
+        [data-theme="bulb"] { 
+            --bg-primary: var(--bg-primary-yellow); --bg-secondary: var(--bg-secondary-yellow); --text-primary: var(--text-primary-yellow); --text-secondary: var(--text-secondary-yellow); --border-color: var(--border-yellow); 
+            --brand-primary: var(--brand-primary-yellow-end); /* Fallback color */
+            --brand-gradient-start: var(--brand-primary-yellow-start); 
+            --brand-gradient-end: var(--brand-primary-yellow-end);
+        }
+        [data-theme="gulabi"] { 
+            --bg-primary: var(--bg-primary-pink); --bg-secondary: var(--bg-secondary-pink); --text-primary: var(--text-primary-pink); --text-secondary: var(--text-secondary-pink); --border-color: var(--border-pink); 
+            --brand-primary: var(--brand-primary-pink-end); /* Fallback color */
+            --brand-gradient-start: var(--brand-primary-pink-start); 
+            --brand-gradient-end: var(--brand-primary-pink-end);
+        }
 
         /* Base & Utility Styles */
         html, body { height: 100%; overflow: hidden; }
-        body { font-family: 'Poppins', sans-serif; background-color: #000000; color: var(--text-primary); -webkit-tap-highlight-color: transparent; transition: background-color 0.5s ease; }
-        .app-container { background-color: var(--bg-primary); transition: background-color 0.5s ease; height: var(--app-height); }
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background-color: #000000; /* Outer background for desktop view */
+            color: var(--text-primary); 
+            -webkit-tap-highlight-color: transparent; 
+            transition: background-color 0.5s ease; 
+        }
+        .app-container { 
+            background-color: var(--bg-primary); 
+            transition: background-color 0.5s ease; 
+            height: var(--app-height); /* Full viewport height */
+        }
         .text-primary { color: var(--text-primary); } .text-secondary { color: var(--text-secondary); }
         .bg-primary { background-color: var(--bg-primary); } .bg-secondary { background-color: var(--bg-secondary); }
-        .border-custom { border-color: var(--border-color); } .brand-text { color: var(--brand-primary); }
-        .brand-bg { background-color: var(--brand-primary); color: var(--bg-primary); }
-        .brand-border { border-color: var(--brand-primary); }
+        .border-custom { border-color: var(--border-color); } 
+        
+        /* NEW: Gradient Styles */
+        .brand-text {
+            background-image: linear-gradient(to right, var(--brand-gradient-start), var(--brand-gradient-end));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .brand-bg {
+            background-image: linear-gradient(to right, var(--brand-gradient-start), var(--brand-gradient-end));
+            color: white; /* Gradients look best with white text */
+            transition: all 0.3s ease;
+        }
+        .brand-bg:hover {
+            filter: brightness(1.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .brand-border {
+            border-color: var(--brand-primary);
+        }
 
         /* Animations */
         .fade-in { animation: fadeIn 0.5s ease-in-out; } @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -57,7 +105,7 @@
         #splash-screen .brand-logo { animation: pulse 2s infinite ease-in-out; }
         @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
         
-        /* NEW: Brand Selection Screen Styles */
+        /* Brand Selection Screen Styles */
         #brand-selection-screen { animation: fadeIn 0.3s ease; }
         .brand-card {
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -68,7 +116,7 @@
             box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2), 0 10px 10px -5px rgba(0,0,0,0.1);
         }
         .brand-card img {
-             object-position: center 20%; /* Focus more on the top-center of the images */
+             object-position: center 20%;
         }
 
         /* Custom UI Elements */
@@ -85,20 +133,43 @@
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Tracking Tracker */
-        .tracker-container { display: flex; align-items: center; justify-content: space-between; position: relative; }
-        .tracker-line-container { position: absolute; top: 18px; left: 40px; right: 40px; height: 4px; background-color: var(--border-color); border-radius: 2px; }
-        .tracker-progress { height: 100%; background-color: var(--brand-primary); border-radius: 2px; transition: width 0.5s ease-in-out; }
-        .tracker-step { display: flex; flex-direction: column; align-items: center; text-align: center; width: 80px; position: relative; z-index: 1; }
-        .tracker-icon-container { width: 40px; height: 40px; border-radius: 50%; background-color: var(--bg-primary); border: 2px solid var(--border-color); display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; font-size: 20px; }
-        .tracker-step.active .tracker-icon-container { border-color: var(--brand-primary); background-color: var(--brand-primary); color: var(--bg-primary); transform: scale(1.1); }
-        .tracker-label { margin-top: 8px; font-size: 10px; font-weight: 600; transition: color 0.3s ease; }
+        /* Order Tracker */
+        .tracker-line-container { background-color: var(--border-color); }
+        .tracker-progress { 
+            background-image: linear-gradient(to right, var(--brand-gradient-start), var(--brand-gradient-end)); 
+        }
+        .tracker-icon-container { background-color: var(--bg-primary); border: 2px solid var(--border-color); }
+        .tracker-step.active .tracker-icon-container { 
+            border-color: var(--brand-primary); 
+            background-image: linear-gradient(to right, var(--brand-gradient-start), var(--brand-gradient-end));
+            color: white; 
+            transform: scale(1.1); 
+        }
         .tracker-step.active .tracker-label { color: var(--brand-primary); }
 
         /* Menu/Cart Controls */
-        .add-to-cart-btn { width: 40px; height: 40px; border-radius: 50%; background-color: var(--bg-primary); color: var(--brand-primary); border: 2px solid var(--border-color); font-size: 24px; font-weight: 600; line-height: 1; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; }
-        .add-to-cart-btn:hover { transform: scale(1.1); background-color: var(--brand-primary); color: var(--bg-primary); border-color: var(--brand-primary); }
-        .quantity-control { display: flex; align-items: center; justify-content: space-between; background-color: var(--brand-primary); color: var(--bg-primary); border-radius: 9999px; font-weight: 600; overflow: hidden; width: 100px; height: 40px; user-select: none; }
+        .add-to-cart-btn { 
+            width: 40px; height: 40px; border-radius: 50%; 
+            background-color: var(--bg-primary); 
+            color: var(--brand-primary); 
+            border: 2px solid var(--border-color); 
+            font-size: 24px; font-weight: 600; line-height: 1; 
+            display: flex; align-items: center; justify-content: center; 
+            transition: all 0.2s ease; 
+        }
+        .add-to-cart-btn:hover { 
+            transform: scale(1.1); 
+            background-image: linear-gradient(to right, var(--brand-gradient-start), var(--brand-gradient-end));
+            color: white; 
+            border-color: var(--brand-primary); 
+        }
+        .quantity-control { 
+            display: flex; align-items: center; justify-content: space-between; 
+            background-image: linear-gradient(to right, var(--brand-gradient-start), var(--brand-gradient-end));
+            color: white; 
+            border-radius: 9999px; font-weight: 600; 
+            overflow: hidden; width: 100px; height: 40px; user-select: none; 
+        }
         .quantity-control button { width: 34px; height: 100%; font-size: 20px; line-height: 1; transition: background-color 0.2s ease; }
         .quantity-control button:hover { background-color: rgba(0,0,0,0.1); }
         .quantity-control span { font-size: 16px; }
@@ -114,10 +185,19 @@
         /* Loyalty Slider */
         #loyalty-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 8px; background: var(--bg-secondary); outline: none; opacity: 0.7; transition: opacity .2s; border-radius: 4px; }
         #loyalty-slider:hover { opacity: 1; }
-        #loyalty-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; background: var(--brand-primary); cursor: pointer; border-radius: 50%; }
-        #loyalty-slider::-moz-range-thumb { width: 20px; height: 20px; background: var(--brand-primary); cursor: pointer; border-radius: 50%; border: none; }
+        #loyalty-slider::-webkit-slider-thumb { 
+            -webkit-appearance: none; appearance: none; 
+            width: 20px; height: 20px; 
+            background-image: linear-gradient(to right, var(--brand-gradient-start), var(--brand-gradient-end));
+            cursor: pointer; border-radius: 50%; 
+        }
+        #loyalty-slider::-moz-range-thumb { 
+            width: 20px; height: 20px; 
+            background-image: linear-gradient(to right, var(--brand-gradient-start), var(--brand-gradient-end));
+            cursor: pointer; border-radius: 50%; border: none; 
+        }
 
-        /* Social Card Gradient (used for visual appeal) */
+        /* Social Card Gradient */
         .social-card-gradient {
             background: radial-gradient(circle at 30% 107%, #FCD34D 0%, #F59E0B 45%, #DB2777 60%, #E94C8F 90%);
             -webkit-background-clip: text;
@@ -125,101 +205,34 @@
             -webkit-text-fill-color: transparent;
         }
 
-        /* NEW: Slideshow Styles */
+        /* Slideshow Styles */
         .slideshow-container {
             position: relative;
             overflow: hidden;
             border-radius: 0.5rem; /* 8px */
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
-        .slideshow-track {
-            display: flex;
-            transition: transform 0.5s ease-in-out;
-        }
-        .slide {
-            flex: 0 0 100%;
-            width: 100%;
-            position: relative;
-        }
-        .slide-content {
-            width: 100%;
-            height: 100%; /* Ensure content fills slide */
-            display: block;
-            object-fit: cover; /* Make images/videos cover */
-        }
-        .slide-video {
-             width: 100%;
-             height: 100%;
-             object-fit: cover;
-        }
-        .slide-text {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.7) 20%, transparent);
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            padding: 1rem; /* 16px */
-            color: white;
-            text-align: center;
-        }
-        .slideshow-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background-color: rgba(0, 0, 0, 0.5);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            font-size: 24px;
-            font-weight: bold;
-            cursor: pointer;
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .slideshow-btn:hover {
-            background-color: rgba(0, 0, 0, 0.8);
-        }
+        .slideshow-track { display: flex; transition: transform 0.5s ease-in-out; }
+        .slide { flex: 0 0 100%; width: 100%; position: relative; }
+        .slide-content { width: 100%; height: 100%; display: block; object-fit: cover; }
+        .slide-video { width: 100%; height: 100%; object-fit: cover; }
+        .slide-text { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.7) 20%, transparent); display: flex; flex-direction: column; justify-content: flex-end; padding: 1rem; color: white; text-align: center; }
+        .slideshow-btn { position: absolute; top: 50%; transform: translateY(-50%); background-color: rgba(0, 0, 0, 0.5); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 24px; font-weight: bold; cursor: pointer; z-index: 10; display: flex; align-items: center; justify-content: center; }
+        .slideshow-btn:hover { background-color: rgba(0, 0, 0, 0.8); }
         .slideshow-btn.prev { left: 10px; }
         .slideshow-btn.next { right: 10px; }
-
-        .slideshow-dots {
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 8px;
-            z-index: 10;
-        }
-        .dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background-color: rgba(255, 255, 255, 0.5);
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        .dot.active {
-            background-color: white;
-        }
-
-        /* NEW: Accordion Icon transition */
-        .rotate-180 {
-            transform: rotate(180deg);
-        }
+        .slideshow-dots { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 10; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; background-color: rgba(255, 255, 255, 0.5); cursor: pointer; transition: background-color 0.3s ease; }
+        .dot.active { background-color: white; }
+        .rotate-180 { transform: rotate(180deg); }
 
     </style>
 </head>
-<body data-theme="light"> <!-- Default to light, will be overwritten by selection -->
+<body data-theme="light"> <!-- Default, will be overwritten -->
 
     <!-- 
-      NEW: Brand Selection Screen 
-      This is now the first thing the user sees (if not in localStorage)
+      Brand Selection Screen 
+      This is now shown *after* auth/onboarding, or if a QR code is scanned.
     -->
     <div id="brand-selection-screen" class="fixed inset-0 bg-gray-900 flex flex-col items-center justify-center z-[200] p-4 hidden">
         <h1 class="text-3xl font-bold text-white mb-4">Welcome</h1>
@@ -260,33 +273,39 @@
         </div>
     </div>
 
-    <!-- Splash Screen (Now shown *after* brand selection) -->
+    <!-- 
+      Splash Screen 
+      Shown *after* brand selection, themed appropriately.
+    -->
     <div id="splash-screen" class="fixed inset-0 bg-primary flex flex-col items-center justify-center z-[100] hidden">
-        <!-- Bulb Logo -->
-        <div class="brand-logo text-7xl mb-4" style="color: var(--brand-primary);">💡</div>
-        <h1 class="text-3xl font-bold brand-text">BULB CAFE</h1>
+        <div class="brand-logo text-7xl mb-4"></div> <!-- Content set by JS -->
+        <h1 class="text-3xl font-bold brand-text"></h1> <!-- Content set by JS -->
     </div>
 
+    <!-- 
+      Main App Container
+      This is the mobile-sized container.
+    -->
     <div id="app" class="app-container max-w-lg mx-auto shadow-2xl flex flex-col hidden">
         <main class="flex-grow overflow-y-auto">
             <div id="main-interface" class="hidden">
                 <!-- Page Header (Sticky) -->
-                <header id="page-header" class="sticky top-0 bg-primary z-20 h-16 px-4 flex justify-between items-center border-b border-custom"></header>
+                <header id="page-header" class="sticky top-0 bg-primary/80 backdrop-blur-sm z-20 h-16 px-4 flex justify-between items-center border-b border-custom"></header>
                 <!-- Page Content Area -->
                 <div id="page-content"></div>
             </div>
-            <!-- Footer Spacer -->
+            <!-- Footer Spacer for Bottom Nav -->
             <div id="footer-spacer" class="h-20 flex-shrink-0"></div>
         </main>
         <!-- Bottom Navigation Bar -->
-        <nav id="bottom-nav" class="fixed bottom-0 left-1/2 -translate-x-1/2 max-w-lg w-full bg-primary border-t border-custom flex justify-around items-center h-16 z-30 hidden"></nav>
+        <nav id="bottom-nav" class="fixed bottom-0 left-1/2 -translate-x-1/2 max-w-lg w-full bg-primary/80 backdrop-blur-sm border-t border-custom flex justify-around items-center h-16 z-30 hidden"></nav>
     </div>
 
     <!-- Modal Container -->
     <div id="modal-container"></div>
     
     <!-- Toast Notification -->
-    <div id="toast" class="hidden fixed right-4 py-3 px-5 rounded-lg shadow-xl z-50 transition-all duration-300" style="background-color: var(--brand-primary); color: var(--bg-primary); bottom: 80px;">
+    <div id="toast" class="hidden fixed right-4 py-3 px-5 rounded-lg shadow-xl z-50 transition-all duration-300 brand-bg font-semibold" style="bottom: 80px;">
         <p id="toast-message"></p>
     </div>
 
@@ -299,27 +318,25 @@
     const $ = (selector) => document.querySelector(selector);
     const $$ = (selector) => document.querySelectorAll(selector);
 
+    // Sets CSS variable for 100vh to fix mobile browser UI bars
     function setAppHeight() {
       document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
     }
     window.addEventListener('resize', setAppHeight);
     setAppHeight();
 
-    // --- SUPABASE CONFIG (Using new keys) ---
+    // --- SUPABASE CONFIG ---
     const SUPABASE_URL = 'https://vrvlvvlfzbdqwfsdlrkv.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZydmx2dmxmemJkcXdmc2Rscmt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NzI2NzAsImV4cCI6MjA3NzU0ODY3MH0.yYnxeipLuO0DlTvGITI5ajHDeoWZ80N2PS3rPhuOyp8';
     
-    // Check for the global variable exposed by the CDN
     const createClient = window.supabase ? window.supabase.createClient : null;
     let supabase = null;
     
-    // Initialize Supabase only if createClient is found
     if (createClient) {
         supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     } else {
-        console.error("CRITICAL: Supabase client library not found on window.supabase. App cannot function.");
+        console.error("CRITICAL: Supabase client library not found.");
         document.addEventListener('DOMContentLoaded', () => {
-             // Show error on the brand selection screen if it's visible
              const brandScreen = $('#brand-selection-screen');
              if (brandScreen) {
                  brandScreen.innerHTML = `<div class="text-white text-center p-4">Error loading data components. Check Console.</div>`;
@@ -331,8 +348,8 @@
     const PAGES = ['home', 'order', 'cart', 'social', 'cowork', 'more'];
 
     // --- STATIC DATA ---
+    // (This section is unchanged)
     const STATIC_DATA = {
-        // Placeholder IDs (These are just for structure and won't filter out items incorrectly now)
         bestSellers: [1, 2, 3, 4], 
         captionIdeas: {
             cafe_vibes: [ "Fueling my day with the best coffee @a_bulbcafejaipur! 💡☕️", "Cozy corners and great beans at Bulb Cafe. #CafeVibes" ],
@@ -342,6 +359,7 @@
     };
     
     // --- SOUND EFFECTS ---
+    // (This section is unchanged)
     const sound = {
         audioContext: null,
         init() {
@@ -354,7 +372,7 @@
             const o = this.audioContext.createOscillator(), g = this.audioContext.createGain();
             o.connect(g); g.connect(this.audioContext.destination); g.gain.setValueAtTime(0, this.audioContext.currentTime);
             const sounds = {
-                click: { type: 'sine', freq: 900, gain: 0.1, len: 0.05 }, // Higher pitch for "Bulb" effect
+                click: { type: 'sine', freq: 900, gain: 0.1, len: 0.05 },
                 add_to_cart: { type: 'sine', freq: 700, gain: 0.2, len: 0.15 },
                 success: { type: 'sine', freq: 523, gain: 0.3, len: 0.2, secondFreq: 659 },
                 win: { type: 'sine', freq: 587, gain: 0.4, len: 0.3, secondFreq: 880 },
@@ -376,62 +394,36 @@
             currentPage: 'home',
             cart: [],
             activeOrder: null,
-            tableNumber: null,
+            tableNumber: null, // Set by earlyInit if present in URL
             user: null,
             customerProfile: null,
-            theme: 'bulb', // Will be overwritten by brand selection
+            theme: 'bulb', // Default, will be overwritten
             menuData: [],
             allMenuItems: [],
             appSettings: {},
             orderSubscription: null,
-            // currentMenuCategory: null, // REMOVED: No longer needed for accordion
             searchQuery: '',
             searchResults: [],
             pointsToRedeem: 0,
-            isGulabiOrderingEnabled: false, // NEW: State to hold the admin toggle
+            isGulabiOrderingEnabled: false, // Set by fetchAppSettings
         },
 
-        async init() {
-            // This function is now called *after* a brand is selected
+        /**
+         * NEW: earlyInit()
+         * Runs on page load. Handles auth and profile fetching *before* brand selection.
+         */
+        async earlyInit() {
             document.body.addEventListener('click', () => sound.init(), { once: true });
             if (!supabase) {
                 console.error("Supabase failed to initialize. Cannot start app.");
                 return; 
             }
 
-            // Apply theme first to style splash screen
-            this.applyTheme();
-            
-            // Update splash screen to match selected theme
-            const splashLogo = $('#splash-screen .brand-logo');
-            const splashTitle = $('#splash-screen .text-3xl');
-            if (this.state.theme === 'gulabi') {
-                splashLogo.innerHTML = '🍛'; // Gulabi Thali icon
-                splashTitle.innerHTML = 'GULABI THALI';
-            } else {
-                splashLogo.innerHTML = '💡'; // Bulb Cafe icon
-                splashTitle.innerHTML = 'BULB CAFE';
-            }
-            $('#splash-screen').classList.remove('hidden');
-
-
-            const initialHash = location.hash.substring(1);
-            if (PAGES.includes(initialHash)) {
-                 this.state.currentPage = initialHash;
-            } else {
-                 this.state.currentPage = 'home';
-                 location.hash = 'home';
-            }
-            window.addEventListener('popstate', this.handleHardwareBack.bind(this));
-
-            this.startAppFlow();
-        },
-
-        async startAppFlow() {
+            // 1. Get table number from URL (if any)
             this.getTableNumberFromURL();
 
             try {
-                // 1. ANONYMOUS SIGN-IN (or get existing session)
+                // 2. ANONYMOUS SIGN-IN (or get existing session)
                 let session = null;
                 try {
                     const { data } = await supabase.auth.getSession();
@@ -448,45 +440,104 @@
                     this.state.user = signInData.user;
                 }
 
-                // 2. FETCH OR CREATE PROFILE
+                // 3. FETCH OR CREATE PROFILE
                 await this.fetchCustomerProfile();
                 
-                // 3. LOAD REMAINING DATA
-                await Promise.all([ this.fetchMenuData(), this.fetchAppSettings() ]);
-
-                // 4. START UI
-                // Short splash screen fade
-                setTimeout(() => {
-                    $('#splash-screen').classList.add('fade-out');
-                    setTimeout(() => {
-                        $('#splash-screen').style.display = 'none';
-                    }, 500);
-                }, 1000); // Show splash for 1 second
-
-                $('#app').classList.remove('hidden');
-                $('#app').classList.add('flex');
-
-                // 5. DEBUG: Log profile
-                console.log("Profile fetched:", this.state.customerProfile);
-
-                // 6. NEW ONBOARDING LOGIC
-                if (!this.state.customerProfile || this.state.customerProfile.name === 'Guest' || !this.state.customerProfile.whatsapp_number) {
-                    // New user or guest, needs to provide details first.
-                    console.log("Showing universal onboarding...");
-                    this.showUniversalOnboardingModal(); 
-                } else {
-                    // Returning user, details are present. Proceed to brand-specific logic.
-                    console.log("User already onboarded. Continuing to brand logic.");
-                    this.continueAppFlowAfterOnboarding(); 
-                }
+                // 4. Handle next step based on profile
+                this.handleProfileLoaded();
 
             } catch (error) {
                 console.error("CRITICAL: App Initialization failed.", error);
-                $('#splash-screen').innerHTML = `<div class="text-primary text-center p-4">Could not load app: ${error.message}</div>`;
+                // Show error on the brand selection screen as a fallback
+                const brandScreen = $('#brand-selection-screen');
+                brandScreen.innerHTML = `<div class="text-white text-center p-4">Could not load app: ${error.message}</div>`;
+                brandScreen.classList.remove('hidden');
             }
         },
         
-        // NEW: Function to run brand-specific logic *after* universal onboarding is confirmed
+        /**
+         * NEW: handleProfileLoaded()
+         * Decides whether to show onboarding or brand selection.
+         */
+        handleProfileLoaded() {
+            if (!this.state.customerProfile || this.state.customerProfile.name === 'Guest' || !this.state.customerProfile.whatsapp_number) {
+                // New user or guest, needs to provide details first.
+                console.log("Showing universal onboarding...");
+                this.showUniversalOnboardingModal(); 
+            } else {
+                // Returning user, details are present. Proceed to brand selection.
+                console.log("User already onboarded. Checking brand selection.");
+                // Pass 'false' as we are not forcing, just checking
+                ui.showBrandSelection(false); 
+            }
+        },
+        
+        /**
+         * MODIFIED: init()
+         * This function is now called *after* a brand is selected.
+         * It handles fetching data and showing the main app.
+         */
+        async init() {
+            // Apply theme first to style splash screen
+            this.applyTheme();
+            
+            // Update splash screen to match selected theme
+            const splashLogo = $('#splash-screen .brand-logo');
+            const splashTitle = $('#splash-screen .text-3xl');
+            if (this.state.theme === 'gulabi') {
+                splashLogo.innerHTML = '🌸'; // NEW: Gulabi Thali icon
+                splashTitle.innerHTML = 'GULABI THALI';
+            } else {
+                splashLogo.innerHTML = '💡'; // Bulb Cafe icon
+                splashTitle.innerHTML = 'BULB CAFE';
+            }
+            $('#splash-screen').classList.remove('hidden');
+
+            // Set up page navigation
+            const initialHash = location.hash.substring(1);
+            if (PAGES.includes(initialHash)) {
+                 this.state.currentPage = initialHash;
+            } else {
+                 this.state.currentPage = 'home';
+                 location.hash = 'home';
+            }
+            window.addEventListener('popstate', this.handleHardwareBack.bind(this));
+
+            // Fetch data and start the app flow
+            try {
+                await Promise.all([ this.fetchMenuData(), this.fetchAppSettings() ]);
+                this.startAppFlow();
+            } catch (error) {
+                 console.error("CRITICAL: Data fetching failed.", error);
+                $('#splash-screen').innerHTML = `<div class="text-primary text-center p-4">Could not load app data: ${error.message}</div>`;
+            }
+        },
+
+        /**
+         * MODIFIED: startAppFlow()
+         * This is now just the final step to show the app after data is loaded.
+         */
+        startAppFlow() {
+            // Short splash screen fade
+            setTimeout(() => {
+                $('#splash-screen').classList.add('fade-out');
+                setTimeout(() => {
+                    $('#splash-screen').style.display = 'none';
+                }, 500);
+            }, 1000); // Show splash for 1 second
+
+            $('#app').classList.remove('hidden');
+            $('#app').classList.add('flex');
+            
+            // This call now correctly follows brand selection and data loading
+            this.continueAppFlowAfterOnboarding(); 
+        },
+        
+        /**
+         * MODIFIED: continueAppFlowAfterOnboarding()
+         * Logic is unchanged, but its position in the flow is different.
+         * It now runs *after* brand is selected and data is loaded.
+         */
         continueAppFlowAfterOnboarding() {
             if (this.state.theme === 'gulabi') {
                 // Cloud kitchen view: No table number needed.
@@ -494,19 +545,32 @@
             } else {
                 // Bulb Cafe view: Check for table number.
                 if (this.state.tableNumber) {
+                    // Table number came from QR scan, start session
                     this.startSession();
                 } else {
+                    // No table number, ask for it
                     this.showTableNumberModal();
                 }
             }
         },
 
+        /**
+         * MODIFIED: getTableNumberFromURL()
+         * Unchanged logic, but now called during earlyInit.
+         */
         getTableNumberFromURL() {
             const params = new URLSearchParams(window.location.search);
             const tableNum = params.get('table');
-            if (tableNum && !isNaN(parseInt(tableNum))) this.state.tableNumber = parseInt(tableNum);
+            if (tableNum && !isNaN(parseInt(tableNum))) {
+                this.state.tableNumber = parseInt(tableNum);
+                console.log(`Table number ${this.state.tableNumber} found in URL.`);
+            }
         },
 
+        /**
+         * MODIFIED: fetchCustomerProfile()
+         * Unchanged logic, but now called during earlyInit.
+         */
         async fetchCustomerProfile() {
             if (!this.state.user) return;
             const userId = this.state.user.id;
@@ -519,7 +583,6 @@
                     .single();
 
                 if (error && error.code === 'PGRST116') {
-                    // No profile found for this auth.uid(), create one.
                     console.log("No profile found, creating new 'Guest' profile.");
                     return this.createUserProfile(userId);
                 }
@@ -527,53 +590,55 @@
                 if (error) throw error;
                 
                 if (data) {
-                    // Profile found
                     console.log("Profile found:", data);
                     data.loyalty_points = data.loyalty_points || 0;
                     this.state.customerProfile = data;
                     return data;
                 }
                 
-                // Fallback just in case, though 'PGRST116' should handle the "not found" case.
                 return this.createUserProfile(userId);
 
             } catch (error) {
                 console.error('Error fetching/creating profile:', error.message);
                 ui.showToast('Could not load user profile.');
-                // Create a local fallback profile to avoid app crash
                 this.state.customerProfile = { id: userId, name: 'Guest', loyalty_points: 0, whatsapp_number: null };
             }
         },
         
+        /**
+         * MODIFIED: createUserProfile()
+         * Unchanged logic.
+         */
         async createUserProfile(userId) {
             try {
-                // Create a new user with the default name 'Guest'
                 const newProfile = { id: userId, name: 'Guest', loyalty_points: 0, whatsapp_number: null };
                 const { data, error } = await supabase
                     .from('customers')
                     .insert(newProfile)
-                    .select('*, loyalty_points') // Select loyalty_points
+                    .select('*, loyalty_points')
                     .single();
                 
                 if (error) throw error;
                 
-                // Ensure loyalty_points is set, even if DB returns null
                 data.loyalty_points = data.loyalty_points || 0;
                 this.state.customerProfile = data;
                 console.log("New guest profile created:", data);
                 return data;
                 
             } catch (error) {
-                // Handle race condition where profile was created by another process
-                if (error.code === '23505') { // Unique violation
+                if (error.code === '23505') { 
                     console.warn("Race condition: Profile already exists. Fetching.");
-                    return this.fetchCustomerProfile(); // Re-fetch the profile
+                    return this.fetchCustomerProfile();
                 }
                 console.error("Error creating profile:", error.message);
                 throw new Error(`Profile creation failed: ${error.message}`);
             }
         },
 
+        /**
+         * MODIFIED: fetchMenuData()
+         * Unchanged logic, but called from app.init().
+         */
         async fetchMenuData() {
             try {
                 const { data, error } = await supabase.from('products').select('*').order('id');
@@ -581,7 +646,6 @@
 
                 this.state.allMenuItems = data.filter(i => i.is_available);
 
-                // Grouping is still useful for *accordion* menu
                 const groupedMenu = data.reduce((acc, item) => {
                     if (!item.is_available) return acc;
                     const categoryName = item.category || 'Uncategorized';
@@ -599,24 +663,30 @@
             } catch (error) {
                 console.error('Error fetching menu data:', error);
                 ui.showToast('Could not load the menu: ' + error.message);
-                this.state.menuData = [];
-                this.state.allMenuItems = [];
             }
         },
 
+        /**
+         * MODIFIED: fetchAppSettings()
+         * Unchanged logic, but called from app.init().
+         * Sets the isGulabiOrderingEnabled state.
+         */
         async fetchAppSettings() {
             try {
                 const { data, error } = await supabase.from('app_settings').select('key, value');
                 if (error) throw error;
                 this.state.appSettings = data.reduce((acc, { key, value }) => ({ ...acc, [key]: value }), {});
-                // NEW: Update our state property based on the fetched settings
+                // This is the toggle from your admin panel
                 this.state.isGulabiOrderingEnabled = this.state.appSettings?.gulabi_thali_ordering_enabled || false;
+                console.log(`Gulabi Thali Ordering Enabled: ${this.state.isGulabiOrderingEnabled}`);
             } catch (error) { console.error('Error fetching app settings:', error); }
         },
 
-        // NEW: Universal modal for first-time users (both brands)
+        /**
+         * MODIFIED: showUniversalOnboardingModal()
+         * Unchanged logic.
+         */
         showUniversalOnboardingModal(){
-            // Use profile data, but clear 'Guest'
             const currentName = this.state.customerProfile?.name === 'Guest' ? '' : this.state.customerProfile?.name;
             const currentPhone = this.state.customerProfile?.whatsapp_number || '';
 
@@ -627,11 +697,14 @@
                     <input type="text" id="universal-user-name-input" class="w-full p-3 border border-custom rounded-lg bg-secondary text-primary" placeholder="Your Name" required value="${currentName || ''}">
                     <input type="tel" id="universal-mobile-number-input" class="w-full p-3 border border-custom rounded-lg bg-secondary text-primary" placeholder="Mobile Number (for Loyalty Points)" required value="${currentPhone || ''}">
                 </div>
-                <button onclick="app.completeUniversalOnboarding()" class="w-full mt-6 brand-bg font-semibold py-3 px-6 rounded-lg">Save & Continue</button>
+                <button onclick="app.completeUniversalOnboarding()" class="w-full mt-6 brand-bg font-semibold py-3 px-6 rounded-lg text-white">Save & Continue</button>
             `);
         },
 
-        // NEW: Handler for the universal modal
+        /**
+         * MODIFIED: completeUniversalOnboarding()
+         * Now calls ui.showBrandSelection(true) on success.
+         */
         async completeUniversalOnboarding(){
             const name = $('#universal-user-name-input').value.trim();
             const phone = $('#universal-mobile-number-input').value.trim();
@@ -641,36 +714,29 @@
             const cleanPhone = phone.replace(/\D/g,'');
 
             try {
-                // User is already authenticated (anonymously). We are just UPDATING their profile.
                 const { data: updatedProfile, error } = await supabase
                     .from('customers')
-                    .update({
-                        name: name,
-                        whatsapp_number: cleanPhone
-                    })
-                    .eq('id', this.state.user.id) // Update the record matching the auth user's ID
+                    .update({ name: name, whatsapp_number: cleanPhone })
+                    .eq('id', this.state.user.id)
                     .select('*, loyalty_points')
                     .single();
 
                 if (error) {
-                    // Handle potential error where phone number is already in use by another account
-                    if (error.code === '23505') { // unique_violation
+                    if (error.code === '23505') {
                         ui.showToast('This phone number is already linked to another account.');
-                        return; // Stop execution
+                        return;
                     }
-                    throw error; // Throw other errors
+                    throw error;
                 }
                 
-                // Update local state
                 updatedProfile.loyalty_points = updatedProfile.loyalty_points || 0;
                 this.state.customerProfile = updatedProfile;
                 console.log("Universal onboarding complete, profile updated:", updatedProfile);
                 
-                // Close this modal
                 ui.closeModal('universal-onboarding-modal');
 
-                // Now, continue to the brand-specific flow
-                this.continueAppFlowAfterOnboarding();
+                // MODIFIED: Now, force the brand selection screen to show
+                ui.showBrandSelection(true); // 'true' forces it to show
 
             } catch (error) {
                 console.error("Universal Onboarding Update Error:", error);
@@ -678,18 +744,23 @@
             }
         },
 
-        // DELETED: showOnboardingModal() and completeOnboarding() are no longer needed
-        // as their logic is replaced by the universal modal and the table number modal.
-
+        /**
+         * MODIFIED: showTableNumberModal()
+         * Unchanged logic.
+         */
         showTableNumberModal() {
             ui.showModal('table-number-modal', `
                 <h2 class="text-2xl font-bold text-primary mb-2">Welcome back, ${this.state.customerProfile.name}!</h2>
                 <p class="text-secondary mb-6">Please enter your table number for today's visit.</p>
                 <input type="number" id="table-number-input" class="w-full p-3 border border-custom rounded-lg bg-secondary text-primary" placeholder="Your Table Number" required>
-                <button onclick="app.completeTableNumberEntry()" class="w-full mt-6 brand-bg font-semibold py-3 px-6 rounded-lg">Continue</button>
+                <button onclick="app.completeTableNumberEntry()" class="w-full mt-6 brand-bg font-semibold py-3 px-6 rounded-lg text-white">Continue</button>
             `);
         },
 
+        /**
+         * MODIFIED: completeTableNumberEntry()
+         * Unchanged logic.
+         */
         completeTableNumberEntry() {
             const tableNumber = $('#table-number-input').value;
             if (!tableNumber) return ui.showToast("Please enter your table number.");
@@ -700,7 +771,6 @@
         },
 
         async startSession() {
-            // Only fetch active order if we are in Bulb Cafe mode
             if (this.state.theme === 'bulb') {
                 await this.fetchActiveOrder();
             }
@@ -710,7 +780,7 @@
         showMainInterface(){
             $('#main-interface').classList.remove('hidden');
             
-            // NEW: Only show nav for Bulb Cafe
+            // Only show nav for Bulb Cafe
             if (this.state.theme === 'bulb') {
                 $('#bottom-nav').classList.remove('hidden');
                 $('#footer-spacer').classList.remove('hidden');
@@ -727,25 +797,15 @@
         navigateTo(page, pushToHistory = true){
              if (!this.state.customerProfile) return;
              sound.play('click');
-
              const currentHash = location.hash.substring(1);
-             
-             // Check if we are already on the target page (ignoring initial load false)
              if (currentHash === page && pushToHistory) return;
-
-             // Only update browser history if it's a new page or we're explicitly pushing state
-             if (pushToHistory) {
-                location.hash = page;
-             } else if (currentHash !== page) {
-                // If not pushing history, just replace the current state to reflect the new page
-                history.replaceState(null, '', '#' + page);
-             }
+             if (pushToHistory) { location.hash = page; } 
+             else if (currentHash !== page) { history.replaceState(null, '', '#' + page); }
              
              this.state.currentPage = page;
              ui.renderHeader(page);
              ui.renderPageContent(page);
              
-             // NEW: Only update nav if it's visible
              if (this.state.theme === 'bulb') {
                 ui.updateActiveNav(page);
              }
@@ -755,38 +815,27 @@
              const currentHash = location.hash.substring(1);
              const openModal = $('#modal-container').children[0];
 
-             // 1. Handle Modal Back
              if (openModal) {
-                 // PREVENT closing the universal onboarding modal with back button
                  if (openModal.id === 'universal-onboarding-modal') {
-                     event.preventDefault();
-                     return;
+                     event.preventDefault(); return;
                  }
                 ui.closeModal(openModal.id);
                 event.preventDefault();
-                // Replace hash to current page after closing modal
                 history.replaceState(null, '', '#' + this.state.currentPage);
                 return;
              }
              
-             // NEW: Don't allow back navigation in Gulabi theme
+             // Don't allow back navigation in Gulabi theme
              if (this.state.theme === 'gulabi') {
-                 event.preventDefault();
-                 return;
+                 event.preventDefault(); return;
              }
              
-             // 2. Handle Page Back (Prevent double back/exit from home)
-             if (this.state.currentPage === 'home') {
-                 // Already on home, allow default back behavior (or do nothing)
-                 return;
-             }
+             if (this.state.currentPage === 'home') { return; }
 
-             // If the current hash doesn't match the state (e.g., user used browser back/forward)
              if (PAGES.includes(currentHash) && currentHash !== this.state.currentPage) {
-                 this.navigateTo(currentHash, false); // Sync state to the hash
+                 this.navigateTo(currentHash, false);
                  event.preventDefault();
              }
-             // Navigate back to home
              else if (this.state.currentPage !== 'home') {
                  event.preventDefault(); 
                  this.navigateTo('home');
@@ -795,42 +844,31 @@
 
         applyTheme(){ document.body.dataset.theme = this.state.theme; },
         
-        // This function is now deprecated, as switching is handled by
-        // app.switchBrand() to force re-selection.
-        // We will keep the 'gulabi' -> 'bulb' toggle logic inside Gulabi Thali page
-        // as a special case.
-        
-        // This toggle function is called by Gulabi Thali page to switch to Bulb
         toggleTheme(t){ 
-            ui.closeModal('brand-switcher-modal'); // Keep this for safety
-            
-            // This function should ONLY be used to switch FROM Gulabi TO Bulb
+            ui.closeModal('brand-switcher-modal');
             if (this.state.theme === 'gulabi' && t === 'bulb') {
                 app.state.theme = t;
                 localStorage.setItem('brand-theme', t);
                 this.applyTheme();
-                
-                // Force full UI rebuild for Bulb
                 $('#bottom-nav').classList.remove('hidden');
                 $('#footer-spacer').classList.remove('hidden');
                 ui.renderBottomNav();
-                this.navigateTo('home', false); // Go to bulb home
+                this.navigateTo('home', false);
             }
         },
 
-        // NEW: Function to clear brand choice and reload (DOES NOT SIGN OUT)
         async switchBrand() {
-            // Clear the stored brand theme
             localStorage.removeItem('brand-theme');
-            
-            // Reload the page to force brand selection
-            // The anonymous auth session will persist
-            location.reload();
+            location.reload(); // Reloads the page, triggering earlyInit()
         },
 
+        /**
+         * MODIFIED: addOrUpdateCart()
+         * Logic unchanged. The check for `isGulabiOrderingEnabled` is already correct.
+         */
         addOrUpdateCart(itemId, quantityChange) {
             const item = this.state.allMenuItems.find(i => i.id === itemId);
-            // MODIFIED: Check against the new state property
+            // This check is correct
             if (item && item.brand?.toLowerCase() === 'gulabi thali' && !this.state.isGulabiOrderingEnabled) {
                 return ui.showToast("Gulabi Thali is view-only at the moment.", 'error');
             }
@@ -851,14 +889,17 @@
                 }
                 if (quantityChange > 0) sound.play('add_to_cart');
             }
-            this.state.pointsToRedeem = 0; // Reset points on cart change
+            this.state.pointsToRedeem = 0;
             this.refreshPage();
         },
 
+        /**
+         * MODIFIED: setCartItemQuantity()
+         * Logic unchanged. The check for `isGulabiOrderingEnabled` is already correct.
+         */
         setCartItemQuantity(itemId, quantity) {
             const item = this.state.allMenuItems.find(i => i.id === itemId);
             
-            // MODIFIED: Check against the new state property
             if (item && item.brand?.toLowerCase() === 'gulabi thali' && quantity > 0 && !this.state.isGulabiOrderingEnabled) {
                  ui.closeModal('item-detail-modal');
                  return ui.showToast("Gulabi Thali is view-only at the moment.", 'error');
@@ -880,7 +921,7 @@
                 sound.play('add_to_cart');
                 ui.showToast('Cart updated!');
             }
-            this.state.pointsToRedeem = 0; // Reset points on quantity change
+            this.state.pointsToRedeem = 0;
             ui.closeModal('item-detail-modal');
             this.refreshPage();
         },
@@ -888,35 +929,26 @@
         performSearch(query) {
              const searchContainer = $('#search-results-container');
              const menuContainer = $('#menu-items');
-             // const tabsContainer = $('#category-tabs-container'); // This ID is no longer used
              const activeBrand = this.state.theme === 'bulb' ? 'Bulb Cafe' : 'Gulabi Thali';
              this.state.searchQuery = query.toLowerCase().trim();
 
              if (this.state.searchQuery.length > 1) {
                 if (searchContainer) searchContainer.classList.remove('hidden');
                 if (menuContainer) menuContainer.classList.add('hidden');
-                // if (tabsContainer) tabsContainer.classList.add('hidden'); // Removed
                 
                 this.state.searchResults = this.state.allMenuItems.filter(item => {
-                    // Safe check for brand and null properties
                     const itemBrand = item.brand?.toLowerCase();
                     if (itemBrand !== activeBrand.toLowerCase()) return false;
-                    
                     const itemName = item.name?.toLowerCase() || '';
                     const itemDesc = item.description?.toLowerCase() || '';
-                    
                     return itemName.includes(this.state.searchQuery) || itemDesc.includes(this.state.searchQuery);
                 });
                 ui.renderMenuItems(this.state.searchResults, 'search-results-container');
              } else {
                 if (searchContainer) searchContainer.classList.add('hidden');
-                if (searchContainer) searchContainer.innerHTML = ''; // Clear results
+                if (searchContainer) searchContainer.innerHTML = '';
                 if (menuContainer) menuContainer.classList.remove('hidden');
-                // if (tabsContainer) tabsContainer.classList.remove('hidden'); // Removed
                 this.state.searchResults = [];
-                
-                // REMOVED: No longer need to filter by category
-                // this.filterMenuByCategory(this.state.currentMenuCategory || 'All Menu', null);
              }
         },
 
@@ -925,43 +957,29 @@
             const availablePoints = this.state.customerProfile?.loyalty_points || 0;
             const loyaltyThreshold = parseFloat(this.state.appSettings.loyalty_threshold || 350);
             
-            // 1. Calculate max discount (70% of available points)
             const maxRedeemablePoints = Math.floor(availablePoints * 0.70);
             const maxRedeemableForOrder = Math.min(maxRedeemablePoints, Math.floor(subtotal));
 
-            // 2. Clamp current discount
             let actualPointsToRedeem = 0;
             if (this.state.pointsToRedeem > 0) {
                  actualPointsToRedeem = Math.min(this.state.pointsToRedeem, maxRedeemableForOrder);
             }
             const discountAmount = actualPointsToRedeem;
 
-            // 3. Update state if clamped
             if (this.state.pointsToRedeem !== actualPointsToRedeem) {
                 this.state.pointsToRedeem = actualPointsToRedeem;
             }
             
-            // 4. Calculate final totals WITH GST
             const discountedSubtotal = subtotal - discountAmount;
             const gst = discountedSubtotal * 0.05; // 5% GST
             const finalTotal = discountedSubtotal + gst;
             
-            // 5. Calculate points to be earned (10% of subtotal if over threshold)
             let pointsToEarn = 0;
             if (subtotal >= loyaltyThreshold) {
                 pointsToEarn = Math.floor(subtotal * 0.10);
             }
 
-            return { 
-                subtotal, 
-                discountAmount, 
-                discountedSubtotal, 
-                gst, 
-                finalTotal: Math.max(0, finalTotal),
-                maxRedeemableForOrder,
-                pointsToEarn,
-                loyaltyThreshold
-            };
+            return { subtotal, discountAmount, discountedSubtotal, gst, finalTotal: Math.max(0, finalTotal), maxRedeemableForOrder, pointsToEarn, loyaltyThreshold };
         },
 
         updatePointsToRedeem(points) {
@@ -977,17 +995,20 @@
             }
         },
 
+        /**
+         * MODIFIED: placeOrder()
+         * Logic unchanged. The checks for `isGulabiOrder` and `isGulabiOrderingEnabled`
+         * are already correct.
+         */
         async placeOrder(paymentMethod, btnElement){
             if (!supabase) return ui.showToast("Order failed: Supabase not initialized.");
             
-            // NEW: Check theme
             const isGulabiOrder = app.state.theme === 'gulabi';
-            // NEW: Use 0 as the special table number for Cloud Kitchen
             const tableLookupNumber = isGulabiOrder ? 0 : this.state.tableNumber; 
             
-            // MODIFIED: Updated checks
             if (this.state.cart.length === 0) return ui.showToast("Cart is empty.");
             if (!isGulabiOrder && !this.state.tableNumber) return ui.showToast("Table number is missing.");
+            // This check is correct
             if (isGulabiOrder && !this.state.isGulabiOrderingEnabled) return ui.showToast("Ordering is currently disabled.");
 
             if (!this.state.customerProfile || !this.state.customerProfile.id) {
@@ -997,24 +1018,20 @@
             btnElement.disabled = true; const originalBtnHTML = btnElement.innerHTML;
             btnElement.innerHTML = `<span class="flex items-center justify-center"><div class="spinner mr-2"></div> Processing...</span>`;
             
-            // Disable the other button too
             const otherBtn = [...$$('.payment-btn')].find(b => b !== btnElement);
             if(otherBtn) otherBtn.disabled = true;
 
             const { subtotal, discountAmount, finalTotal, pointsToEarn } = this.calculateCartTotal();
             const pointsToRedeem = this.state.pointsToRedeem;
-
             let orderData;
 
             try {
                 // 1. Verify Table
-                // MODIFIED: Use the new tableLookupNumber
                 const { data: tableData, error: tableError } = await supabase.from('tables').select('id').eq('table_number', tableLookupNumber).single();
                 if (tableError || !tableData) throw new Error(`Could not find table for order. (Ref: ${tableLookupNumber})`);
 
                 // 2. Verify Points
                 if (pointsToRedeem > 0) {
-                    // Re-fetch profile to prevent race conditions with points
                     const { data: currentProfile, error: profileError } = await supabase.from('customers').select('loyalty_points').eq('id', this.state.customerProfile.id).single();
                     if (profileError || !currentProfile || currentProfile.loyalty_points < pointsToRedeem) {
                          throw new Error('Insufficient points. Please refresh cart.');
@@ -1028,11 +1045,11 @@
                 const orderPayload = {
                     customer_id: this.state.customerProfile.id,
                     table_id: tableData.id,
-                    total_amount: finalTotal, // This is the final amount after discount+gst
+                    total_amount: finalTotal,
                     discount_percentage: effectiveDiscountPercent,
                     discount_points_redeemed: pointsToRedeem,
                     discount_amount: discountAmount,
-                    final_amount: finalTotal, // Field name redundancy for safety
+                    final_amount: finalTotal,
                     payment_method: paymentMethod,
                     special_instructions: $('#special-instructions')?.value || '',
                     feedback_submitted: false
@@ -1049,55 +1066,47 @@
                     product_id: i.id,
                     quantity: i.quantity,
                     price_at_time_of_order: i.price
-                    // product_name is now handled by a trigger in Supabase
                 }));
                 const { error: itemsError } = await supabase.from('order_items').insert(orderItems);
                 if (itemsError) {
-                    // Rollback: Delete the main order if items fail
                     await supabase.from('orders').delete().eq('id', orderData.id);
                     throw new Error(`Order items failed. ${itemsError.message}`);
                 }
 
-                // 6. Handle Loyalty Points Transactions
+                // 6. Handle Loyalty Points
                 try {
-                    // Redeem points
-                    if (pointsToRedeem > 0) { // <-- FIX WAS HERE
+                    if (pointsToRedeem > 0) {
                          const { error: redeemError } = await supabase.rpc('redeem_loyalty_points', { customer_id_input: this.state.customerProfile.id, points_to_redeem: pointsToRedeem });
                          if(redeemError) throw new Error(`Redeem RPC failed: ${redeemError.message}`);
                          this.state.customerProfile.loyalty_points -= pointsToRedeem;
                     }
-
-                    // Earn points
                     if (pointsToEarn > 0) {
                          const { error: earnError } = await supabase.rpc('increment_loyalty_points', { customer_id_input: this.state.customerProfile.id, points_to_add: pointsToEarn });
                          if(earnError) throw new Error(`Earn RPC failed: ${earnError.message}`);
                          this.state.customerProfile.loyalty_points += pointsToEarn;
                     }
                 } catch (pointsError) {
-                    // Log error, but don't fail the whole order
                     console.warn("Points transaction failed after order success:", pointsError.message);
                     ui.showToast("Order placed, but points update failed.");
-                    await this.fetchCustomerProfile(); // Re-sync profile
+                    await this.fetchCustomerProfile(); // Re-sync
                 }
 
                 // 7. Success Flow
                 ui.closeModal('payment-modal');
                 this.state.activeOrder = orderData;
-                this.listenToOrderUpdates(orderData.id); // Start listening
-                this.state.cart = []; // Clear cart
-                this.state.pointsToRedeem = 0; // Reset points
-                this.refreshPage(); // Update UI
+                this.listenToOrderUpdates(orderData.id);
+                this.state.cart = [];
+                this.state.pointsToRedeem = 0;
+                this.refreshPage();
                 sound.play('success');
-                this.navigateTo('cart'); // Navigate to tracking page
+                this.navigateTo('cart');
 
             } catch (error) {
                 ui.showToast(`Order failed: ${error.message}`);
-                // Re-enable buttons on failure
                 btnElement.disabled = false;
                 btnElement.innerHTML = originalBtnHTML;
                 if(otherBtn) otherBtn.disabled = false;
                 
-                // If error was points/profile related, re-sync
                 if (error.message.includes('points') || error.message.includes('profile')) {
                     await this.fetchCustomerProfile();
                     this.state.pointsToRedeem = 0;
@@ -1105,7 +1114,6 @@
                 }
             }
         },
-
 
         async fetchActiveOrder(){
             if (!this.state.user || !this.state.customerProfile?.id) return;
@@ -1131,10 +1139,8 @@
             this.state.orderSubscription = supabase.channel(`public:orders:id=eq.${orderId}`)
                 .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders', filter: `id=eq.${orderId}` }, payload => {
                     if (!this.state.activeOrder || this.state.activeOrder.id !== payload.new.id) return;
-
                     const updatedOrder = payload.new;
                     let uiNeedsRefresh = false;
-
                     if (updatedOrder.status !== this.state.activeOrder.status) {
                         ui.showToast(`Your order is now: ${updatedOrder.status}`);
                         this.state.activeOrder.status = updatedOrder.status;
@@ -1144,19 +1150,16 @@
                         this.state.activeOrder.feedback_submitted = updatedOrder.feedback_submitted;
                         uiNeedsRefresh = true;
                     }
-
                     if (['delivered', 'cancelled'].includes(updatedOrder.status)) {
                         supabase.removeChannel(this.state.orderSubscription);
                         this.state.orderSubscription = null;
-
-                        // FIX: Redirect to Google Search
                         if (updatedOrder.status === 'delivered' && !updatedOrder.feedback_submitted) {
                              ui.showModal('review-modal', `
                                 <div class="text-center">
                                     <span class="text-3xl">⭐</span>
                                     <h2 class="text-2xl font-bold mt-4">Order Delivered!</h2>
                                     <p class="text-secondary my-2">Thank you for your order! We'd love to hear your feedback.</p>
-                                    <button onclick="app.handleReviewRedirect('${orderId}')" class="w-full mt-4 brand-bg font-semibold py-3 rounded-lg">Leave a Review</button>
+                                    <button onclick="app.handleReviewRedirect('${orderId}')" class="w-full mt-4 brand-bg font-semibold py-3 rounded-lg text-white">Leave a Review</button>
                                     <button onclick="app.handleReviewSkip('${orderId}')" class="w-full mt-2 bg-secondary py-3 rounded-lg">No Thanks</button>
                                 </div>`);
                         } else if (updatedOrder.status === 'cancelled') {
@@ -1165,81 +1168,50 @@
                         this.state.activeOrder = null;
                         uiNeedsRefresh = true;
                     }
-                    if(uiNeedsRefresh) {
-                         this.refreshPage();
-                    }
+                    if(uiNeedsRefresh) { this.refreshPage(); }
                 }).subscribe();
         },
 
-        // NEW: Helper function to mark feedback as submitted
         async markFeedbackAsSubmitted(orderId) {
             try {
-                await supabase.from('orders')
-                    .update({ feedback_submitted: true })
-                    .eq('id', orderId);
-            } catch (error) {
-                console.warn("Could not mark feedback as submitted:", error);
-            }
+                await supabase.from('orders').update({ feedback_submitted: true }).eq('id', orderId);
+            } catch (error) { console.warn("Could not mark feedback as submitted:", error); }
         },
         
-        // NEW: Function to handle Google Review redirect
         handleReviewRedirect(orderId) {
-            // This link is for "a bulb cafe jaipur" Google Search
             const reviewUrl = 'https://www.google.com/search?q=a+bulb+cafe+jaipur'; 
             window.open(reviewUrl, '_blank');
             this.markFeedbackAsSubmitted(orderId);
             ui.closeModal('review-modal');
         },
 
-        // NEW: Function to handle skipping the review
         handleReviewSkip(orderId) {
             this.markFeedbackAsSubmitted(orderId);
             ui.closeModal('review-modal');
         },
 
-        // OLD submitFeedback function is no longer needed
-        /* async submitFeedback(orderId){ ... } */
-
-
         copyCaption(text) {
             const textArea = document.createElement("textarea");
             textArea.value = text;
-            textArea.style.position = "fixed";
-            textArea.style.top = "0";
-            textArea.style.left = "0";
+            textArea.style.position = "fixed"; textArea.style.top = "0"; textArea.style.left = "0";
             document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
+            textArea.focus(); textArea.select();
             try {
-                const successful = document.execCommand('copy');
-                if (successful) ui.showToast('Copied!');
+                if (document.execCommand('copy')) ui.showToast('Copied!');
                 else ui.showToast('Copy failed.');
-            } catch (err) {
-                ui.showToast('Copy failed.');
-            }
+            } catch (err) { ui.showToast('Copy failed.'); }
             document.body.removeChild(textArea);
         },
 
         async sendStaffCall(type) {
-            // FIX: This now sends a real request to the 'staff_calls' table
             if (!this.state.tableNumber) {
                 return ui.showToast("Please enter table number first.");
             }
-            
             try {
-                const { error } = await supabase
-                    .from('staff_calls')
-                    .insert({
-                        table_number: this.state.tableNumber,
-                        call_type: type,
-                        status: 'pending'
-                    });
-                
+                const { error } = await supabase.from('staff_calls').insert({ table_number: this.state.tableNumber, call_type: type, status: 'pending' });
                 if (error) throw error;
-                
                 ui.showToast('Staff has been notified!');
                 sound.play('success');
-
             } catch (error) {
                 console.error("Error calling staff:", error);
                 ui.showToast('Could not send call. Please alert staff manually.');
@@ -1249,15 +1221,32 @@
 
     // --- UI RENDERING ---
     const ui = {
-        // NEW: Function to show the brand selection screen or start app
-        showBrandSelection() {
+        /**
+         * MODIFIED: showBrandSelection()
+         * Now has logic to force-show or auto-select based on context.
+         */
+        showBrandSelection(forceShow = false) {
             const storedTheme = localStorage.getItem('brand-theme');
-            if (storedTheme) {
-                // User has visited before, skip selection and start app
-                app.state.theme = storedTheme;
-                app.init();
-            } else {
-                // First-time visit, show selection screen
+            
+            // Force selection if:
+            // 1. It's forced (e.g., after onboarding)
+            // 2. A table number is present (QR scan)
+            if (forceShow || app.state.tableNumber) { 
+                console.log(`Forcing brand selection. Force: ${forceShow}, Table: ${app.state.tableNumber}`);
+                $('#brand-selection-screen').classList.remove('hidden');
+            } 
+            // Auto-select if:
+            // 1. No table number
+            // 2. Not forced
+            // 3. Theme is stored
+            else if (storedTheme) {
+                console.log(`Auto-selecting stored theme: ${storedTheme}`);
+                // Pass 'false' to selectBrand to indicate it wasn't a manual click
+                selectBrand(storedTheme, false); 
+            } 
+            // Show selection if no other condition met (first visit, no table)
+            else {
+                console.log("No stored theme, showing brand selection.");
                 $('#brand-selection-screen').classList.remove('hidden');
             }
         },
@@ -1268,7 +1257,7 @@
             if (existingModal) existingModal.remove();
 
             const modalHTML = `
-                <div id="${id}" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-end justify-center z-50 p-4">
+                <div id="${id}" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-end justify-center z-50 p-4 pt-10">
                     <div class="modal-content bg-primary rounded-t-2xl shadow-xl p-6 w-full max-w-lg">
                         ${content}
                     </div>
@@ -1279,43 +1268,29 @@
         closeModal(id) {
             const modal = $(`#${id}`);
             if (modal) modal.remove();
-            
-            // Check if we are closing the modal that corresponds to the current hash
             if (location.hash.substring(1) === id) {
-                // Use history.replaceState to clean up the URL without triggering popstate
                 history.replaceState(null, '', '#' + app.state.currentPage);
             }
         },
 
-        // NEW: Helper function to toggle accordion state
         toggleAccordion(contentId) {
             sound.play('click');
             const content = $(`#${contentId}`);
             const icon = $(`#${contentId}-icon`);
-            if (content) {
-                content.classList.toggle('hidden');
-            }
-            if (icon) {
-                icon.classList.toggle('rotate-180');
-            }
+            if (content) { content.classList.toggle('hidden'); }
+            if (icon) { icon.classList.toggle('rotate-180'); }
         },
 
         showToast(message, duration = 3000) {
             const toast = $('#toast'), p = $('#toast-message');
             p.textContent = message;
             toast.classList.remove('hidden');
-            toast.style.backgroundColor = 'var(--brand-primary)';
-            toast.style.color = 'var(--bg-primary)';
-
-            // Simple fade in/out, avoids complex keyframes
             toast.style.opacity = 1;
             toast.style.transition = 'opacity 0.5s ease';
 
             setTimeout(() => {
                 toast.style.opacity = 0;
-                setTimeout(() => {
-                   toast.classList.add('hidden');
-                }, 500);
+                setTimeout(() => { toast.classList.add('hidden'); }, 500);
             }, duration - 500);
         },
 
@@ -1327,11 +1302,11 @@
                 order: { title: 'Menu'},
                 cart: { title: app.state.activeOrder ? 'Track Order' : 'My Cart'},
                 social: { title: 'Social'},
-                cowork: { title: 'Kitchen'}, // Updated
+                cowork: { title: 'Kitchen'},
                 more: { title: 'More Options'}
             };
             
-            // NEW: Override for Gulabi Thali
+            // Header for Gulabi Thali (both view-only and ordering)
             if (app.state.theme === 'gulabi') {
                  header.innerHTML = `
                     <div class="flex items-center space-x-2">
@@ -1344,7 +1319,7 @@
                  return;
             }
             
-            // Original Bulb Cafe Header
+            // Header for Bulb Cafe
             const config = pageConfigs[page] || { title: currentBrandName };
             header.innerHTML = `
                 <div class="flex items-center space-x-2">
@@ -1356,17 +1331,34 @@
                 </div>`;
         },
 
+        /**
+         * MODIFIED: renderPageContent()
+         * Now correctly routes Gulabi Thali to either the view-only page
+         * or the orderable menu page based on the admin toggle.
+         */
         renderPageContent(page) {
             const content = $('#page-content');
             content.innerHTML = ''; // Clear content
             
-            // MODIFIED: Check theme AND ordering toggle
-            // FIX: Changed this.state to app.state to correct the TypeError
-            if (app.state.theme === 'gulabi' && !app.state.isGulabiOrderingEnabled) {
-                this.renderGulabiThaliPage(content);
-                // NEW: Init slideshow after rendering
-                this.initSlideshow('gulabi-slideshow');
-                return;
+            // --- NEW GULABI THALI ROUTING ---
+            if (app.state.theme === 'gulabi') {
+                if (!app.state.isGulabiOrderingEnabled) {
+                    // Render the view-only page
+                    this.renderGulabiThaliPage(content); 
+                    this.initSlideshow('gulabi-slideshow');
+                } else {
+                    // Render the standard, orderable menu page
+                    // We can default to 'order' page or a specific home
+                    if (page === 'home' || page === 'order') {
+                        this.renderMenuPage(content);
+                    } else if (page === 'cart') {
+                        this.renderCartPage(content);
+                    } else {
+                        // Fallback for Gulabi (e.g. if 'social' is clicked)
+                        this.renderMenuPage(content);
+                    }
+                }
+                return; // IMPORTANT: Stop execution
             }
             
             // --- Original Bulb Cafe Render Logic ---
@@ -1375,36 +1367,33 @@
                 order: this.renderMenuPage,
                 cart: this.renderCartPage,
                 social: this.renderSocialPage,
-                cowork: this.renderCoworkPage, // Renamed
+                cowork: this.renderCoworkPage,
                 more: this.renderMorePage,
             };
             content.classList.remove('fade-in');
             void content.offsetWidth;
             content.classList.add('fade-in');
-            renderers[page]?.call(this);
+            renderers[page]?.call(this, content); // Pass content container
         },
         
-        // +++ NEW: GULABI THALI PAGE RENDERER +++
+        /**
+         * MODIFIED: renderGulabiThaliPage()
+         * Unchanged logic. This is the VIEW-ONLY page.
+         */
         renderGulabiThaliPage(container) {
             const switchTheme = 'bulb';
             const switchBrandName = 'BULB CAFE';
-            const switchButtonColor = 'bg-yellow-500'; // Bulb's color
             
-            // 1. Get Gulabi Thali menu items
             const brandItems = app.state.allMenuItems.filter(item => item.brand?.toLowerCase() === 'gulabi thali');
 
-            // 2. Group them by category
             const categoryMap = brandItems.reduce((acc, item) => {
                 const category = item.category || 'Uncategorized';
-                if (!acc[category]) {
-                    acc[category] = [];
-                }
+                if (!acc[category]) { acc[category] = []; }
                 acc[category].push(item);
                 return acc;
             }, {});
             const categories = Object.keys(categoryMap);
             
-            // 3. Build Menu HTML
             let menuHTML = '';
             if (brandItems.length === 0) {
                 menuHTML = `<p class="text-secondary text-center">Menu loading or unavailable.</p>`;
@@ -1427,13 +1416,11 @@
                 `).join('');
             }
 
-            // 4. Build Full Page HTML
             container.innerHTML = `
                 <div class="p-4 space-y-6">
                     <!-- Slideshow Hero -->
                     <div id="gulabi-slideshow" class="slideshow-container relative h-64 overflow-hidden rounded-lg shadow-lg">
                         <div class="slideshow-track h-full">
-                            <!-- Slide 1: Video -->
                             <div class="slide h-full">
                                 <video src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/WhatsApp%20Video%202025-11-01%20at%2020.52.47_2473f7b8.mp4" autoplay loop muted playsinline preload="metadata" class="slide-video"></video>
                                 <div class="slide-text !justify-center !bg-black/50">
@@ -1441,11 +1428,9 @@
                                     <p class="text-lg font-medium">Cloud Kitchen</p>
                                 </div>
                             </div>
-                            <!-- Slide 2: Image -->
                             <div class="slide h-full">
                                 <img src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/403946165_1014623216287649_4686052002313628516_n%20(1).jpg"
-                                     alt="Gulabi Thali Food"
-                                     class="slide-content"
+                                     alt="Gulabi Thali Food" class="slide-content"
                                      onerror="this.onerror=null; this.src='https://placehold.co/600x800/DB2777/9D174D?text=Gulabi+Thali';">
                                 <div class="slide-text">
                                     <h2 class="text-2xl font-bold">Authentic Flavors</h2>
@@ -1453,7 +1438,6 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- Controls -->
                         <button class="slideshow-btn prev">&lsaquo;</button>
                         <button class="slideshow-btn next">&rsaquo;</button>
                         <div class="slideshow-dots"></div>
@@ -1464,9 +1448,9 @@
                         <span class="text-4xl mb-2">🎉</span>
                         <h2 class="text-2xl font-bold text-primary">Catering & Functions</h2>
                         <p class="text-secondary mt-2 mb-4">
-                            We offer bulk orders and catering services from our cloud kitchen for your special events, parties, and functions.
+                            We offer bulk orders and catering services from our cloud kitchen for your special events.
                         </p>
-                        <a href="tel:9782035098" class="brand-bg font-semibold py-3 px-6 rounded-lg inline-block">Call to Inquire</a>
+                        <a href="tel:9782035098" class="brand-bg font-semibold py-3 px-6 rounded-lg inline-block text-white">Call to Inquire</a>
                         <p class="text-sm text-secondary mt-3">Contact: Prateek Arora</p>
                     </div>
                     
@@ -1478,14 +1462,13 @@
                     
                     <!-- Switch Button -->
                     <div class="sticky bottom-4 z-10 p-4 bg-primary/80 backdrop-blur-sm rounded-xl border border-custom">
-                        <button onclick="app.toggleTheme('${switchTheme}')" class="w-full ${switchButtonColor} text-white font-extrabold py-4 px-6 rounded-xl shadow-lg transition transform hover:scale-[1.02] text-lg">
+                        <button onclick="app.toggleTheme('${switchTheme}')" class="w-full bg-yellow-500 text-white font-extrabold py-4 px-6 rounded-xl shadow-lg transition transform hover:scale-[1.02] text-lg">
                             SWITCH TO ${switchBrandName}
                         </button>
                     </div>
                 </div>
             `;
         },
-        // --- END GULABI THALI PAGE ---
 
         renderBottomNav(){
             const icons = {
@@ -1496,8 +1479,6 @@
                 cowork: `<svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v2a2 2 0 01-2 2h-4m-12 0h4m-4 0a2 2 0 00-2 2v2a2 2 0 002 2h12a2 2 0 002-2v-2a2 2 0 00-2-2h-4m-6-6V4a2 2 0 012-2h4a2 2 0 012 2v4" /></svg>`,
                 more: `<svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16m-7 6h7" /></svg>`
             };
-            
-            // Renamed 'cowork' to 'Kitchen'
             const labels = { home: 'Home', order: 'Menu', cart: 'Cart', social: 'Social', cowork: 'Kitchen', more: 'More' };
             $('#bottom-nav').innerHTML = PAGES.map(p => `<button onclick="app.navigateTo('${p}')" class="nav-item flex-1 p-2 text-secondary" data-page="${p}">${icons[p]}<span id="${p}-tab-label" class="text-xs font-bold capitalize">${labels[p]}</span></button>`).join('');
         },
@@ -1522,7 +1503,7 @@
 
         refreshCartDependentUI() {
             const el = $('#cart-count');
-            if (!el) return; // Exit if nav isn't rendered
+            if (!el) return;
             const total = app.state.cart.reduce((s, i) => s + i.quantity, 0);
             if (total > 0 && !app.state.activeOrder) {
                 el.textContent = total;
@@ -1532,9 +1513,8 @@
             }
         },
 
-        renderHomePage(){
-            const currentBrandName = app.state.theme === 'bulb' ? 'BULB CAFE' : 'GULABI THALI';
-            // This button is now for clearing cache/logging out
+        renderHomePage(container){
+            const currentBrandName = 'BULB CAFE';
             const switchButtonColor = 'bg-red-500';
 
             const activeOrderHTML = app.state.activeOrder ? `<div class="bg-blue-500/10 border-2 border-blue-500/20 rounded-xl p-4 text-center"> <h2 class="font-bold text-primary">Your order is ${app.state.activeOrder.status}!</h2> <p class="text-secondary text-sm">Order ID: #${app.state.activeOrder.id.slice(0,6)}</p> <button onclick="app.navigateTo('cart')" class="mt-2 text-sm font-semibold text-blue-600 hover:underline">View Details &rarr;</button> </div>` : '';
@@ -1550,10 +1530,8 @@
                 </div>
             `;
             
-            // NEW: Updated button text and onclick handler
-            $('#page-content').innerHTML = `
+            container.innerHTML = `
                 <div class="space-y-6">
-                    <!-- Video Hero Section -->
                     <div class="relative h-48 overflow-hidden rounded-b-2xl">
                         <video src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/WhatsApp%20Video%202025-11-01%20at%2020.52.47_2473f7b8.mp4" autoplay loop muted playsinline preload="metadata" class="absolute top-1/2 left-1/2 w-full h-full object-cover -translate-x-1/2 -translate-y-1/2"></video>
                         <div class="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white text-center p-4">
@@ -1562,11 +1540,7 @@
                     </div>
                     <div class="p-4 space-y-8">
                         ${activeOrderHTML ? `<div class="mt-8">${activeOrderHTML}</div>` : ''}
-                        
-                        <!-- Loyalty Card -->
                         ${loyaltyCardHTML}
-
-                        <!-- Change Brand Button -->
                         <div class="bg-secondary p-6 rounded-xl shadow-sm border border-custom text-center">
                             <span class="text-4xl mb-2">🔄</span>
                             <h2 class="text-2xl font-bold text-primary mb-4 px-1">Change Location</h2>
@@ -1574,24 +1548,18 @@
                                 CHANGE BRAND
                             </button>
                         </div>
-                        
-                        <!-- Call Staff - Simplified -->
                         <div class="grid grid-cols-1 gap-4">
                             <button onclick="ui.showCallStaffModal()" class="bg-secondary rounded-xl p-4 text-center flex flex-col items-center justify-center h-28 border border-custom"><span class="text-3xl">🛎</span><p class="font-semibold mt-2 text-primary">Call Assistance</p></button>
                         </div>
-
                     </div>
                 </div>`;
         },
 
-        // NEW: Helper function to render a single item card
-        // This consolidates logic from renderMenuItems and the new accordion
         renderItemCard(item) {
             const cartItem = app.state.cart.find(ci => ci.id === item.id);
             const currentPrice = item.price || 0;
             
-            // Check theme AND ordering toggle
-            // FIX: Corrected this.state to app.state
+            // This check is correct and covers Gulabi Thali in both states
             const isViewOnly = app.state.theme === 'gulabi' && !app.state.isGulabiOrderingEnabled;
             
             let actionButtonHTML;
@@ -1608,7 +1576,6 @@
             }
 
             if (isViewOnly) {
-                // Special view-only card for Gulabi Thali (when disabled)
                 return `
                 <div class="menu-item-view-only" onclick="ui.showItemDetailModal(${item.id})">
                     <div class="flex justify-between items-center">
@@ -1619,8 +1586,7 @@
                 </div>`;
             }
 
-            // Standard card for Bulb Cafe OR Gulabi Thali (when ordering is enabled)
-            // This is the style used in search results
+            // Standard card (for search results and Bulb Cafe accordion)
             return `
                 <div class="bg-secondary rounded-lg shadow-sm overflow-hidden cursor-pointer" onclick="ui.showItemDetailModal(${item.id})">
                     <div class="p-3 flex items-center justify-between">
@@ -1635,8 +1601,8 @@
                 </div>`;
         },
 
-        // NEW: Helper function to build the accordion HTML
         renderMenuAccordion() {
+            // This function now correctly handles both Bulb and Gulabi (when enabled)
             const activeBrand = app.state.theme === 'bulb' ? 'Bulb Cafe' : 'Gulabi Thali';
             const brandItems = app.state.allMenuItems.filter(item => item.brand?.toLowerCase() === activeBrand.toLowerCase());
 
@@ -1650,21 +1616,19 @@
             const categories = Object.keys(categoryMap);
             if (categories.length === 0) return `<p class="text-secondary text-center">No menu items found.</p>`;
 
-            // Check if ordering is view-only
+            // This will be 'false' if Gulabi ordering is on
             const isViewOnly = app.state.theme === 'gulabi' && !app.state.isGulabiOrderingEnabled;
 
             return categories.map((category, index) => {
                 const categoryId = `category-${index}`;
                 const items = categoryMap[category];
                 
-                // Render the items HTML for this category
                 const itemsHTML = items.map(item => {
-                    // Use the same item card, but slightly different style for accordion
                     const cartItem = app.state.cart.find(ci => ci.id === item.id);
                     const currentPrice = item.price || 0;
                     
                     let actionButtonHTML;
-                    if (isViewOnly) {
+                    if (isViewOnly) { // This check is redundant here but safe
                         actionButtonHTML = ``;
                     } else if (cartItem) {
                         actionButtonHTML = `<div class="quantity-control" onclick="event.stopPropagation();">
@@ -1676,15 +1640,9 @@
                         actionButtonHTML = `<button class="add-to-cart-btn" onclick="event.stopPropagation(); app.addOrUpdateCart(${item.id}, 1)">+</button>`;
                     }
 
-                    if (isViewOnly) {
+                    if (isViewOnly) { // This should not be hit if we're in this function
                         return `
-                        <div class="menu-item-view-only !bg-primary" onclick="ui.showItemDetailModal(${item.id})">
-                            <div class="flex justify-between items-center">
-                                <h4 class="font-semibold text-base text-primary">${item.name}</h4>
-                                <p class="font-bold text-sm text-secondary whitespace-nowrap ml-2">₹${item.price.toFixed(2)}</p>
-                            </div>
-                            ${item.description ? `<p class="text-sm text-secondary mt-1">${item.description}</p>` : ''}
-                        </div>`;
+                        <div class="menu-item-view-only !bg-primary" onclick="ui.showItemDetailModal(${item.id})">...</div>`;
                     }
                     
                     // Card style inside the accordion (bg-primary to stand out)
@@ -1703,13 +1661,9 @@
 
                 }).join('');
 
-                // Render the accordion category header and content
                 return `
                     <div class="bg-secondary rounded-xl border border-custom overflow-hidden">
-                        <button 
-                            class="w-full flex justify-between items-center p-4" 
-                            onclick="ui.toggleAccordion('${categoryId}')"
-                        >
+                        <button class="w-full flex justify-between items-center p-4" onclick="ui.toggleAccordion('${categoryId}')">
                             <h3 class="text-xl font-bold text-primary">${category}</h3>
                             <svg id="${categoryId}-icon" class="w-6 h-6 text-primary transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -1723,73 +1677,77 @@
             }).join('');
         },
 
-        renderMenuPage(){
-            const content = $('#page-content');
-            
+        /**
+         * MODIFIED: renderMenuPage()
+         * This page now serves both Bulb and Gulabi (when ordering is on).
+         */
+        renderMenuPage(container){
             if (app.state.allMenuItems.length === 0) {
-                content.innerHTML = `<div class="p-4 text-center text-secondary">Loading menu...</div>`;
+                container.innerHTML = `<div class="p-4 text-center text-secondary">Loading menu...</div>`;
                 return;
             }
 
-            content.innerHTML = `
-                <div id="active-order-banner" class="p-4 hidden"></div>
-                <div class="p-4 sticky top-16 bg-primary z-10">
-                    <input type="text" id="menu-search-input" placeholder="Search menu..." class="w-full p-3 border-2 border-custom rounded-lg bg-secondary text-primary text-lg" oninput="app.performSearch(this.value)" value="${app.state.searchQuery}">
-                </div>
-                <!-- REMOVED: Horizontal category tabs -->
-                <!-- <div id="category-tabs-container" class="horizontal-scroll sticky top-16 bg-primary z-10 flex space-x-4 px-4 pb-3 overflow-x-auto border-b border-custom">...</div> -->
-                
-                <!-- NEW: Vertical accordion list -->
-                <div id="menu-items" class="px-4 pb-4 space-y-3">
-                    ${this.renderMenuAccordion()}
-                </div>
-                <!-- This container is for search results -->
-                <div id="search-results-container" class="p-4 grid grid-cols-1 gap-4 hidden"></div>`;
-
-            if (app.state.activeOrder) {
-                $('#active-order-banner').classList.remove('hidden');
-                $('#active-order-banner').innerHTML = `
+            // Only show active order banner for Bulb
+            const activeOrderBannerHTML = (app.state.activeOrder && app.state.theme === 'bulb') ? `
+                <div id="active-order-banner" class="p-4">
                     <div class="bg-blue-500/10 border-2 border-blue-500/20 rounded-xl p-4 text-center">
                         <h2 class="font-bold text-primary">Your order is ${app.state.activeOrder.status}!</h2>
                         <p class="text-secondary text-sm">Order ID: #${app.state.activeOrder.id.slice(0,6)}</p>
                         <button onclick="app.navigateTo('cart')" class="mt-2 text-sm font-semibold text-blue-600 hover:underline">View Details &rarr;</button>
-                    </div>`;
-            }
+                    </div>
+                </div>` : '';
             
-            // Re-run search if query exists
+            // Use different sticky top based on theme (Gulabi has no bottom nav)
+            const stickyTopClass = app.state.theme === 'bulb' ? 'sticky top-16' : 'sticky top-16'; // Same for now
+
+            container.innerHTML = `
+                ${activeOrderBannerHTML}
+                <div class="p-4 ${stickyTopClass} bg-primary/80 backdrop-blur-sm z-10">
+                    <input type="text" id="menu-search-input" placeholder="Search menu..." class="w-full p-3 border-2 border-custom rounded-lg bg-secondary text-primary text-lg" oninput="app.performSearch(this.value)" value="${app.state.searchQuery}">
+                </div>
+                
+                <!-- Vertical accordion list -->
+                <div id="menu-items" class="px-4 pb-4 space-y-3">
+                    ${this.renderMenuAccordion()}
+                </div>
+                <!-- Search results container -->
+                <div id="search-results-container" class="p-4 grid grid-cols-1 gap-4 hidden"></div>`;
+            
             if (app.state.searchQuery.length > 1) {
                 app.performSearch(app.state.searchQuery);
             }
         },
 
-        // REMOVED: This function is no longer needed
-        // filterMenuByCategory(category, tabElement) { ... }
-
-        // UPDATED: Now uses renderItemCard
         renderMenuItems(items, containerId) {
             const container = $(`#${containerId}`);
             if (!container) return;
-            
-            // FIX: Corrected this.state to app.state
-            const isViewOnly = app.state.theme === 'gulabi' && !app.state.isGulabiOrderingEnabled;
-            
             if (!items || items.length === 0) {
                 container.innerHTML = `<p class="text-secondary text-center col-span-full mt-8">No items found for this selection.</p>`;
                 return;
             }
+            // Use renderItemCard helper
             container.innerHTML = items.map(item => ui.renderItemCard(item)).join('');
         },
 
-        renderCartPage() {
-            const content = $('#page-content');
-            if (app.state.activeOrder) this.renderOrderTracking(content);
-            else if (app.state.cart.length > 0) this.renderCart(content);
-            else content.innerHTML = `
+        renderCartPage(container) {
+            // This page works for both Bulb and Gulabi
+            if (app.state.activeOrder && app.state.theme === 'bulb') {
+                this.renderOrderTracking(container);
+            }
+            else if (app.state.cart.length > 0) {
+                this.renderCart(container);
+            } else {
+                // Determine correct button text based on theme
+                const buttonText = app.state.theme === 'gulabi' ? 'View Menu' : 'View Menu';
+                const pageToNav = app.state.theme === 'gulabi' ? 'order' : 'order'; // Gulabi navs to 'order'
+                
+                container.innerHTML = `
                 <div class="text-center p-10">
                     <h2 class="text-2xl font-bold text-primary">Your cart is empty</h2>
                     <p class="text-secondary mt-2">Add items from the menu to get started.</p>
-                    <button onclick="app.navigateTo('order')" class="mt-6 brand-bg font-semibold py-3 px-6 rounded-lg">View Menu</button>
+                    <button onclick="app.navigateTo('${pageToNav}')" class="mt-6 brand-bg font-semibold py-3 px-6 rounded-lg text-white">${buttonText}</button>
                 </div>`;
+            }
         },
 
         renderCart(container){
@@ -1797,15 +1755,14 @@
             const loyaltyPoints = app.state.customerProfile?.loyalty_points || 0;
             const currentDiscount = app.state.pointsToRedeem; 
 
-            // Dynamic loyalty explanation
             let loyaltyExplanation = '';
             const remainingToEarn = loyaltyThreshold - subtotal;
             if (pointsToEarn > 0) {
                 loyaltyExplanation = `<p class="text-sm text-green-600 font-semibold mb-3">Congrats! This order will earn ${pointsToEarn} points.</p>`;
             } else if (remainingToEarn > 0) {
-                loyaltyExplanation = `<p class="text-sm text-secondary mb-3">Add just <span class="font-bold brand-text">₹${remainingToEarn.toFixed(2)}</span> more to earn <span class="font-bold brand-text">${Math.floor(loyaltyThreshold * 0.10)}</span> points on this order!</p>`;
+                loyaltyExplanation = `<p class="text-sm text-secondary mb-3">Add just <span class="font-bold brand-text">₹${remainingToEarn.toFixed(2)}</span> more to earn <span class="font-bold brand-text">${Math.floor(loyaltyThreshold * 0.10)}</span> points!</p>`;
             } else {
-                 loyaltyExplanation = `<p class="text-xs text-secondary mt-1 mb-3">Earn 10% points on orders over ₹${loyaltyThreshold}. Redeem 70% of your balance.</p>`;
+                 loyaltyExplanation = `<p class="text-xs text-secondary mt-1 mb-3">Earn 10% points on orders over ₹${loyaltyThreshold}.</p>`;
             }
             
             let loyaltySectionHTML = '';
@@ -1826,9 +1783,9 @@
                  loyaltySectionHTML = `<div class="p-4 border-t border-b border-custom"><h3 class="font-bold text-lg mb-2 text-primary">Loyalty Points</h3>${loyaltyExplanation}</div>`;
             }
 
-            // NEW: Check theme for placeholder
             const isGulabiOrder = app.state.theme === 'gulabi';
             const instructionsPlaceholder = isGulabiOrder ? "Add Delivery Address & Contact..." : "Add special instructions...";
+            const bottomClass = isGulabiOrder ? 'sticky bottom-4' : 'sticky bottom-16'; // Gulabi has no nav bar
 
             container.innerHTML = `
                 <div class="p-4 space-y-3">
@@ -1838,7 +1795,7 @@
                                 <p class="font-bold text-primary">${i.name}</p>
                                 <p class="font-semibold text-secondary text-sm">₹${(i.price * i.quantity).toFixed(2)}</p>
                             </div>
-                            <div class="quantity-control" style="background-color: var(--bg-primary); color: var(--brand-primary); border: 1px solid var(--border-color);">
+                            <div class="quantity-control" style="background-image: none; background-color: var(--bg-primary); color: var(--brand-primary); border: 1px solid var(--border-color);">
                                 <button onclick="app.addOrUpdateCart(${i.id}, -1)">-</button>
                                 <span>${i.quantity}</span>
                                 <button onclick="app.addOrUpdateCart(${i.id}, 1)">+</button>
@@ -1847,13 +1804,12 @@
                     `).join('')}
                 </div>
                 ${loyaltySectionHTML}
-                <!-- MODIFIED: Use dynamic placeholder -->
                 <div class="p-4"><textarea id="special-instructions" class="w-full p-3 border-custom rounded-lg bg-secondary" placeholder="${instructionsPlaceholder}"></textarea></div>
-                <div class="p-4 bg-primary border-t-custom sticky bottom-16">
+                <div class="p-4 bg-primary/80 backdrop-blur-sm border-t-custom ${bottomClass}">
                      <div id="cart-summary" class="mb-4 space-y-1 text-primary"></div>
-                    <button id="place-order-btn" onclick="ui.showPaymentModal()" class="w-full brand-bg font-bold py-4 rounded-lg">Proceed to Payment</button>
+                    <button id="place-order-btn" onclick="ui.showPaymentModal()" class="w-full brand-bg font-bold py-4 rounded-lg text-white">Proceed to Payment</button>
                 </div>`;
-            this.updateCartSummary(); // Initial render of summary
+            this.updateCartSummary();
         },
 
         updateCartSummary() {
@@ -1887,7 +1843,6 @@
             }
         },
 
-
         renderOrderTracking(container) {
             const order = app.state.activeOrder;
             if (!order) { container.innerHTML = ''; return; }
@@ -1900,9 +1855,7 @@
                     <h2 class="text-3xl font-bold text-center capitalize">Your Order is ${order.status}!</h2>
                     <p class="text-secondary text-center mb-10">Order ID: #${order.id.slice(0,6)}</p>
                     <div class="tracker-container my-12 w-full max-w-sm">
-                        <div class="tracker-line-container">
-                            <div class="tracker-progress" style="width: ${progressPercentage}%"></div>
-                        </div>
+                        <div class="tracker-line-container"><div class="tracker-progress" style="width: ${progressPercentage}%"></div></div>
                         ${statuses.map((status, index) => `
                             <div class="tracker-step ${index <= currentIndex ? 'active' : ''}">
                                 <div class="tracker-icon-container">${icons[status]}</div>
@@ -1911,26 +1864,21 @@
                     </div>
                     <div class="mt-auto pt-10 text-center">
                         <p class="text-secondary mb-4">You can play a quick game while you wait!</p>
-                        <button onclick="ui.showGamesModal()" class="brand-bg font-semibold py-3 px-8 rounded-lg">Play Games</button>
+                        <button onclick="ui.showGamesModal()" class="brand-bg font-semibold py-3 px-8 rounded-lg text-white">Play Games</button>
                     </div>
                 </div>`;
         },
 
-        renderSocialPage(){
-            const currentBrandName = 'Bulb Cafe'; // This page is only on Bulb theme
+        renderSocialPage(container){
             const socialCaption = "Post your coffee pics! Tag us for a shoutout.";
-            
-            // NEW: Updated button text and onclick handler
-            $('#page-content').innerHTML = `
+            container.innerHTML = `
                 <div class="p-4 space-y-6 text-center">
                      <div class="bg-secondary p-6 rounded-xl shadow-sm border border-custom">
                         <h2 class="text-2xl font-bold text-primary">Join Our Community!</h2>
                         <p class="text-secondary mt-1">${socialCaption}</p>
-                        
                         <a href="https://instagram.com/a_bulbcafejaipur" target="_blank" class="social-card-gradient text-2xl font-bold my-4 block">@a_bulbcafejaipur</a>
                         <p class="text-xs text-secondary mt-2">Scan to follow the official account!</p>
                     </div>
-
                     <div class="bg-secondary p-6 rounded-xl shadow-sm border border-custom">
                         <h2 class="text-2xl font-bold text-primary">Change Location</h2>
                         <p class="text-secondary mt-1 mb-4">Go back to the main selection screen.</p>
@@ -1942,23 +1890,18 @@
             `;
         },
 
-        renderCoworkPage() {
-            // This page is now just for Bulb Cafe, so we rename it "Kitchen" and can simplify
-            $('#page-content').innerHTML = `
+        renderCoworkPage(container) {
+            container.innerHTML = `
                 <div class="p-6 space-y-6 text-center">
                      <div class="bg-secondary p-8 rounded-xl shadow-lg border border-custom">
                         <span class="text-5xl mb-4 block">💡</span>
                         <h2 class="text-3xl font-bold text-primary mb-2">BULB CAFE</h2>
-                        <p class="text-lg text-secondary mb-6">
-                            Welcome to Bulb Cafe. Order anything you like from our menu.
-                        </p>
+                        <p class="text-lg text-secondary mb-6">Welcome to Bulb Cafe. Order anything you like.</p>
                         <ul class="text-left space-y-2 mb-8 list-disc list-inside text-secondary">
                             <li>Artisanal Coffee & Teas</li>
                             <li>Quick Bites & Snacks</li>
-                            <li>Comfortable Seating</li>
-                            <li>Free Wi-Fi</li>
+                            <li>Comfortable Seating & Free Wi-Fi</li>
                         </ul>
-                        <p class="text-primary font-semibold mb-4">Ready to order?</p>
                         <button onclick="app.navigateTo('order')" class="w-full brand-bg text-white font-extrabold py-3 px-6 rounded-lg transition hover:opacity-90">
                             BROWSE THE MENU
                         </button>
@@ -1967,11 +1910,9 @@
             `;
         },
 
-        renderMorePage(){
+        renderMorePage(container){
             const loyaltyPoints = app.state.customerProfile?.loyalty_points ?? 0;
-            const loyaltyExplanation = `<p class="text-xs text-secondary mt-1">Earn 10% points (on orders > ₹${app.state.appSettings.loyalty_threshold || 350}). 1 pt = ₹1 discount (redeem in Cart).</p>`;
-            
-            // NEW: Updated button text and onclick handler
+            const loyaltyExplanation = `<p class="text-xs text-secondary mt-1">Earn 10% points (on orders > ₹${app.state.appSettings.loyalty_threshold || 350}). 1 pt = ₹1 discount.</p>`;
             const options = [
                 { icon: "🪙", text: `Loyalty Points: ${loyaltyPoints}`, action: "", explanation: loyaltyExplanation },
                 { icon: "🛎", text: "Call Staff for Assistance", action: "ui.showCallStaffModal()" },
@@ -1979,11 +1920,11 @@
                 { icon: "🎮", text: "Play Games", action: "ui.showGamesModal()" },
                 { icon: "📜", text: "Order History", action: "ui.showOrderHistoryModal()" },
             ];
-            $('#page-content').innerHTML = `
+            container.innerHTML = `
                 <div class="p-4 space-y-3">
                     ${options.map(opt =>
                         opt.action
-                        ? `<button onclick="${opt.action}" class="w-full flex items-center justify-between bg-secondary p-4 rounded-xl text-left border border-custom">
+                        ? `<button onclick="${opt.action}" class="w-full flex items-center justify-between bg-secondary p-4 rounded-xl text-left border border-custom transition hover:border-gray-300">
                                <div class="flex items-center"><span class="text-2xl mr-4">${opt.icon}</span><span class="font-semibold text-primary">${opt.text}</span></div>
                                <span class="text-secondary">&rarr;</span>
                            </button>`
@@ -2007,10 +1948,7 @@
             `);
         },
         
-        showBrandSwitcherModal(){
-             // This is no longer used, as the toggle is directly on other pages.
-             app.switchBrand();
-        },
+        showBrandSwitcherModal(){ app.switchBrand(); },
 
         showPaymentModal(){
              ui.showModal('payment-modal', `
@@ -2026,7 +1964,6 @@
             const item = app.state.allMenuItems.find(i => i.id === itemId); if (!item) return;
             const cartItem = app.state.cart.find(ci => ci.id === itemId);
             const currentQuantity = cartItem ? cartItem.quantity : 0;
-            // MODIFIED: Check theme AND ordering toggle
             const isViewOnly = app.state.theme === 'gulabi' && !app.state.isGulabiOrderingEnabled;
 
             let optionsHTML = Array.from({ length: 10 }, (_, i) => `<option value="${i + 1}" ${i + 1 === currentQuantity ? 'selected' : ''}>${i + 1}</option>`).join('');
@@ -2038,11 +1975,9 @@
                         <h2 class="text-2xl font-bold text-primary">${item.name || 'Item Detail'}</h2>
                         <p class="text-xl font-semibold text-secondary">₹${item.price.toFixed(2)}</p>
                     </div>
-                    <div class="text-5xl">☕️</div>
                 </div>
                 <p class="text-secondary mt-2">${item.description || 'No description available.'}</p>
                 
-                <!-- Only show quantity selector for Bulb Cafe -->
                 ${!isViewOnly ? `
                 <div class="flex items-center justify-between my-6 bg-secondary p-3 rounded-lg">
                     <label for="modal-quantity-select" class="font-semibold text-primary">Quantity:</label>
@@ -2053,9 +1988,9 @@
 
                 <div class="mt-6 grid ${isViewOnly ? 'grid-cols-1' : 'grid-cols-2'} gap-4">
                     ${!isViewOnly ? `<button onclick="ui.closeModal('item-detail-modal')" class="w-full bg-secondary font-semibold py-3 rounded-lg">Back</button>` : ''}
-                    <button ${isViewOnly ? '' : ''} 
+                    <button
                             onclick="${isViewOnly ? `ui.closeModal('item-detail-modal')` : `app.setCartItemQuantity(${item.id}, parseInt($('#modal-quantity-select').value))`}" 
-                            class="w-full ${isViewOnly ? 'brand-bg' : 'brand-bg'} font-semibold py-3 rounded-lg">
+                            class="w-full brand-bg font-semibold py-3 rounded-lg text-white">
                         ${isViewOnly ? 'CLOSE' : (cartItem ? 'Update Quantity' : 'Add to Cart')}
                     </button>
                 </div>`);
@@ -2069,7 +2004,7 @@
                         <div class="bg-secondary p-4 rounded-xl border border-custom">
                             <h3 class="text-lg font-bold text-primary mb-1">${game.title}</h3>
                             <p class="text-secondary text-sm mb-3">${game.description}</p>
-                            <button onclick="GAMES['${game.id}'].start()" class="brand-bg font-semibold py-2 px-4 rounded-lg text-sm">Play</button>
+                            <button onclick="GAMES['${game.id}'].start()" class="brand-bg font-semibold py-2 px-4 rounded-lg text-sm text-white">Play</button>
                         </div>`).join("")}
                 </div>
                 <button onclick="ui.closeModal('games-modal')" class="w-full mt-6 bg-secondary font-semibold py-3 rounded-lg">Close</button>
@@ -2078,19 +2013,9 @@
 
         async showOrderHistoryModal() {
             if (!app.state.customerProfile || !app.state.customerProfile.id) return ui.showToast("Error: Profile not loaded.");
-            
-            // Fetch orders and related items in one go
             const { data, error } = await supabase
                 .from('orders')
-                .select(`
-                    id,
-                    created_at,
-                    final_amount,
-                    total_amount,
-                    discount_amount,
-                    discount_points_redeemed,
-                    order_items ( product_name, quantity )
-                `)
+                .select(`id, created_at, final_amount, total_amount, discount_amount, discount_points_redeemed, order_items ( product_name, quantity )`)
                 .eq('customer_id', app.state.customerProfile.id)
                 .order('created_at', { ascending: false });
 
@@ -2117,30 +2042,24 @@
 
             ui.showModal('history-modal', `
                 <h2 class="text-2xl font-bold text-center mb-4">Order History</h2>
-                <div class="space-y-3 max-h-60 overflow-y-auto">${historyHTML}</div>
+                <div classa="space-y-3 max-h-60 overflow-y-auto">${historyHTML}</div>
                 <button onclick="ui.closeModal('history-modal')" class="w-full mt-6 bg-secondary font-semibold py-3 rounded-lg">Close</button>
             `);
         },
 
-        // NEW: Slideshow logic
         initSlideshow(containerId) {
             const container = $(`#${containerId}`);
             if (!container) return;
-
             const track = container.querySelector('.slideshow-track');
             const slides = Array.from(container.querySelectorAll('.slide'));
             const nextBtn = container.querySelector('.slideshow-btn.next');
             const prevBtn = container.querySelector('.slideshow-btn.prev');
             const dotsContainer = container.querySelector('.slideshow-dots');
-            
             if (!track || slides.length === 0) return;
-
             let currentIndex = 0;
             const slideCount = slides.length;
-
-            // Create dots
             if (dotsContainer) {
-                dotsContainer.innerHTML = ''; // Clear existing dots
+                dotsContainer.innerHTML = '';
                 for (let i = 0; i < slideCount; i++) {
                     const dot = document.createElement('div');
                     dot.classList.add('dot');
@@ -2150,53 +2069,30 @@
                 }
             }
             const dots = dotsContainer ? Array.from(dotsContainer.querySelectorAll('.dot')) : [];
-
             const updateSlide = (index) => {
-                // Pause all videos
                 slides.forEach(slide => {
                     const video = slide.querySelector('video');
                     if (video) video.pause();
                 });
-
-                // Set new index
                 currentIndex = (index + slideCount) % slideCount;
-                
-                // Play video if new slide is a video
                 const currentSlide = slides[currentIndex];
                 const currentVideo = currentSlide.querySelector('video');
-                if (currentVideo) {
-                    currentVideo.play().catch(e => console.warn("Autoplay was prevented:", e));
-                }
-
-                // Move track
+                if (currentVideo) { currentVideo.play().catch(e => console.warn("Autoplay prevented:", e)); }
                 track.style.transform = `translateX(-${currentIndex * 100}%)`;
-
-                // Update dots
-                dots.forEach((dot, i) => {
-                    dot.classList.toggle('active', i === currentIndex);
-                });
+                dots.forEach((dot, i) => { dot.classList.toggle('active', i === currentIndex); });
             };
-
-            // Event Listeners
-            if (nextBtn) {
-                nextBtn.onclick = () => updateSlide(currentIndex + 1);
-            }
-            if (prevBtn) {
-                prevBtn.onclick = () => updateSlide(currentIndex + 1);
-            }
-            dots.forEach(dot => {
-                dot.onclick = () => updateSlide(parseInt(dot.dataset.index));
-            });
+            if (nextBtn) { nextBtn.onclick = () => updateSlide(currentIndex + 1); }
+            if (prevBtn) { prevBtn.onclick = () => updateSlide(currentIndex - 1); } // FIX: Was currentIndex + 1
+            dots.forEach(dot => { dot.onclick = () => updateSlide(parseInt(dot.dataset.index)); });
         }
     };
 
     // --- GAMES LOGIC ---
+    // (This section is unchanged)
     const GAMES = {
         ticTacToe: {
             id: 'ticTacToe', title: 'Tic-Tac-Toe', description: 'Classic 2-player game for your table.',
-            board: Array(9).fill(null),
-            currentPlayer: "X",
-            winner: null,
+            board: Array(9).fill(null), currentPlayer: "X", winner: null,
             start() {
                 this.reset();
                 ui.showModal('ttt-modal', `
@@ -2207,7 +2103,7 @@
                             ${this.board.map((_, i) => `<div class="aspect-square bg-secondary flex items-center justify-center text-5xl sm:text-6xl font-bold rounded-lg cursor-pointer border border-custom" onclick="GAMES.ticTacToe.play(${i})"></div>`).join("")}
                         </div>
                     </div>
-                    <button onclick="GAMES.ticTacToe.start()" class="w-full mt-2 brand-bg font-semibold py-3 rounded-lg">New Game</button>
+                    <button onclick="GAMES.ticTacToe.start()" class="w-full mt-2 brand-bg font-semibold py-3 rounded-lg text-white">New Game</button>
                     <button onclick="ui.closeModal('ttt-modal')" class="w-full mt-2 bg-secondary py-3 rounded-lg">Close</button>
                 `);
             },
@@ -2219,23 +2115,14 @@
                 this.updateUI();
             },
             checkWinner() {
-                const lines = [
-                    [0, 1, 2], [3, 4, 5], [6, 7, 8],
-                    [0, 3, 6], [1, 4, 7], [2, 5, 8],
-                    [0, 4, 8], [2, 4, 6]
-                ];
+                const lines = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
                 for (let line of lines) {
                     const [a, b, c] = line;
                     if (this.board[a] && this.board[a] === this.board[b] && this.board[a] === this.board[c]) {
-                        this.winner = this.board[a];
-                        sound.play("win");
-                        return;
+                        this.winner = this.board[a]; sound.play("win"); return;
                     }
                 }
-                if (this.board.every(cell => cell)) {
-                    this.winner = "Draw";
-                    sound.play("draw");
-                }
+                if (this.board.every(cell => cell)) { this.winner = "Draw"; sound.play("draw"); }
             },
             updateUI() {
                 $$("#ttt-board > div").forEach((cell, i) => {
@@ -2244,11 +2131,7 @@
                 });
                 $("#ttt-status").textContent = this.winner ? (this.winner === "Draw" ? "It's a Draw!" : `Player ${this.winner} wins!`) : `Player ${this.currentPlayer}'s turn`;
             },
-            reset() {
-                this.board.fill(null);
-                this.currentPlayer = "X";
-                this.winner = null;
-            }
+            reset() { this.board.fill(null); this.currentPlayer = "X"; this.winner = null; }
         },
         coffeeTrivia: {
             id: 'coffeeTrivia', title: 'Coffee Trivia', description: 'Test your coffee knowledge!',
@@ -2277,61 +2160,54 @@
                 const options = $$('.trivia-option');
                 options.forEach((btn, index) => {
                     btn.disabled = true;
-                    if (index === correctIndex) {
-                        btn.classList.remove('bg-secondary');
-                        btn.classList.add('bg-green-500', 'text-white');
-                    } else if (index === selectedIndex) {
-                        btn.classList.remove('bg-secondary');
-                        btn.classList.add('bg-red-500', 'text-white');
-                    }
+                    if (index === correctIndex) { btn.classList.remove('bg-secondary'); btn.classList.add('bg-green-500', 'text-white'); } 
+                    else if (index === selectedIndex) { btn.classList.remove('bg-secondary'); btn.classList.add('bg-red-500', 'text-white'); }
                 });
-
-                if (selectedIndex === correctIndex) {
-                    sound.play('success');
-                } else {
-                    sound.play('draw');
-                }
-
+                if (selectedIndex === correctIndex) { sound.play('success'); } else { sound.play('draw'); }
                 setTimeout(() => GAMES.coffeeTrivia.start(), 2000);
             }
         },
     };
 
-    // --- NEW: App Entry Point ---
+    // --- App Entry Point ---
     
-    // NEW: This function is called by the brand selection buttons
-    function selectBrand(brand) {
+    /**
+     * MODIFIED: selectBrand()
+     * This is called by brand selection buttons OR by ui.showBrandSelection.
+     * @param {string} brand - 'bulb' or 'gulabi'
+     * @param {boolean} isManualClick - True if user clicked, false if auto-selected
+     */
+    function selectBrand(brand, isManualClick = true) {
         if (!supabase) {
             console.error("Supabase not ready, cannot select brand.");
             return;
         }
         
-        // 1. Set state and local storage
+        console.log(`Brand selected: ${brand}`);
         app.state.theme = brand;
         localStorage.setItem('brand-theme', brand);
         
-        // 2. Hide brand selection screen
-        const brandScreen = $('#brand-selection-screen');
-        brandScreen.classList.add('fade-out');
-        setTimeout(() => {
-            brandScreen.style.display = 'none';
-        }, 500); // Hide after fade
+        if (isManualClick) {
+            const brandScreen = $('#brand-selection-screen');
+            brandScreen.classList.add('fade-out');
+            setTimeout(() => { brandScreen.style.display = 'none'; }, 500);
+        }
         
-        // 3. Start the main app
+        // Start the main app init (data fetching, splash screen)
         app.init();
     }
     
     // --- START APP ---
     document.addEventListener('DOMContentLoaded', () => {
-        // Instead of starting app.init(), we show the brand selection.
-        ui.showBrandSelection();
+        // Call the new earlyInit to handle auth and profile first
+        app.earlyInit();
     });
 
-    // CRITICAL: Move global exposure to the end of the script
+    // Expose functions to global scope for HTML onclick attributes
     window.app = app;
     window.ui = ui;
     window.GAMES = GAMES; 
-    window.selectBrand = selectBrand; // Expose selectBrand to the global scope
+    window.selectBrand = selectBrand; // Expose selectBrand
 
 </script>
 </body>
