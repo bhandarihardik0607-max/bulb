@@ -318,7 +318,7 @@
             <!-- Gulabi Thali Card -->
             <div class="brand-card" onclick="selectBrand('gulabi')">
                 <div class="relative rounded-2xl shadow-2xl overflow-hidden aspect-w-3 aspect-h-4">
-                    <img src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/403946165_1014623216287649_4686052002313628516_n%20(1).jpg"
+                    <img src="httpshttps://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/403946165_1014623216287649_4686052002313628516_n%20(1).jpg"
                          alt="Gulabi Thali Food"
                          class="w-full h-full object-cover"
                          onerror="this.onerror=null; this.src='https://placehold.co/600x800/DB2777/9D174D?text=Gulabi+Thali';">
@@ -2301,7 +2301,7 @@
                         <div class="relative rounded-2xl shadow-lg overflow-hidden aspect-w-4 aspect-h-3">
                             <img src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/403946165_1014623216287649_4686052002313628516_n%20(1).jpg"
                                  alt="Gulabi Thali Food" class="w-full h-full object-cover"
-                                 onerror="this.onerror=null; this.src='https://placehold.co/600x800/DB2777/9D174D?text=Gulabi+Thali';">
+                                 onerror="this.onerror=null; this.src='httpshttps://placehold.co/600x800/DB2777/9D174D?text=Gulabi+Thali';">
                              <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
                              <div class="absolute bottom-0 left-0 p-4">
                                 <h3 class="text-2xl font-extrabold text-white">GULABI THALI</h3>
@@ -2433,7 +2433,8 @@
 
             ui.showModal('history-modal', `
                 <h2 class="text-2xl font-bold text-center mb-4">Order History</h2>
-                <div classa="space-y-3 max-h-60 overflow-y-auto">${historyHTML}</div>
+                <!-- ***** FIX: Changed 'classa' to 'class' ***** -->
+                <div class="space-y-3 max-h-60 overflow-y-auto">${historyHTML}</div>
                 <button onclick="ui.closeModal('history-modal')" class="w-full mt-6 bg-secondary font-semibold py-3 rounded-lg">Close</button>
             `);
         },
