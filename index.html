@@ -7,7 +7,8 @@
       user-scalable=no prevents accidental zooming on mobile, as requested.
     -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bulb Cafe & Gulabi Thali</title>
+    <!-- Updated Title -->
+    <title>Gulabi Thali & Bulb Cafe</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -250,7 +251,15 @@
 
         /* Social Card Gradient */
         .social-card-gradient {
-            background: radial-gradient(circle at 30% 107%, #FCD34D 0%, #F59E0B 45%, #DB2777 60%, #E94C8F 90%);
+            background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* Gulabi Thali specific gradient */
+        [data-theme="gulabi"] .social-card-gradient {
+             background: radial-gradient(circle at 30% 107%, #FCD34D 0%, #F59E0B 45%, #DB2777 60%, #E94C8F 90%);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -380,6 +389,9 @@
     setAppHeight();
 
     // --- SUPABASE CONFIG ---
+    // This is using the public anon key, which is secure.
+    // Row Level Security (RLS) policies on your Supabase dashboard
+    // are responsible for protecting your data.
     const SUPABASE_URL = 'https://vrvlvvlfzbdqwfsdlrkv.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZydmx2dmxmemJkcXdmc2Rscmt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NzI2NzAsImV4cCI6MjA3NzU0ODY3MH0.yYnxeipLuO0DlTvGITI5ajHDeoWZ80N2PS3rPhuOyp8';
     
@@ -390,6 +402,7 @@
         supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     } else {
         console.error("CRITICAL: Supabase client library not found.");
+        // Fallback to show an error on the screen if Supabase fails to load
         document.addEventListener('DOMContentLoaded', () => {
              const brandScreen = $('#brand-selection-screen');
              if (brandScreen) {
@@ -399,19 +412,13 @@
         });
     }
 
+    // --- APP STATE & CONFIG ---
+    
+    // Defines the pages available in the bottom nav for Bulb Cafe
     const PAGES = ['home', 'order', 'cart', 'social', 'cowork', 'more'];
-
-    // --- STATIC DATA ---
-    const STATIC_DATA = {
-        bestSellers: [1, 2, 3, 4], 
-        captionIdeas: {
-            cafe_vibes: [ "Fueling my day with the best coffee @a_bulbcafejaipur! 💡☕️", "Cozy corners and great beans at Bulb Cafe. #CafeVibes" ],
-            thali_time: [ "Feast mode ON! Enjoying the delicious thali. 🍽️💖 #IndianFood", "Nothing beats a traditional thali! @gulabithali_thecloudkitchen." ],
-            friends: [ "Great food and great company! Cheers from Bulb Cafe. 🎉", "Lunch plans sorted! @a_bulbcafejaipur" ]
-        }
-    };
     
     // --- SOUND EFFECTS ---
+    // Simple sound engine for UI feedback
     const sound = {
         audioContext: null,
         init() {
@@ -423,6 +430,7 @@
             if (!this.audioContext) return;
             const o = this.audioContext.createOscillator(), g = this.audioContext.createGain();
             o.connect(g); g.connect(this.audioContext.destination); g.gain.setValueAtTime(0, this.audioContext.currentTime);
+            // Predefined sound profiles
             const sounds = {
                 click: { type: 'sine', freq: 900, gain: 0.1, len: 0.05 },
                 add_to_cart: { type: 'sine', freq: 700, gain: 0.2, len: 0.15 },
@@ -440,7 +448,7 @@
     };
 
 
-    // --- APP LOGIC ---
+    // --- MAIN APP LOGIC ---
     const app = {
         state: {
             currentPage: 'home',
@@ -450,14 +458,14 @@
             user: null,
             customerProfile: null,
             theme: 'bulb', // Default, will be overwritten
-            menuData: [],
-            allMenuItems: [],
+            menuData: [], // Grouped menu for accordion
+            allMenuItems: [], // Flat list of all items for search
             appSettings: {},
             orderSubscription: null,
             searchQuery: '',
             searchResults: [],
             pointsToRedeem: 0,
-            isGulabiOrderingEnabled: false, // Set by fetchAppSettings
+            isGulabiOrderingEnabled: false, // This is the key toggle
         },
 
         /**
@@ -476,6 +484,7 @@
 
             try {
                 // 2. ANONYMOUS SIGN-IN (or get existing session)
+                // This ensures every user has a stable ID, even without an account.
                 let session = null;
                 try {
                     const { data } = await supabase.auth.getSession();
@@ -493,10 +502,10 @@
                 }
                 console.log("User session established:", this.state.user.id);
 
-                // 3. FETCH OR CREATE PROFILE
+                // 3. FETCH OR CREATE CUSTOMER PROFILE
                 await this.fetchCustomerProfile();
                 
-                // 4. Handle next step based on profile
+                // 4. Handle next step based on profile (onboarding or brand selection)
                 this.handleProfileLoaded();
 
             } catch (error) {
@@ -510,7 +519,7 @@
         
         /**
          * handleProfileLoaded()
-         * Decides whether to show onboarding or brand selection.
+         * Decides whether to show onboarding (for details) or brand selection.
          * This fulfills the request: "first let me fill details and then ask brand"
          */
         handleProfileLoaded() {
@@ -633,12 +642,14 @@
             console.log("Fetching profile for user ID:", userId);
 
             try {
+                // We also fetch loyalty_points, which is a view
                 const { data, error } = await supabase.from('customers')
                     .select('*, loyalty_points')
                     .eq('id', userId)
                     .single();
 
                 if (error && error.code === 'PGRST116') {
+                    // No profile found, create a new one
                     console.log("No profile found, creating new 'Guest' profile.");
                     return this.createUserProfile(userId);
                 }
@@ -652,18 +663,20 @@
                     return data;
                 }
                 
+                // Fallback in case data is null
                 return this.createUserProfile(userId);
 
             } catch (error) {
                 console.error('Error fetching/creating profile:', error.message);
                 ui.showToast('Could not load user profile.');
+                // Create a temporary profile object to prevent app from crashing
                 this.state.customerProfile = { id: userId, name: 'Guest', loyalty_points: 0, whatsapp_number: null };
             }
         },
         
         /**
          * createUserProfile()
-         * Unchanged logic.
+         * Creates a new 'Guest' profile for the new anonymous user.
          */
         async createUserProfile(userId) {
             try {
@@ -682,6 +695,8 @@
                 return data;
                 
             } catch (error) {
+                // This handles a "race condition" where two requests might try to create
+                // the profile at the same time. If it already exists, we just fetch it.
                 if (error.code === '23505') { 
                     console.warn("Race condition: Profile already exists. Fetching.");
                     return this.fetchCustomerProfile();
@@ -697,10 +712,11 @@
          */
         async fetchMenuData() {
             try {
+                // Fetch all products
                 const { data, error } = await supabase.from('products').select('*').order('id');
                 if (error) throw error;
 
-                // Filter *all* available items for searching
+                // Store *all* available items for searching
                 this.state.allMenuItems = data.filter(i => i.is_available);
 
                 // Create grouped menu (legacy, still used by accordion)
@@ -727,6 +743,7 @@
         /**
          * fetchAppSettings()
          * This is key for the "Gulabi Thali Toggle" request.
+         * It fetches the 'gulabi_thali_ordering_enabled' setting from the admin panel.
          */
         async fetchAppSettings() {
             try {
@@ -735,7 +752,8 @@
                 this.state.appSettings = data.reduce((acc, { key, value }) => ({ ...acc, [key]: value }), {});
                 
                 // This is the toggle from your admin panel
-                this.state.isGulabiOrderingEnabled = this.state.appSettings?.gulabi_thali_ordering_enabled || false;
+                // It checks if the value is the string 'true'
+                this.state.isGulabiOrderingEnabled = this.state.appSettings?.gulabi_thali_ordering_enabled === 'true' || false;
                 
                 console.log(`Gulabi Thali Ordering Enabled: ${this.state.isGulabiOrderingEnabled}`);
             } catch (error) { console.error('Error fetching app settings:', error); }
@@ -743,7 +761,7 @@
 
         /**
          * showUniversalOnboardingModal()
-         * Unchanged logic.
+         * Shows the modal to collect user Name and Phone Number.
          */
         showUniversalOnboardingModal(){
             const currentName = this.state.customerProfile?.name === 'Guest' ? '' : this.state.customerProfile?.name;
@@ -762,7 +780,7 @@
 
         /**
          * completeUniversalOnboarding()
-         * Now calls ui.showBrandSelection(true) on success.
+         * Saves the user's details and proceeds to brand selection.
          */
         async completeUniversalOnboarding(){
             const name = $('#universal-user-name-input').value.trim();
@@ -781,6 +799,7 @@
                     .single();
 
                 if (error) {
+                    // Handle unique constraint violation (phone already exists)
                     if (error.code === '23505') {
                         ui.showToast('This phone number is already linked to another account.');
                         return;
@@ -806,7 +825,7 @@
 
         /**
          * showTableNumberModal()
-         * Unchanged logic.
+         * Asks for table number (Bulb Cafe only).
          */
         showTableNumberModal() {
             ui.showModal('table-number-modal', `
@@ -819,7 +838,7 @@
 
         /**
          * completeTableNumberEntry()
-         * Unchanged logic.
+         * Saves table number and starts the main app.
          */
         completeTableNumberEntry() {
             const tableNumber = $('#table-number-input').value;
@@ -829,7 +848,11 @@
             ui.closeModal('table-number-modal');
             this.navigateTo('home', false);
         },
-
+        
+        /**
+         * startSession()
+         * Fetches active order (if any) and shows the main UI.
+         */
         async startSession() {
             if (this.state.theme === 'bulb') {
                 await this.fetchActiveOrder();
@@ -837,26 +860,41 @@
             this.showMainInterface();
         },
 
+        /**
+         * showMainInterface()
+         * Renders the main app UI (header, nav, content).
+         */
         showMainInterface(){
             $('#main-interface').classList.remove('hidden');
             
-            // Only show nav for Bulb Cafe
+            // Only show bottom nav for Bulb Cafe
             if (this.state.theme === 'bulb') {
                 $('#bottom-nav').classList.remove('hidden');
                 $('#footer-spacer').classList.remove('hidden');
                 ui.renderBottomNav();
                 ui.updateActiveNav(this.state.currentPage);
             } else {
+                // Hide nav for Gulabi Thali
                 $('#bottom-nav').classList.add('hidden');
                 $('#footer-spacer').classList.add('hidden');
             }
             
             this.navigateTo(this.state.currentPage, false);
         },
-
+        
+        /**
+         * navigateTo()
+         * Handles all page navigation within the app.
+         */
         navigateTo(page, pushToHistory = true){
              if (!this.state.customerProfile) return;
              sound.play('click');
+             
+             // Prevent navigating to non-existent pages
+             if (this.state.theme === 'gulabi' && !['home', 'order', 'cart'].includes(page)) {
+                 page = 'home';
+             }
+             
              const currentHash = location.hash.substring(1);
              if (currentHash === page && pushToHistory) return;
              if (pushToHistory) { location.hash = page; } 
@@ -870,14 +908,18 @@
                 ui.updateActiveNav(page);
              }
         },
-
+        
+        /**
+         * handleHardwareBack()
+         * Manages the browser's back button behavior.
+         */
         handleHardwareBack(event) {
              const currentHash = location.hash.substring(1);
              const openModal = $('#modal-container').children[0];
 
              if (openModal) {
-                 // Don't allow backing out of onboarding
-                 if (openModal.id === 'universal-onboarding-modal') {
+                 // Don't allow backing out of critical modals
+                 if (openModal.id === 'universal-onboarding-modal' || openModal.id === 'table-number-modal') {
                      event.preventDefault(); return;
                  }
                 ui.closeModal(openModal.id);
@@ -886,11 +928,12 @@
                 return;
              }
              
-             // Don't allow back navigation in Gulabi theme
+             // Don't allow back navigation in Gulabi theme (it's a single-flow app)
              if (this.state.theme === 'gulabi') {
                  event.preventDefault(); return;
              }
              
+             // For Bulb Cafe, navigate to 'home' if not already there
              if (this.state.currentPage === 'home') { return; }
 
              if (PAGES.includes(currentHash) && currentHash !== this.state.currentPage) {
@@ -904,23 +947,16 @@
         },
 
         applyTheme(){ document.body.dataset.theme = this.state.theme; },
-        
-        // This function is just for a demo button, the main logic is in switchBrand
-        toggleTheme(t){ 
-            ui.closeModal('brand-switcher-modal');
-            if (this.state.theme === 'gulabi' && t === 'bulb') {
-                // This is incomplete, using switchBrand is safer
-                this.switchBrand();
-            }
-        },
 
-        // This is the main function to switch brands
+        /**
+         * switchBrand()
+         * Reloads the app to restart the brand selection flow.
+         */
         async switchBrand() {
             localStorage.removeItem('brand-theme');
             location.reload(); // Reloads the page, triggering earlyInit()
         },
 
-        // *** NEW FUNCTION ***
         // Handles the logic from the new brand switcher modal
         handleBrandSwitchFromModal(brand) {
             ui.closeModal('brand-switcher-modal');
@@ -936,12 +972,14 @@
 
         /**
          * addOrUpdateCart()
-         * This logic is correct. It checks the admin toggle for Gulabi Thali.
+         * Adds/removes items from cart.
+         * *** KEY LOGIC ***
+         * This function checks the 'isGulabiOrderingEnabled' flag.
          */
         addOrUpdateCart(itemId, quantityChange) {
             const item = this.state.allMenuItems.find(i => i.id === itemId);
             
-            // This check handles the "Gulabi Thali orderable" request
+            // *** This check handles the "Gulabi Thali orderable" request ***
             if (item && item.brand?.toLowerCase() === 'gulabi thali' && !this.state.isGulabiOrderingEnabled) {
                 return ui.showToast("Gulabi Thali is view-only at the moment.", 'error');
             }
@@ -953,8 +991,10 @@
             let newQuantity = (cartItem ? cartItem.quantity : 0) + quantityChange;
 
             if (newQuantity <= 0) {
+                // Remove from cart
                 this.state.cart = this.state.cart.filter(i => i.id !== itemId);
             } else {
+                // Add or update in cart
                 if (cartItem) {
                     cartItem.quantity = newQuantity;
                 } else {
@@ -962,17 +1002,18 @@
                 }
                 if (quantityChange > 0) sound.play('add_to_cart');
             }
-            this.state.pointsToRedeem = 0;
+            this.state.pointsToRedeem = 0; // Reset discount on cart change
             this.refreshPage();
         },
 
         /**
          * setCartItemQuantity()
-         * This logic is also correct and checks the admin toggle.
+         * Sets a specific quantity from the item detail modal.
          */
         setCartItemQuantity(itemId, quantity) {
             const item = this.state.allMenuItems.find(i => i.id === itemId);
             
+            // *** This check also handles the "Gulabi Thali orderable" request ***
             if (item && item.brand?.toLowerCase() === 'gulabi thali' && quantity > 0 && !this.state.isGulabiOrderingEnabled) {
                  ui.closeModal('item-detail-modal');
                  return ui.showToast("Gulabi Thali is view-only at the moment.", 'error');
@@ -994,11 +1035,15 @@
                 sound.play('add_to_cart');
                 ui.showToast('Cart updated!');
             }
-            this.state.pointsToRedeem = 0;
+            this.state.pointsToRedeem = 0; // Reset discount
             ui.closeModal('item-detail-modal');
             this.refreshPage();
         },
-
+        
+        /**
+         * performSearch()
+         * Filters menu items based on user input.
+         */
         performSearch(query) {
              const searchContainer = $('#search-results-container');
              const menuContainer = $('#menu-items');
@@ -1009,9 +1054,9 @@
                 if (searchContainer) searchContainer.classList.remove('hidden');
                 if (menuContainer) menuContainer.classList.add('hidden');
                 
+                // Filter items from the active brand
                 this.state.searchResults = this.state.allMenuItems.filter(item => {
                     const itemBrand = item.brand?.toLowerCase();
-                    // Search only within the active brand
                     if (itemBrand !== activeBrand.toLowerCase()) return false;
                     
                     const itemName = item.name?.toLowerCase() || '';
@@ -1020,18 +1065,24 @@
                 });
                 ui.renderMenuItems(this.state.searchResults, 'search-results-container');
              } else {
+                // Show full menu if search is cleared
                 if (searchContainer) searchContainer.classList.add('hidden');
                 if (searchContainer) searchContainer.innerHTML = '';
                 if (menuContainer) menuContainer.classList.remove('hidden');
                 this.state.searchResults = [];
              }
         },
-
+        
+        /**
+         * calculateCartTotal()
+         * Calculates subtotal, discounts, GST, and final total.
+         */
         calculateCartTotal(){
             const subtotal = this.state.cart.reduce((t, i) => t + (i.price * i.quantity), 0);
             const availablePoints = this.state.customerProfile?.loyalty_points || 0;
             const loyaltyThreshold = parseFloat(this.state.appSettings.loyalty_threshold || 350);
             
+            // Can redeem max 70% of points, up to the subtotal amount
             const maxRedeemablePoints = Math.floor(availablePoints * 0.70);
             const maxRedeemableForOrder = Math.min(maxRedeemablePoints, Math.floor(subtotal));
 
@@ -1041,6 +1092,7 @@
             }
             const discountAmount = actualPointsToRedeem;
 
+            // Correct slider if value is invalid
             if (this.state.pointsToRedeem !== actualPointsToRedeem) {
                 this.state.pointsToRedeem = actualPointsToRedeem;
             }
@@ -1049,6 +1101,7 @@
             const gst = discountedSubtotal * 0.05; // 5% GST
             const finalTotal = discountedSubtotal + gst;
             
+            // Calculate points to be earned
             let pointsToEarn = 0;
             if (subtotal >= loyaltyThreshold) {
                 pointsToEarn = Math.floor(subtotal * 0.10);
@@ -1065,26 +1118,30 @@
         refreshPage(){
             this.applyTheme();
             ui.refreshCartDependentUI();
-            if (PAGES.includes(this.state.currentPage)) {
+            if (PAGES.includes(this.state.currentPage) || ['home', 'order', 'cart'].includes(this.state.currentPage)) {
                 ui.renderPageContent(this.state.currentPage);
             }
         },
 
         /**
          * placeOrder()
-         * This logic is correct. It handles Gulabi orders based on the admin toggle.
+         * Submits the cart to the 'orders' table in Supabase.
+         * *** KEY LOGIC ***
+         * This function handles both Bulb Cafe and Gulabi Thali orders.
          */
         async placeOrder(paymentMethod, btnElement){
             if (!supabase) return ui.showToast("Order failed: Supabase not initialized.");
             
+            // *** 1. Determine order type ***
             const isGulabiOrder = app.state.theme === 'gulabi';
             // Gulabi orders are assigned to table 0 (cloud kitchen)
+            // Bulb Cafe orders use the state.tableNumber
             const tableLookupNumber = isGulabiOrder ? 0 : this.state.tableNumber; 
             
             if (this.state.cart.length === 0) return ui.showToast("Cart is empty.");
             if (!isGulabiOrder && !this.state.tableNumber) return ui.showToast("Table number is missing.");
             
-            // This is the check based on the admin toggle
+            // *** 2. Check admin toggle for Gulabi Thali ***
             if (isGulabiOrder && !this.state.isGulabiOrderingEnabled) {
                 return ui.showToast("Ordering is currently disabled.");
             }
@@ -1093,6 +1150,7 @@
                 return ui.showToast("Error: Your profile is not loaded correctly. Please refresh.");
             }
 
+            // Disable buttons to prevent double-submission
             btnElement.disabled = true; const originalBtnHTML = btnElement.innerHTML;
             btnElement.innerHTML = `<span class="flex items-center justify-center"><div class="spinner mr-2"></div> Processing...</span>`;
             
@@ -1104,12 +1162,12 @@
             let orderData;
 
             try {
-                // 1. Verify Table
+                // 3. Verify Table
                 // This finds table '0' for Gulabi or the actual table for Bulb
                 const { data: tableData, error: tableError } = await supabase.from('tables').select('id').eq('table_number', tableLookupNumber).single();
                 if (tableError || !tableData) throw new Error(`Could not find table for order. (Ref: ${tableLookupNumber})`);
 
-                // 2. Verify Points
+                // 4. Verify Points (server-side check is also good, but client check is faster)
                 if (pointsToRedeem > 0) {
                     const { data: currentProfile, error: profileError } = await supabase.from('customers').select('loyalty_points').eq('id', this.state.customerProfile.id).single();
                     if (profileError || !currentProfile || currentProfile.loyalty_points < pointsToRedeem) {
@@ -1117,10 +1175,10 @@
                     }
                 }
 
-                // 3. Calculate effective discount
+                // 5. Calculate effective discount
                 const effectiveDiscountPercent = (subtotal > 0) ? (discountAmount / subtotal) * 100 : 0;
 
-                // 4. Create Order
+                // 6. Create Order
                 const orderPayload = {
                     customer_id: this.state.customerProfile.id,
                     table_id: tableData.id,
@@ -1139,14 +1197,13 @@
                 }
                 orderData = insertedOrder;
 
-                // 5. Create Order Items
+                // 7. Create Order Items
                 const orderItems = this.state.cart.map(i => ({
                     order_id: orderData.id,
                     product_id: i.id,
                     quantity: i.quantity,
                     price_at_time_of_order: i.price,
-                    // Add product_name for history convenience
-                    product_name: i.name 
+                    product_name: i.name // Add product_name for history convenience
                 }));
                 const { error: itemsError } = await supabase.from('order_items').insert(orderItems);
                 if (itemsError) {
@@ -1155,14 +1212,16 @@
                     throw new Error(`Order items failed. ${itemsError.message}`);
                 }
 
-                // 6. Handle Loyalty Points
+                // 8. Handle Loyalty Points (using Supabase RPC functions)
                 try {
                     if (pointsToRedeem > 0) {
+                         // Call 'redeem_loyalty_points' function
                          const { error: redeemError } = await supabase.rpc('redeem_loyalty_points', { customer_id_input: this.state.customerProfile.id, points_to_redeem: pointsToRedeem });
                          if(redeemError) throw new Error(`Redeem RPC failed: ${redeemError.message}`);
                          this.state.customerProfile.loyalty_points -= pointsToRedeem;
                     }
                     if (pointsToEarn > 0) {
+                         // Call 'increment_loyalty_points' function
                          const { error: earnError } = await supabase.rpc('increment_loyalty_points', { customer_id_input: this.state.customerProfile.id, points_to_add: pointsToEarn });
                          if(earnError) throw new Error(`Earn RPC failed: ${earnError.message}`);
                          this.state.customerProfile.loyalty_points += pointsToEarn;
@@ -1173,16 +1232,34 @@
                     await this.fetchCustomerProfile(); // Re-sync
                 }
 
-                // 7. Success Flow
+                // 9. Success Flow
                 ui.closeModal('payment-modal');
                 this.state.activeOrder = orderData;
-                this.listenToOrderUpdates(orderData.id);
+                
+                // For Bulb Cafe, listen to updates. For Gulabi, don't.
+                if (!isGulabiOrder) {
+                    this.listenToOrderUpdates(orderData.id);
+                }
+                
                 this.state.cart = [];
                 this.state.pointsToRedeem = 0;
                 this.refreshPage();
                 sound.play('success');
-                // Navigate to cart/tracker page
-                this.navigateTo('cart'); 
+                
+                // For Bulb Cafe, go to tracker. For Gulabi, show success modal.
+                if (isGulabiOrder) {
+                    ui.showModal('gulabi-order-success', `
+                        <div class="text-center">
+                            <span class="text-5xl">🌸</span>
+                            <h2 class="text-2xl font-bold mt-4">Order Received!</h2>
+                            <p class="text-secondary my-2">Thank you for your order! We will begin preparing it shortly.</p>
+                            <p class="text-sm text-secondary">Order ID: #${orderData.id.slice(0,6)}</p>
+                            <button onclick="ui.closeModal('gulabi-order-success'); app.navigateTo('home');" class="w-full mt-6 brand-bg font-semibold py-3 rounded-lg text-white">Back to Menu</button>
+                        </div>`);
+                } else {
+                    // Navigate to cart/tracker page
+                    this.navigateTo('cart'); 
+                }
 
             } catch (error) {
                 ui.showToast(`Order failed: ${error.message}`);
@@ -1190,6 +1267,7 @@
                 btnElement.innerHTML = originalBtnHTML;
                 if(otherBtn) otherBtn.disabled = false;
                 
+                // If error was points-related, refresh profile
                 if (error.message.includes('points') || error.message.includes('profile')) {
                     await this.fetchCustomerProfile();
                     this.state.pointsToRedeem = 0;
@@ -1205,29 +1283,38 @@
             const { data, error } = await supabase.from('orders')
                 .select(`*, order_items(*, products(name)), feedback_submitted`)
                 .eq('customer_id', this.state.customerProfile.id)
-                .in('status', ['received', 'preparing'])
+                .in('status', ['received', 'preparing']) // Only find orders that are not finished
                 .order('created_at', { ascending: false })
                 .limit(1).single();
 
             if (error && error.code !== 'PGRST116') console.error('Fetch active order error:', error);
             this.state.activeOrder = data || null;
             if (this.state.activeOrder) {
+                // If an active order is found, start listening for live updates
                 this.listenToOrderUpdates(this.state.activeOrder.id);
             }
         },
 
+        /**
+         * listenToOrderUpdates()
+         * This is the "live notification" feature for the client.
+         * It subscribes to changes for a *specific order ID*.
+         */
         listenToOrderUpdates(orderId){
             if (this.state.orderSubscription) {
                 supabase.removeChannel(this.state.orderSubscription);
                 this.state.orderSubscription = null;
             }
+            // Create a Supabase channel for this specific order
             this.state.orderSubscription = supabase.channel(`public:orders:id=eq.${orderId}`)
                 .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders', filter: `id=eq.${orderId}` }, payload => {
+                    // This code runs when Supabase sends a notification
                     if (!this.state.activeOrder || this.state.activeOrder.id !== payload.new.id) return;
                     
                     const updatedOrder = payload.new;
                     let uiNeedsRefresh = false;
                     
+                    // Show a toast if status changes
                     if (updatedOrder.status !== this.state.activeOrder.status) {
                         ui.showToast(`Your order is now: ${updatedOrder.status}`);
                         this.state.activeOrder.status = updatedOrder.status;
@@ -1237,6 +1324,8 @@
                         this.state.activeOrder.feedback_submitted = updatedOrder.feedback_submitted;
                         uiNeedsRefresh = true;
                     }
+                    
+                    // If order is finished, stop listening and show review modal
                     if (['delivered', 'cancelled'].includes(updatedOrder.status)) {
                         supabase.removeChannel(this.state.orderSubscription);
                         this.state.orderSubscription = null;
@@ -1253,13 +1342,14 @@
                         } else if (updatedOrder.status === 'cancelled') {
                             ui.showToast('Your order has been cancelled.');
                         }
-                        this.state.activeOrder = null;
+                        this.state.activeOrder = null; // Clear active order
                         uiNeedsRefresh = true;
                     }
                     if(uiNeedsRefresh) { this.refreshPage(); }
                 }).subscribe();
         },
 
+        // Helper to mark feedback as submitted to prevent modal from showing again
         async markFeedbackAsSubmitted(orderId) {
             try {
                 await supabase.from('orders').update({ feedback_submitted: true }).eq('id', orderId);
@@ -1278,6 +1368,7 @@
             ui.closeModal('review-modal');
         },
 
+        // Copies text to clipboard (for social page)
         copyCaption(text) {
             const textArea = document.createElement("textarea");
             textArea.value = text;
@@ -1291,11 +1382,13 @@
             document.body.removeChild(textArea);
         },
 
+        // Sends a notification to the admin panel
         async sendStaffCall(type) {
             if (!this.state.tableNumber) {
                 return ui.showToast("Please enter table number first.");
             }
             try {
+                // Inserts a new row into 'staff_calls'
                 const { error } = await supabase.from('staff_calls').insert({ table_number: this.state.tableNumber, call_type: type, status: 'pending' });
                 if (error) throw error;
                 ui.showToast('Staff has been notified!');
@@ -1338,8 +1431,13 @@
                 $('#brand-selection-screen').classList.remove('hidden');
             }
         },
-
+        
+        /**
+         * showModal()
+         * Generic function to display a modal.
+         */
         showModal(id, content) {
+            // Use hash routing to help manage back button
             location.hash = id;
             const existingModal = $(`#${id}`);
             if (existingModal) existingModal.remove();
@@ -1352,10 +1450,15 @@
                 </div>`;
             $('#modal-container').insertAdjacentHTML('beforeend', modalHTML);
         },
-
+        
+        /**
+         * closeModal()
+         * Generic function to close a modal.
+         */
         closeModal(id) {
             const modal = $(`#${id}`);
             if (modal) modal.remove();
+            // Reset hash to current page
             if (location.hash.substring(1) === id) {
                 history.replaceState(null, '', '#' + app.state.currentPage);
             }
@@ -1368,7 +1471,11 @@
             if (content) { content.classList.toggle('hidden'); }
             if (icon) { icon.classList.toggle('rotate-180'); }
         },
-
+        
+        /**
+         * showToast()
+         * Shows a temporary notification message.
+         */
         showToast(message, duration = 3000) {
             const toast = $('#toast'), p = $('#toast-message');
             p.textContent = message;
@@ -1381,7 +1488,11 @@
                 setTimeout(() => { toast.classList.add('hidden'); }, 500);
             }, duration - 500);
         },
-
+        
+        /**
+         * renderHeader()
+         * Renders the top header bar with page title and user info.
+         */
         renderHeader(page) {
             const header = $('#page-header');
             const currentBrandName = app.state.theme === 'bulb' ? 'BULB CAFE' : 'GULABI THALI';
@@ -1396,7 +1507,16 @@
             
             // Header for Gulabi Thali (both view-only and ordering)
             if (app.state.theme === 'gulabi') {
-                 const pageTitle = (page === 'cart') ? 'My Cart' : 'GULABI THALI';
+                 // Determine page title
+                 let pageTitle;
+                 if (page === 'cart') {
+                     pageTitle = 'My Cart';
+                 } else if (app.state.isGulabiOrderingEnabled) {
+                     pageTitle = 'Order Now';
+                 } else {
+                     pageTitle = 'GULABI THALI';
+                 }
+                 
                  header.innerHTML = `
                     <div class="flex items-center space-x-2">
                         <h1 class="text-2xl font-bold brand-text">${pageTitle}</h1>
@@ -1422,7 +1542,9 @@
 
         /**
          * renderPageContent()
-         * This fulfills the request: "make gulabi thali items addable... by figuring out items which are toogled"
+         * *** KEY LOGIC ***
+         * This function routes rendering based on the selected theme
+         * and the 'isGulabiOrderingEnabled' flag.
          */
         renderPageContent(page) {
             const content = $('#page-content');
@@ -1431,17 +1553,19 @@
             // --- NEW GULABI THALI ROUTING ---
             if (app.state.theme === 'gulabi') {
                 if (!app.state.isGulabiOrderingEnabled) {
-                    // Render the view-only page if toggle is OFF
+                    // --- RENDER VIEW-ONLY PAGE ---
+                    // If toggle is OFF, show the view-only page regardless of 'page'
                     this.renderGulabiThaliPage(content); 
                     this.initSlideshow('gulabi-slideshow');
                 } else {
-                    // Render the standard, orderable menu/cart page if toggle is ON
+                    // --- RENDER ORDERABLE APP ---
+                    // If toggle is ON, show the standard menu/cart flow
                     if (page === 'home' || page === 'order') {
                         this.renderMenuPage(content);
                     } else if (page === 'cart') {
                         this.renderCartPage(content);
                     } else {
-                        // Fallback for Gulabi (e.g. if 'social' is clicked) -> show menu
+                        // Fallback for Gulabi (e.g. if 'social' is somehow clicked)
                         this.renderMenuPage(content);
                     }
                 }
@@ -1468,13 +1592,10 @@
          * This is the VIEW-ONLY page, shown when the admin toggle is OFF.
          */
         renderGulabiThaliPage(container) {
-            // *** DEBUG FIX: This was pointing to app.toggleTheme, which is incomplete.
-            // Changed to ui.showBrandSwitcherModal() for consistency.
-            const switchTheme = 'bulb';
-            const switchBrandName = 'BULB CAFE';
-            
+            // Get all menu items for Gulabi Thali
             const brandItems = app.state.allMenuItems.filter(item => item.brand?.toLowerCase() === 'gulabi thali');
 
+            // Group them by category
             const categoryMap = brandItems.reduce((acc, item) => {
                 const category = item.category || 'Uncategorized';
                 if (!acc[category]) { acc[category] = []; }
@@ -1487,6 +1608,7 @@
             if (brandItems.length === 0) {
                 menuHTML = `<p class="text-secondary text-center">Menu loading or unavailable.</p>`;
             } else {
+                // Render view-only menu items
                 menuHTML = categories.map(category => `
                     <div class="mb-6">
                         <h3 class="text-2xl font-bold brand-text mb-3 border-b-2 border-custom pb-1">${category}</h3>
@@ -1551,15 +1673,19 @@
                     
                     <!-- Switch Button -->
                     <div class="sticky bottom-4 z-10 p-4 bg-primary/80 backdrop-blur-sm rounded-xl border border-custom">
-                        <!-- *** DEBUG FIX: Changed from app.toggleTheme to ui.showBrandSwitcherModal *** -->
+                        <!-- MODIFICATION: Standardized to use the brand switcher modal -->
                         <button onclick="ui.showBrandSwitcherModal()" class="w-full bg-yellow-500 text-white font-extrabold py-4 px-6 rounded-xl shadow-lg transition transform hover:scale-[1.02] text-lg">
-                            SWITCH TO ${switchBrandName}
+                            SWITCH TO BULB CAFE
                         </button>
                     </div>
                 </div>
             `;
         },
-
+        
+        /**
+         * renderBottomNav()
+         * Renders the navigation bar (Bulb Cafe only).
+         */
         renderBottomNav(){
             const icons = {
                 home: `<svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>`,
@@ -1572,9 +1698,15 @@
             const labels = { home: 'Home', order: 'Menu', cart: 'Cart', social: 'Social', cowork: 'Kitchen', more: 'More' };
             $('#bottom-nav').innerHTML = PAGES.map(p => `<button onclick="app.navigateTo('${p}')" class="nav-item flex-1 p-2 text-secondary" data-page="${p}">${icons[p]}<span id="${p}-tab-label" class="text-xs font-bold capitalize">${labels[p]}</span></button>`).join('');
         },
-
+        
+        /**
+         * updateActiveNav()
+         * Highlights the active nav item and updates cart icon/label.
+         */
         updateActiveNav(page) {
             const cartLabel = $('#cart-tab-label'), cartIcon = $('#cart-icon-svg');
+            
+            // Change cart icon to "Track" if an order is active
             if (app.state.activeOrder) {
                 cartLabel.textContent = 'Track';
                 cartIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />`;
@@ -1582,6 +1714,8 @@
                 cartLabel.textContent = 'Cart';
                 cartIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />`;
             }
+            
+            // Highlight active tab
             $$('.nav-item').forEach(item => {
                 const isActive = item.dataset.page === page;
                 item.classList.toggle('brand-text', isActive);
@@ -1590,7 +1724,11 @@
             });
             this.refreshCartDependentUI();
         },
-
+        
+        /**
+         * refreshCartDependentUI()
+         * Shows/hides the cart item count bubble.
+         */
         refreshCartDependentUI() {
             const el = $('#cart-count');
             if (!el) return;
@@ -1602,11 +1740,14 @@
                 el.classList.add('hidden');
             }
         },
-
+        
+        /**
+         * renderHomePage()
+         * Renders the Bulb Cafe home page.
+         */
         renderHomePage(container){
             const currentBrandName = 'BULB CAFE';
-            // *** DEBUG FIX: Changed color to pink/Gulabi theme
-            const switchButtonColor = 'bg-pink-600'; // Was bg-red-500
+            const switchButtonColor = 'bg-pink-600'; // Color for Gulabi Thali
 
             const activeOrderHTML = app.state.activeOrder ? `<div class="bg-blue-500/10 border-2 border-blue-500/20 rounded-xl p-4 text-center"> <h2 class="font-bold text-primary">Your order is ${app.state.activeOrder.status}!</h2> <p class="text-secondary text-sm">Order ID: #${app.state.activeOrder.id.slice(0,6)}</p> <button onclick="app.navigateTo('cart')" class="mt-2 text-sm font-semibold text-blue-600 hover:underline">View Details &rarr;</button> </div>` : '';
             
@@ -1623,6 +1764,7 @@
             
             container.innerHTML = `
                 <div class="space-y-6">
+                    <!-- Hero Video -->
                     <div class="relative h-48 overflow-hidden rounded-b-2xl">
                         <video src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/WhatsApp%20Video%202025-11-01%20at%2020.52.47_2473f7b8.mp4" autoplay loop muted playsinline preload="metadata" class="absolute top-1/2 left-1/2 w-full h-full object-cover -translate-x-1/2 -translate-y-1/2"></video>
                         <div class="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white text-center p-4">
@@ -1630,16 +1772,23 @@
                         </div>
                     </div>
                     <div class="p-4 space-y-8">
+                        <!-- Active Order Banner -->
                         ${activeOrderHTML ? `<div class="mt-8">${activeOrderHTML}</div>` : ''}
+                        
+                        <!-- Loyalty Card -->
                         ${loyaltyCardHTML}
+                        
+                        <!-- Switch Brand Card -->
                         <div class="bg-secondary p-6 rounded-xl shadow-sm border border-custom text-center">
                             <span class="text-4xl mb-2">🔄</span>
                             <h2 class="text-2xl font-bold text-primary mb-4 px-1">Change Location</h2>
-                            <!-- *** DEBUG FIX: Changed text and onclick function *** -->
+                            <!-- MODIFICATION: Standardized to use the brand switcher modal -->
                             <button onclick="ui.showBrandSwitcherModal()" class="w-full ${switchButtonColor} text-white font-extrabold py-3 px-6 rounded-xl shadow-lg text-lg">
                                 SWITCH TO GULABI THALI
                             </button>
                         </div>
+                        
+                        <!-- Call Staff Button -->
                         <div class="grid grid-cols-1 gap-4">
                             <button onclick="ui.showCallStaffModal()" class="bg-secondary rounded-xl p-4 text-center flex flex-col items-center justify-center h-28 border border-custom"><span class="text-3xl">🛎</span><p class="font-semibold mt-2 text-primary">Call Assistance</p></button>
                         </div>
@@ -1647,6 +1796,10 @@
                 </div>`;
         },
 
+        /**
+         * renderItemCard()
+         * Helper function to render a single item card (used in search).
+         */
         renderItemCard(item) {
             const cartItem = app.state.cart.find(ci => ci.id === item.id);
             const currentPrice = item.price || 0;
@@ -1658,12 +1811,14 @@
             if (isViewOnly) {
                 actionButtonHTML = ``; // No button
             } else if (cartItem) {
+                // Show quantity controls if in cart
                 actionButtonHTML = `<div class="quantity-control" onclick="event.stopPropagation();">
                    <button onclick="app.addOrUpdateCart(${item.id}, -1)">-</button>
                    <span>${cartItem.quantity}</span>
                    <button onclick="app.addOrUpdateCart(${item.id}, 1)">+</button>
                </div>`;
             } else {
+                // Show '+' button if not in cart
                 actionButtonHTML = `<button class="add-to-cart-btn" onclick="event.stopPropagation(); app.addOrUpdateCart(${item.id}, 1)">+</button>`;
             }
 
@@ -1693,7 +1848,11 @@
                     </div>
                 </div>`;
         },
-
+        
+        /**
+         * renderMenuAccordion()
+         * Renders the category-based accordion menu.
+         */
         renderMenuAccordion() {
             // This function now correctly handles both Bulb and Gulabi (when enabled)
             const activeBrand = app.state.theme === 'bulb' ? 'Bulb Cafe' : 'Gulabi Thali';
@@ -1716,12 +1875,12 @@
                 const categoryId = `category-${index}`;
                 const items = categoryMap[category];
                 
+                // Render all items within the category
                 const itemsHTML = items.map(item => {
                     const cartItem = app.state.cart.find(ci => ci.id === item.id);
                     const currentPrice = item.price || 0;
                     
                     let actionButtonHTML;
-                    // This check is correct for an orderable menu
                     if (isViewOnly) { 
                         actionButtonHTML = ``; // Should not happen in this flow, but safe
                     } else if (cartItem) {
@@ -1786,12 +1945,10 @@
                     </div>
                 </div>` : '';
             
-            // Use different sticky top based on theme (Gulabi has no bottom nav)
-            const stickyTopClass = 'sticky top-16'; // Header is 4rem (h-16)
-
+            // Search bar
             container.innerHTML = `
                 ${activeOrderBannerHTML}
-                <div class="p-4 ${stickyTopClass} bg-primary/80 backdrop-blur-sm z-10">
+                <div class="p-4 sticky top-16 bg-primary/80 backdrop-blur-sm z-10">
                     <input type="text" id="menu-search-input" placeholder="Search menu..." class="w-full p-3 border-2 border-custom rounded-lg bg-secondary text-primary text-lg" oninput="app.performSearch(this.value)" value="${app.state.searchQuery}">
                 </div>
                 
@@ -1802,11 +1959,16 @@
                 <!-- Search results container -->
                 <div id="search-results-container" class="p-4 grid grid-cols-1 gap-4 hidden"></div>`;
             
+            // If there's an active search query, perform it
             if (app.state.searchQuery.length > 1) {
                 app.performSearch(app.state.searchQuery);
             }
         },
-
+        
+        /**
+         * renderMenuItems()
+         * Renders a list of items into a container (for search).
+         */
         renderMenuItems(items, containerId) {
             const container = $(`#${containerId}`);
             if (!container) return;
@@ -1817,7 +1979,11 @@
             // Use renderItemCard helper
             container.innerHTML = items.map(item => ui.renderItemCard(item)).join('');
         },
-
+        
+        /**
+         * renderCartPage()
+         * Renders the cart, order tracker (Bulb only), or empty state.
+         */
         renderCartPage(container) {
             // This page works for both Bulb and Gulabi
             if (app.state.activeOrder && app.state.theme === 'bulb') {
@@ -1825,8 +1991,10 @@
                 this.renderOrderTracking(container);
             }
             else if (app.state.cart.length > 0) {
+                // Show cart if items are present
                 this.renderCart(container);
             } else {
+                // Show empty cart message
                 // Determine correct button text based on theme
                 const buttonText = 'View Menu';
                 // For both themes, 'order' is the correct page
@@ -1840,12 +2008,17 @@
                 </div>`;
             }
         },
-
+        
+        /**
+         * renderCart()
+         * Renders the detailed cart view with items and totals.
+         */
         renderCart(container){
             const { subtotal, discountAmount, gst, finalTotal, maxRedeemableForOrder, pointsToEarn, loyaltyThreshold } = app.calculateCartTotal();
             const loyaltyPoints = app.state.customerProfile?.loyalty_points || 0;
             const currentDiscount = app.state.pointsToRedeem; 
 
+            // Loyalty explanation message
             let loyaltyExplanation = '';
             const remainingToEarn = loyaltyThreshold - subtotal;
             if (pointsToEarn > 0) {
@@ -1856,6 +2029,7 @@
                  loyaltyExplanation = `<p class="text-xs text-secondary mt-1 mb-3">Earn 10% points on orders over ₹${loyaltyThreshold}.</p>`;
             }
             
+            // Loyalty redemption slider
             let loyaltySectionHTML = '';
             if (loyaltyPoints > 0 && maxRedeemableForOrder > 0) {
                 loyaltySectionHTML = `
@@ -1874,12 +2048,14 @@
                  loyaltySectionHTML = `<div class="p-4 border-t border-b border-custom"><h3 class="font-bold text-lg mb-2 text-primary">Loyalty Points</h3>${loyaltyExplanation}</div>`;
             }
 
+            // Change placeholder text for Gulabi Thali
             const isGulabiOrder = app.state.theme === 'gulabi';
             const instructionsPlaceholder = isGulabiOrder ? "Add Delivery Address & Contact..." : "Add special instructions...";
             // Gulabi has no nav bar, so button is lower
             const bottomClass = isGulabiOrder ? 'sticky bottom-4' : 'sticky bottom-16'; 
 
             container.innerHTML = `
+                <!-- Cart Items -->
                 <div class="p-4 space-y-3">
                     ${app.state.cart.map(i => `
                         <div class="bg-secondary p-3 rounded-xl flex items-center justify-between">
@@ -1895,28 +2071,39 @@
                         </div>
                     `).join('')}
                 </div>
+                
+                <!-- Loyalty Section -->
                 ${loyaltySectionHTML}
+                
+                <!-- Special Instructions -->
                 <div class="p-4"><textarea id="special-instructions" class="w-full p-3 border-custom rounded-lg bg-secondary" placeholder="${instructionsPlaceholder}"></textarea></div>
                 
                 <!-- Spacer to push content above the sticky button -->
                 <div class="h-32"></div>
 
+                <!-- Sticky Footer with Summary and Button -->
                 <div class="p-4 bg-primary/80 backdrop-blur-sm border-t border-custom ${bottomClass}">
                      <div id="cart-summary" class="mb-4 space-y-1 text-primary"></div>
                     <button id="place-order-btn" onclick="ui.showPaymentModal()" class="w-full brand-bg font-bold py-4 rounded-lg text-white">Proceed to Payment</button>
                 </div>`;
             this.updateCartSummary();
         },
-
+        
+        /**
+         * updateCartSummary()
+         * Updates the cart summary totals.
+         */
         updateCartSummary() {
             const { subtotal, discountAmount, gst, finalTotal } = app.calculateCartTotal();
             const currentDiscount = discountAmount;
 
+            // Update slider display
             const pointsDisplay = $('#points-to-redeem-display');
             const discountDisplay = $('#discount-amount-display');
             if(pointsDisplay) pointsDisplay.textContent = currentDiscount.toFixed(0);
             if(discountDisplay) discountDisplay.textContent = currentDiscount.toFixed(2);
 
+            // Update summary block
             const summaryDiv = $('#cart-summary');
             if (summaryDiv) {
                 summaryDiv.innerHTML = `
@@ -1938,7 +2125,11 @@
                     </div>`;
             }
         },
-
+        
+        /**
+         * renderOrderTracking()
+         * Renders the live order tracker (Bulb Cafe only).
+         */
         renderOrderTracking(container) {
             const order = app.state.activeOrder;
             if (!order) { container.innerHTML = ''; return; }
@@ -1947,10 +2138,13 @@
             const labels = { received: 'Received', preparing: 'Preparing', delivered: 'Delivered' };
             const currentIndex = statuses.indexOf(order.status);
             const progressPercentage = currentIndex >= 0 ? (currentIndex / (statuses.length - 1)) * 100 : 0;
+            
             container.innerHTML = `
                 <div class="p-6 flex flex-col items-center justify-center h-full">
                     <h2 class="text-3xl font-bold text-center capitalize">Your Order is ${order.status}!</h2>
-                    <p class="text-secondary text-center mb-10">Order ID: #${order.id.slice(0,6)}</img
+                    <p class="text-secondary text-center mb-10">Order ID: #${order.id.slice(0,6)}</p>
+                    
+                    <!-- Progress Bar -->
                     <div class="w-full max-w-sm my-12">
                         <div class="relative w-full h-2 rounded-full tracker-line-container">
                             <div class="absolute top-0 left-0 h-2 rounded-full tracker-progress transition-all duration-500" style="width: ${progressPercentage}%"></div>
@@ -1965,27 +2159,42 @@
                                 </div>`).join('')}
                         </div>
                     </div>
+                    
+                    <!-- Games Button -->
                     <div class="mt-auto pt-10 text-center">
                         <p class="text-secondary mb-4">You can play a quick game while you wait!</p>
                         <button onclick="ui.showGamesModal()" class="brand-bg font-semibold py-3 px-8 rounded-lg text-white">Play Games</button>
                     </div>
                 </div>`;
         },
-
+        
+        /**
+         * renderSocialPage()
+         * *** MODIFIED ***
+         * This page now shows the correct Instagram handle based on the theme.
+         */
         renderSocialPage(container){
-            const socialCaption = "Post your coffee pics! Tag us for a shoutout.";
+            // --- MODIFICATION START ---
+            // Dynamically set handle, link, and caption
+            const isGulabi = app.state.theme === 'gulabi';
+            const handle = isGulabi ? '@gulabithali_thecloudkitchen' : '@a_bulbcafejaipur';
+            const igLink = isGulabi ? 'https://instagram.com/gulabithali_thecloudkitchen' : 'https://instagram.com/a_bulbcafejaipur';
+            const socialCaption = isGulabi ? "Tag us in your delicious Thali posts! 🌸" : "Post your coffee pics! Tag us for a shoutout. 💡";
+            // --- MODIFICATION END ---
+            
             container.innerHTML = `
                 <div class="p-4 space-y-6 text-center">
                      <div class="bg-secondary p-6 rounded-xl shadow-sm border border-custom">
                         <h2 class="text-2xl font-bold text-primary">Join Our Community!</h2>
                         <p class="text-secondary mt-1">${socialCaption}</p>
-                        <a href="https://instagram.com/a_bulbcafejaipur" target="_blank" class="social-card-gradient text-2xl font-bold my-4 block">@a_bulbcafejaipur</a>
+                        <!-- Use dynamic link and handle -->
+                        <a href="${igLink}" target="_blank" class="social-card-gradient text-2xl font-bold my-4 block">${handle}</a>
                         <p class="text-xs text-secondary mt-2">Scan to follow the official account!</p>
                     </div>
                     <div class="bg-secondary p-6 rounded-xl shadow-sm border border-custom">
                         <h2 class="text-2xl font-bold text-primary">Change Location</h2>
                         <p class="text-secondary mt-1 mb-4">Go back to the main selection screen.</p>
-                        <!-- *** DEBUG FIX: Changed text and onclick function *** -->
+                        <!-- MODIFICATION: Standardized to use the brand switcher modal -->
                         <button onclick="ui.showBrandSwitcherModal()" class="w-full bg-red-500 text-white font-extrabold py-3 px-6 rounded-xl shadow-lg transition transform hover:scale-[1.02]">
                             SWITCH BRAND
                         </button>
@@ -2013,14 +2222,19 @@
                 </div>
             `;
         },
-
+        
+        /**
+         * renderMorePage()
+         * Renders the "More" tab (Bulb Cafe only).
+         */
         renderMorePage(container){
             const loyaltyPoints = app.state.customerProfile?.loyalty_points ?? 0;
             const loyaltyExplanation = `<p class="text-xs text-secondary mt-1">Earn 10% points (on orders > ₹${app.state.appSettings.loyalty_threshold || 350}). 1 pt = ₹1 discount.</p>`;
             const options = [
                 { icon: "🪙", text: `Loyalty Points: ${loyaltyPoints}`, action: "", explanation: loyaltyExplanation },
                 { icon: "🛎", text: "Call Staff for Assistance", action: "ui.showCallStaffModal()" },
-                // *** DEBUG FIX: Changed text and action ***
+                // --- MODIFICATION ---
+                // Standardized to use the brand switcher modal
                 { icon: "🔄", text: "Switch Brand", action: "ui.showBrandSwitcherModal()" },
                 { icon: "🎮", text: "Play Games", action: "ui.showGamesModal()" },
                 { icon: "📜", text: "Order History", action: "ui.showOrderHistoryModal()" },
@@ -2040,7 +2254,11 @@
                     ).join("")}
                 </div>`;
         },
-
+        
+        /**
+         * showCallStaffModal()
+         * Modal for calling staff.
+         */
         showCallStaffModal() {
             ui.showModal('staff-modal', `
                  <h2 class="text-2xl font-bold text-center mb-4">Call Assistance</h2>
@@ -2053,7 +2271,11 @@
             `);
         },
         
-        // *** DEBUG FIX: Replaced old function with new modal UI ***
+        /**
+         * showBrandSwitcherModal()
+         * *** NEW/MODIFIED ***
+         * This modal is now the standard way to switch brands.
+         */
         showBrandSwitcherModal(){
             const modalContent = `
                 <h2 class="text-2xl font-bold text-primary mb-6 text-center">Switch Location</h2>
@@ -2069,6 +2291,7 @@
                                 <h3 class="text-2xl font-extrabold text-white">BULB CAFE</h3>
                                 <p class="text-yellow-300 font-semibold">Jaipur</p>
                             </div>
+                            <!-- Show 'ACTIVE' badge -->
                             ${app.state.theme === 'bulb' ? `<div class="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold py-1 px-2 rounded-full z-10">ACTIVE</div>` : ''}
                         </div>
                     </div>
@@ -2084,6 +2307,7 @@
                                 <h3 class="text-2xl font-extrabold text-white">GULABI THALI</h3>
                                 <p class="text-pink-300 font-semibold">Cloud Kitchen</p>
                             </div>
+                            <!-- Show 'ACTIVE' badge -->
                             ${app.state.theme === 'gulabi' ? `<div class="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold py-1 px-2 rounded-full z-10">ACTIVE</div>` : ''}
                         </div>
                     </div>
@@ -2092,10 +2316,14 @@
             `;
             ui.showModal('brand-switcher-modal', modalContent);
         },
-
+        
+        /**
+         * showPaymentModal()
+         * Shows payment options (currently only "Pay at Counter").
+         */
         showPaymentModal(){
              const isGulabi = app.state.theme === 'gulabi';
-             const paymentText = isGulabi ? "Confirm Order (Pay at Counter)" : "Pay at Counter";
+             const paymentText = isGulabi ? "Confirm Order (Pay on Delivery/Pickup)" : "Pay at Counter";
              
              ui.showModal('payment-modal', `
                 <h2 class="text-xl font-bold text-primary mb-4">Select Payment</h2>
@@ -2105,14 +2333,20 @@
                 <button onclick="ui.closeModal('payment-modal')" class="w-full mt-6 bg-secondary font-semibold py-3 rounded-lg">Cancel</button>
             `);
         },
-
+        
+        /**
+         * showItemDetailModal()
+         * Shows item details, allows quantity selection.
+         */
         showItemDetailModal(itemId){
             const item = app.state.allMenuItems.find(i => i.id === itemId); if (!item) return;
             const cartItem = app.state.cart.find(ci => ci.id === itemId);
             const currentQuantity = cartItem ? cartItem.quantity : 0;
-            // This is the key check
+            
+            // *** This is the key check ***
             const isViewOnly = app.state.theme === 'gulabi' && !app.state.isGulabiOrderingEnabled;
 
+            // Create quantity <option> tags
             let optionsHTML = Array.from({ length: 10 }, (_, i) => `<option value="${i + 1}" ${i + 1 === currentQuantity ? 'selected' : ''}>${i + 1}</option>`).join('');
             optionsHTML = `<option value="0" ${!cartItem ? 'selected' : ''}>0 (Remove)</option>` + optionsHTML;
 
@@ -2125,6 +2359,7 @@
                 </div>
                 <p class="text-secondary mt-2">${item.description || 'No description available.'}</p>
                 
+                <!-- Only show quantity selector if NOT view-only -->
                 ${!isViewOnly ? `
                 <div class="flex items-center justify-between my-6 bg-secondary p-3 rounded-lg">
                     <label for="modal-quantity-select" class="font-semibold text-primary">Quantity:</label>
@@ -2133,6 +2368,7 @@
                     </select>
                 </div>` : ''}
 
+                <!-- Show 1 or 2 buttons based on view-only state -->
                 <div class="mt-6 grid ${isViewOnly ? 'grid-cols-1' : 'grid-cols-2'} gap-4">
                     ${!isViewOnly ? `<button onclick="ui.closeModal('item-detail-modal')" class="w-full bg-secondary font-semibold py-3 rounded-lg">Back</button>` : ''}
                     <button
@@ -2142,7 +2378,11 @@
                     </button>
                 </div>`);
         },
-
+        
+        /**
+         * showGamesModal()
+         * Modal for showing simple games.
+         */
         showGamesModal() {
             ui.showModal('games-modal', `
                 <h2 class="text-2xl font-bold text-center mb-4">Entertainment</h2>
@@ -2157,7 +2397,11 @@
                 <button onclick="ui.closeModal('games-modal')" class="w-full mt-6 bg-secondary font-semibold py-3 rounded-lg">Close</button>
             `);
         },
-
+        
+        /**
+         * showOrderHistoryModal()
+         * Fetches and displays the user's past orders.
+         */
         async showOrderHistoryModal() {
             if (!app.state.customerProfile || !app.state.customerProfile.id) return ui.showToast("Error: Profile not loaded.");
             const { data, error } = await supabase
@@ -2193,7 +2437,11 @@
                 <button onclick="ui.closeModal('history-modal')" class="w-full mt-6 bg-secondary font-semibold py-3 rounded-lg">Close</button>
             `);
         },
-
+        
+        /**
+         * initSlideshow()
+         * Initializes the hero slideshow (for Gulabi view-only page).
+         */
         initSlideshow(containerId) {
             const container = $(`#${containerId}`);
             if (!container) return;
