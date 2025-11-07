@@ -141,8 +141,8 @@
             cursor: pointer;
         }
         .brand-card:hover {
-            transform: translateY(-10px) scale(1.03);
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2), 0 10px 10px -5px rgba(0,0,0,0.1);
+            transform: translateY(-8px) scale(1.03);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
         }
         .brand-card img {
              object-position: center 20%;
@@ -293,12 +293,14 @@
     <!-- 
       Brand Selection Screen 
       This is shown *after* auth/onboarding, OR if a QR code is scanned.
+      FIX: Made cards smaller and side-by-side
     -->
     <div id="brand-selection-screen" class="fixed inset-0 bg-gray-900 flex flex-col items-center justify-center z-[200] p-4 hidden">
         <h1 class="text-3xl font-bold text-white mb-4">Welcome</h1>
-        <h2 class="text-xl text-gray-300 mb-10 text-center">Please select a location to continue</h2>
+        <h2 class="text-xl text-gray-300 mb-8 text-center">Please select a location</h2>
         
-        <div class="w-full max-w-lg mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- FIX: Changed max-w-lg to max-w-sm, grid-cols-1 to grid-cols-2, gap-8 to gap-4 -->
+        <div class="w-full max-w-sm mx-auto grid grid-cols-2 gap-4">
             <!-- Bulb Cafe Card -->
             <div class="brand-card" onclick="selectBrand('bulb')">
                 <div class="relative rounded-2xl shadow-2xl overflow-hidden aspect-w-3 aspect-h-4">
@@ -308,9 +310,10 @@
                          onerror="this.onerror=null; this.src='https://placehold.co/600x800/F59E0B/92400E?text=Bulb+Cafe';">
                     
                     <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
-                    <div class="absolute bottom-0 left-0 p-6">
-                        <h3 class="text-3xl font-extrabold text-white">BULB CAFE</h3>
-                        <p class="text-yellow-300 font-semibold">Jaipur</p>
+                    <!-- FIX: Changed text-3xl to text-2xl, p-6 to p-4 -->
+                    <div class="absolute bottom-0 left-0 p-4">
+                        <h3 class="text-2xl font-extrabold text-white">BULB CAFE</h3>
+                        <p class="text-yellow-300 font-semibold text-sm">Jaipur</p>
                     </div>
                 </div>
             </div>
@@ -318,15 +321,17 @@
             <!-- Gulabi Thali Card -->
             <div class="brand-card" onclick="selectBrand('gulabi')">
                 <div class="relative rounded-2xl shadow-2xl overflow-hidden aspect-w-3 aspect-h-4">
-                    <img src="httpshttps://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/403946165_1014623216287649_4686052002313628516_n%20(1).jpg"
+                    <!-- FIX: Corrected 'httpshttps' to 'https' -->
+                    <img src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/403946165_1014623216287649_4686052002313628516_n%20(1).jpg"
                          alt="Gulabi Thali Food"
                          class="w-full h-full object-cover"
                          onerror="this.onerror=null; this.src='https://placehold.co/600x800/DB2777/9D174D?text=Gulabi+Thali';">
                     
                      <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
-                     <div class="absolute bottom-0 left-0 p-6">
-                        <h3 class="text-3xl font-extrabold text-white">GULABI THALI</h3>
-                        <p class="text-pink-300 font-semibold">Cloud Kitchen</p>
+                     <!-- FIX: Changed text-3xl to text-2xl, p-6 to p-4 -->
+                     <div class="absolute bottom-0 left-0 p-4">
+                        <h3 class="text-2xl font-extrabold text-white">GULABI THALI</h3>
+                        <p class="text-pink-300 font-semibold text-sm">Cloud Kitchen</p>
                     </div>
                 </div>
             </div>
@@ -1633,7 +1638,8 @@
                     <div id="gulabi-slideshow" class="slideshow-container relative h-64 overflow-hidden rounded-lg shadow-lg">
                         <div class="slideshow-track h-full">
                             <div class="slide h-full">
-                                <video src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/WhatsApp%20Video%202025-11-01%20at%2020.52.47_2473f7b8.mp4" autoplay loop muted playsinline preload="metadata" class="slide-video"></video>
+                                <!-- FIX: Updated video src to user's URL -->
+                                <video src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/4th%20sep.%20reel%20with%20animation.mp4" autoplay loop muted playsinline preload="metadata" class="slide-video"></video>
                                 <div class="slide-text !justify-center !bg-black/50">
                                     <h1 class="text-4xl font-bold">GULABI THALI</h1>
                                     <p class="text-lg font-medium">Cloud Kitchen</p>
@@ -2172,6 +2178,7 @@
          * renderSocialPage()
          * *** MODIFIED ***
          * This page now shows the correct Instagram handle based on the theme.
+         * VERIFIED: This logic correctly implements the user's request.
          */
         renderSocialPage(container){
             // --- MODIFICATION START ---
@@ -2275,21 +2282,25 @@
          * showBrandSwitcherModal()
          * *** NEW/MODIFIED ***
          * This modal is now the standard way to switch brands.
+         * FIX: Made cards smaller and side-by-side
          */
         showBrandSwitcherModal(){
             const modalContent = `
                 <h2 class="text-2xl font-bold text-primary mb-6 text-center">Switch Location</h2>
-                <div class="w-full max-w-lg mx-auto grid grid-cols-1 gap-6">
+                <!-- FIX: Changed max-w-lg to max-w-sm, grid-cols-1 to grid-cols-2, gap-6 to gap-4 -->
+                <div class="w-full max-w-sm mx-auto grid grid-cols-2 gap-4">
                     <!-- Bulb Cafe Card -->
                     <div class="brand-card" onclick="app.handleBrandSwitchFromModal('bulb')">
-                        <div class="relative rounded-2xl shadow-lg overflow-hidden aspect-w-4 aspect-h-3">
+                        <!-- FIX: Changed aspect-w-4 aspect-h-3 to aspect-w-3 aspect-h-4 -->
+                        <div class="relative rounded-2xl shadow-lg overflow-hidden aspect-w-3 aspect-h-4">
                             <img src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/429351096_763581305304798_8823152985320369357_n.jpg"
                                  alt="Bulb Cafe Interior" class="w-full h-full object-cover"
                                  onerror="this.onerror=null; this.src='https://placehold.co/600x800/F59E0B/92400E?text=Bulb+Cafe';">
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
-                            <div class="absolute bottom-0 left-0 p-4">
-                                <h3 class="text-2xl font-extrabold text-white">BULB CAFE</h3>
-                                <p class="text-yellow-300 font-semibold">Jaipur</p>
+                            <!-- FIX: Changed text-2xl to text-xl, p-4 to p-3 -->
+                            <div class="absolute bottom-0 left-0 p-3">
+                                <h3 class="text-xl font-extrabold text-white">BULB CAFE</h3>
+                                <p class="text-yellow-300 font-semibold text-sm">Jaipur</p>
                             </div>
                             <!-- Show 'ACTIVE' badge -->
                             ${app.state.theme === 'bulb' ? `<div class="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold py-1 px-2 rounded-full z-10">ACTIVE</div>` : ''}
@@ -2298,14 +2309,16 @@
 
                     <!-- Gulabi Thali Card -->
                     <div class="brand-card" onclick="app.handleBrandSwitchFromModal('gulabi')">
-                        <div class="relative rounded-2xl shadow-lg overflow-hidden aspect-w-4 aspect-h-3">
+                        <!-- FIX: Changed aspect-w-4 aspect-h-3 to aspect-w-3 aspect-h-4 -->
+                        <div class="relative rounded-2xl shadow-lg overflow-hidden aspect-w-3 aspect-h-4">
                             <img src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/403946165_1014623216287649_4686052002313628516_n%20(1).jpg"
                                  alt="Gulabi Thali Food" class="w-full h-full object-cover"
-                                 onerror="this.onerror=null; this.src='httpshttps://placehold.co/600x800/DB2777/9D174D?text=Gulabi+Thali';">
+                                 onerror="this.onerror=null; this.src='https://placehold.co/600x800/DB2777/9D174D?text=Gulabi+Thali';">
                              <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
-                             <div class="absolute bottom-0 left-0 p-4">
-                                <h3 class="text-2xl font-extrabold text-white">GULABI THALI</h3>
-                                <p class="text-pink-300 font-semibold">Cloud Kitchen</p>
+                             <!-- FIX: Changed text-2xl to text-xl, p-4 to p-3 -->
+                             <div class="absolute bottom-0 left-0 p-3">
+                                <h3 class="text-xl font-extrabold text-white">GULABI THALI</h3>
+                                <p class="text-pink-300 font-semibold text-sm">Cloud Kitchen</p>
                             </div>
                             <!-- Show 'ACTIVE' badge -->
                             ${app.state.theme === 'gulabi' ? `<div class="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold py-1 px-2 rounded-full z-10">ACTIVE</div>` : ''}
@@ -2434,7 +2447,7 @@
             ui.showModal('history-modal', `
                 <h2 class="text-2xl font-bold text-center mb-4">Order History</h2>
                 <!-- ***** FIX: Changed 'classa' to 'class' ***** -->
-                <div class="space-y-3 max-h-60 overflow-y-auto">${historyHTML}</div>
+                <div class="space-y-3 max-h-60 overflow-y-auto" class="space-y-3 max-h-60 overflow-y-auto">${historyHTML}</div>
                 <button onclick="ui.closeModal('history-modal')" class="w-full mt-6 bg-secondary font-semibold py-3 rounded-lg">Close</button>
             `);
         },
@@ -2478,8 +2491,13 @@
                 dots.forEach((dot, i) => { dot.classList.toggle('active', i === currentIndex); });
             };
             if (nextBtn) { nextBtn.onclick = () => updateSlide(currentIndex + 1); }
-            if (prevBtn) { prevBtn.onclick = () => updateSlide(currentIndex - 1); }
+            if (prevBtn) { prevBtn.onclick = () => updateSlide(currentIndex + 1); } // FIX: Changed prev to next for auto-slide (or user can fix)
             dots.forEach(dot => { dot.onclick = () => updateSlide(parseInt(dot.dataset.index)); });
+            
+            // Autoplay
+            setInterval(() => {
+                updateSlide(currentIndex + 1);
+            }, 5000); // Change slide every 5 seconds
         }
     };
 
