@@ -125,6 +125,89 @@
             -webkit-text-fill-color: transparent;
         }
 
+        /* NEW: Slideshow Styles */
+        .slideshow-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 0.5rem; /* 8px */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .slideshow-track {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+        .slide {
+            flex: 0 0 100%;
+            width: 100%;
+            position: relative;
+        }
+        .slide-content {
+            width: 100%;
+            height: 100%; /* Ensure content fills slide */
+            display: block;
+            object-fit: cover; /* Make images/videos cover */
+        }
+        .slide-video {
+             width: 100%;
+             height: 100%;
+             object-fit: cover;
+        }
+        .slide-text {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.7) 20%, transparent);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 1rem; /* 16px */
+            color: white;
+            text-align: center;
+        }
+        .slideshow-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .slideshow-btn:hover {
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+        .slideshow-btn.prev { left: 10px; }
+        .slideshow-btn.next { right: 10px; }
+
+        .slideshow-dots {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 10;
+        }
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .dot.active {
+            background-color: white;
+        }
+
         /* NEW: Accordion Icon transition */
         .rotate-180 {
             transform: rotate(180deg);
@@ -348,7 +431,7 @@
             this.getTableNumberFromURL();
 
             try {
-                // 1. ANONYMOUS SIGN-IN
+                // 1. ANONYMOUS SIGN-IN (or get existing session)
                 let session = null;
                 try {
                     const { data } = await supabase.auth.getSession();
@@ -383,24 +466,38 @@
                 $('#app').classList.remove('hidden');
                 $('#app').classList.add('flex');
 
-                // 5. Handle theme-specific logic
-                if (this.state.theme === 'gulabi') {
-                    // Cloud kitchen view: No onboarding, no table number needed.
-                    this.showMainInterface();
+                // 5. DEBUG: Log profile
+                console.log("Profile fetched:", this.state.customerProfile);
+
+                // 6. NEW ONBOARDING LOGIC
+                if (!this.state.customerProfile || this.state.customerProfile.name === 'Guest' || !this.state.customerProfile.whatsapp_number) {
+                    // New user or guest, needs to provide details first.
+                    console.log("Showing universal onboarding...");
+                    this.showUniversalOnboardingModal(); 
                 } else {
-                    // Bulb Cafe view: Check for onboarding or table number.
-                    if (!this.state.customerProfile || this.state.customerProfile.name === 'Guest' || !this.state.customerProfile.whatsapp_number) {
-                        this.showOnboardingModal();
-                    } else if (this.state.tableNumber) {
-                        this.startSession();
-                    } else {
-                        this.showTableNumberModal();
-                    }
+                    // Returning user, details are present. Proceed to brand-specific logic.
+                    console.log("User already onboarded. Continuing to brand logic.");
+                    this.continueAppFlowAfterOnboarding(); 
                 }
 
             } catch (error) {
                 console.error("CRITICAL: App Initialization failed.", error);
                 $('#splash-screen').innerHTML = `<div class="text-primary text-center p-4">Could not load app: ${error.message}</div>`;
+            }
+        },
+        
+        // NEW: Function to run brand-specific logic *after* universal onboarding is confirmed
+        continueAppFlowAfterOnboarding() {
+            if (this.state.theme === 'gulabi') {
+                // Cloud kitchen view: No table number needed.
+                this.showMainInterface();
+            } else {
+                // Bulb Cafe view: Check for table number.
+                if (this.state.tableNumber) {
+                    this.startSession();
+                } else {
+                    this.showTableNumberModal();
+                }
             }
         },
 
@@ -413,6 +510,7 @@
         async fetchCustomerProfile() {
             if (!this.state.user) return;
             const userId = this.state.user.id;
+            console.log("Fetching profile for user ID:", userId);
 
             try {
                 const { data, error } = await supabase.from('customers')
@@ -422,6 +520,7 @@
 
                 if (error && error.code === 'PGRST116') {
                     // No profile found for this auth.uid(), create one.
+                    console.log("No profile found, creating new 'Guest' profile.");
                     return this.createUserProfile(userId);
                 }
                 
@@ -429,6 +528,7 @@
                 
                 if (data) {
                     // Profile found
+                    console.log("Profile found:", data);
                     data.loyalty_points = data.loyalty_points || 0;
                     this.state.customerProfile = data;
                     return data;
@@ -460,6 +560,7 @@
                 // Ensure loyalty_points is set, even if DB returns null
                 data.loyalty_points = data.loyalty_points || 0;
                 this.state.customerProfile = data;
+                console.log("New guest profile created:", data);
                 return data;
                 
             } catch (error) {
@@ -513,38 +614,30 @@
             } catch (error) { console.error('Error fetching app settings:', error); }
         },
 
-        showOnboardingModal(){
-            const tableInputHTML = !this.state.tableNumber
-                ? `<input type="number" id="table-number-input" class="w-full p-3 border border-custom rounded-lg bg-secondary text-primary" placeholder="Your Table Number" required>`
-                : '';
-            
+        // NEW: Universal modal for first-time users (both brands)
+        showUniversalOnboardingModal(){
             // Use profile data, but clear 'Guest'
             const currentName = this.state.customerProfile?.name === 'Guest' ? '' : this.state.customerProfile?.name;
             const currentPhone = this.state.customerProfile?.whatsapp_number || '';
 
-            ui.showModal('onboarding-modal', `
-                <h2 class="text-2xl font-bold text-primary mb-2">Welcome to Bulb!</h2><p class="text-secondary mb-6">A few details to get you started.</p>
+            ui.showModal('universal-onboarding-modal', `
+                <h2 class="text-2xl font-bold text-primary mb-2">Welcome!</h2>
+                <p class="text-secondary mb-6">Please provide your details once for loyalty points and easier checkout.</p>
                 <div class="space-y-4">
-                    <input type="text" id="user-name-input" class="w-full p-3 border border-custom rounded-lg bg-secondary text-primary" placeholder="Your Name" required value="${currentName || ''}">
-                    <input type="tel" id="mobile-number-input" class="w-full p-3 border border-custom rounded-lg bg-secondary text-primary" placeholder="Mobile Number (for Loyalty Points)" required value="${currentPhone || ''}">
-                    ${tableInputHTML}
+                    <input type="text" id="universal-user-name-input" class="w-full p-3 border border-custom rounded-lg bg-secondary text-primary" placeholder="Your Name" required value="${currentName || ''}">
+                    <input type="tel" id="universal-mobile-number-input" class="w-full p-3 border border-custom rounded-lg bg-secondary text-primary" placeholder="Mobile Number (for Loyalty Points)" required value="${currentPhone || ''}">
                 </div>
-                <button onclick="app.completeOnboarding()" class="w-full mt-6 brand-bg font-semibold py-3 px-6 rounded-lg">Let's Go</button>
+                <button onclick="app.completeUniversalOnboarding()" class="w-full mt-6 brand-bg font-semibold py-3 px-6 rounded-lg">Save & Continue</button>
             `);
         },
 
-        async completeOnboarding(){
-            const name = $('#user-name-input').value.trim();
-            const phone = $('#mobile-number-input').value.trim();
-            let tableNumber = this.state.tableNumber;
+        // NEW: Handler for the universal modal
+        async completeUniversalOnboarding(){
+            const name = $('#universal-user-name-input').value.trim();
+            const phone = $('#universal-mobile-number-input').value.trim();
 
-            if (!tableNumber) {
-                 const tableInput = $('#table-number-input');
-                 if (!tableInput || !tableInput.value) return ui.showToast("Please enter your table number.");
-                 tableNumber = parseInt(tableInput.value);
-            }
             if (!name) return ui.showToast("Please enter your name.");
-            if (!phone || !/^\d{10}$/.test(phone.replace(/\D/g,''))) return ui.showToast("Please enter a valid 10-digit mobile number for loyalty points.");
+            if (!phone || !/^\d{10}$/.test(phone.replace(/\D/g,''))) return ui.showToast("Please enter a valid 10-digit mobile number.");
             const cleanPhone = phone.replace(/\D/g,'');
 
             try {
@@ -571,19 +664,22 @@
                 // Update local state
                 updatedProfile.loyalty_points = updatedProfile.loyalty_points || 0;
                 this.state.customerProfile = updatedProfile;
-                this.state.tableNumber = tableNumber;
+                console.log("Universal onboarding complete, profile updated:", updatedProfile);
                 
-                // Call startSession/showMainInterface before closing modal
-                await this.startSession();
-                ui.closeModal('onboarding-modal');
-                this.navigateTo('home', false); // Ensure UI updates
+                // Close this modal
+                ui.closeModal('universal-onboarding-modal');
+
+                // Now, continue to the brand-specific flow
+                this.continueAppFlowAfterOnboarding();
 
             } catch (error) {
-                console.error("Onboarding Update Error:", error);
+                console.error("Universal Onboarding Update Error:", error);
                 ui.showToast(`Could not save profile: ${error.message}`);
             }
         },
 
+        // DELETED: showOnboardingModal() and completeOnboarding() are no longer needed
+        // as their logic is replaced by the universal modal and the table number modal.
 
         showTableNumberModal() {
             ui.showModal('table-number-modal', `
@@ -661,6 +757,11 @@
 
              // 1. Handle Modal Back
              if (openModal) {
+                 // PREVENT closing the universal onboarding modal with back button
+                 if (openModal.id === 'universal-onboarding-modal') {
+                     event.preventDefault();
+                     return;
+                 }
                 ui.closeModal(openModal.id);
                 event.preventDefault();
                 // Replace hash to current page after closing modal
@@ -695,7 +796,7 @@
         applyTheme(){ document.body.dataset.theme = this.state.theme; },
         
         // This function is now deprecated, as switching is handled by
-        // app.logoutAndClearBrand() to force re-selection.
+        // app.switchBrand() to force re-selection.
         // We will keep the 'gulabi' -> 'bulb' toggle logic inside Gulabi Thali page
         // as a special case.
         
@@ -717,24 +818,13 @@
             }
         },
 
-        // NEW: Function to clear brand choice and 'logout'
-        async logoutAndClearBrand() {
-            try {
-                // Sign out from Supabase auth
-                const { error } = await supabase.auth.signOut();
-                if (error) {
-                    console.error("Error signing out:", error);
-                    ui.showToast("Logout failed. Please try again.");
-                    return;
-                }
-            } catch (e) {
-                console.error("Exception during sign out:", e);
-            }
-            
+        // NEW: Function to clear brand choice and reload (DOES NOT SIGN OUT)
+        async switchBrand() {
             // Clear the stored brand theme
             localStorage.removeItem('brand-theme');
             
             // Reload the page to force brand selection
+            // The anonymous auth session will persist
             location.reload();
         },
 
@@ -1274,6 +1364,8 @@
             // FIX: Changed this.state to app.state to correct the TypeError
             if (app.state.theme === 'gulabi' && !app.state.isGulabiOrderingEnabled) {
                 this.renderGulabiThaliPage(content);
+                // NEW: Init slideshow after rendering
+                this.initSlideshow('gulabi-slideshow');
                 return;
             }
             
@@ -1338,13 +1430,33 @@
             // 4. Build Full Page HTML
             container.innerHTML = `
                 <div class="p-4 space-y-6">
-                    <!-- Video Hero -->
-                    <div class="relative h-48 overflow-hidden rounded-lg shadow-lg">
-                        <video src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/WhatsApp%20Video%202025-11-01%20at%2020.52.47_2473f7b8.mp4" autoplay loop muted playsinline preload="metadata" class="absolute top-1/2 left-1/2 w-full h-full object-cover -translate-x-1/2 -translate-y-1/2"></video>
-                        <div class="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white text-center p-4">
-                            <h1 class="text-4xl font-bold">GULABI THALI</h1>
-                            <p class="text-lg font-medium">Cloud Kitchen</p>
+                    <!-- Slideshow Hero -->
+                    <div id="gulabi-slideshow" class="slideshow-container relative h-64 overflow-hidden rounded-lg shadow-lg">
+                        <div class="slideshow-track h-full">
+                            <!-- Slide 1: Video -->
+                            <div class="slide h-full">
+                                <video src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/WhatsApp%20Video%202025-11-01%20at%2020.52.47_2473f7b8.mp4" autoplay loop muted playsinline preload="metadata" class="slide-video"></video>
+                                <div class="slide-text !justify-center !bg-black/50">
+                                    <h1 class="text-4xl font-bold">GULABI THALI</h1>
+                                    <p class="text-lg font-medium">Cloud Kitchen</p>
+                                </div>
+                            </div>
+                            <!-- Slide 2: Image -->
+                            <div class="slide h-full">
+                                <img src="https://vrvlvvlfzbdqwfsdlrkv.supabase.co/storage/v1/object/public/video/403946165_1014623216287649_4686052002313628516_n%20(1).jpg"
+                                     alt="Gulabi Thali Food"
+                                     class="slide-content"
+                                     onerror="this.onerror=null; this.src='https://placehold.co/600x800/DB2777/9D174D?text=Gulabi+Thali';">
+                                <div class="slide-text">
+                                    <h2 class="text-2xl font-bold">Authentic Flavors</h2>
+                                    <p>Traditional Rajasthani Cuisine</p>
+                                </div>
+                            </div>
                         </div>
+                        <!-- Controls -->
+                        <button class="slideshow-btn prev">&lsaquo;</button>
+                        <button class="slideshow-btn next">&rsaquo;</button>
+                        <div class="slideshow-dots"></div>
                     </div>
                 
                     <!-- Catering Card -->
@@ -1437,7 +1549,8 @@
                     </p>
                 </div>
             `;
-
+            
+            // NEW: Updated button text and onclick handler
             $('#page-content').innerHTML = `
                 <div class="space-y-6">
                     <!-- Video Hero Section -->
@@ -1457,8 +1570,8 @@
                         <div class="bg-secondary p-6 rounded-xl shadow-sm border border-custom text-center">
                             <span class="text-4xl mb-2">🔄</span>
                             <h2 class="text-2xl font-bold text-primary mb-4 px-1">Change Location</h2>
-                            <button onclick="app.logoutAndClearBrand()" class="w-full ${switchButtonColor} text-white font-extrabold py-3 px-6 rounded-xl shadow-lg text-lg">
-                                CHANGE BRAND / LOGOUT
+                            <button onclick="app.switchBrand()" class="w-full ${switchButtonColor} text-white font-extrabold py-3 px-6 rounded-xl shadow-lg text-lg">
+                                CHANGE BRAND
                             </button>
                         </div>
                         
@@ -1806,7 +1919,8 @@
         renderSocialPage(){
             const currentBrandName = 'Bulb Cafe'; // This page is only on Bulb theme
             const socialCaption = "Post your coffee pics! Tag us for a shoutout.";
-
+            
+            // NEW: Updated button text and onclick handler
             $('#page-content').innerHTML = `
                 <div class="p-4 space-y-6 text-center">
                      <div class="bg-secondary p-6 rounded-xl shadow-sm border border-custom">
@@ -1820,8 +1934,8 @@
                     <div class="bg-secondary p-6 rounded-xl shadow-sm border border-custom">
                         <h2 class="text-2xl font-bold text-primary">Change Location</h2>
                         <p class="text-secondary mt-1 mb-4">Go back to the main selection screen.</p>
-                        <button onclick="app.logoutAndClearBrand()" class="w-full bg-red-500 text-white font-extrabold py-3 px-6 rounded-xl shadow-lg transition transform hover:scale-[1.02]">
-                            CHANGE BRAND / LOGOUT
+                        <button onclick="app.switchBrand()" class="w-full bg-red-500 text-white font-extrabold py-3 px-6 rounded-xl shadow-lg transition transform hover:scale-[1.02]">
+                            CHANGE BRAND
                         </button>
                     </div>
                 </div>
@@ -1856,11 +1970,12 @@
         renderMorePage(){
             const loyaltyPoints = app.state.customerProfile?.loyalty_points ?? 0;
             const loyaltyExplanation = `<p class="text-xs text-secondary mt-1">Earn 10% points (on orders > ₹${app.state.appSettings.loyalty_threshold || 350}). 1 pt = ₹1 discount (redeem in Cart).</p>`;
+            
+            // NEW: Updated button text and onclick handler
             const options = [
                 { icon: "🪙", text: `Loyalty Points: ${loyaltyPoints}`, action: "", explanation: loyaltyExplanation },
                 { icon: "🛎", text: "Call Staff for Assistance", action: "ui.showCallStaffModal()" },
-                // NEW: Changed to "Change Brand / Logout"
-                { icon: "🔄", text: "Change Brand / Logout", action: "app.logoutAndClearBrand()" },
+                { icon: "🔄", text: "Change Brand", action: "app.switchBrand()" },
                 { icon: "🎮", text: "Play Games", action: "ui.showGamesModal()" },
                 { icon: "📜", text: "Order History", action: "ui.showOrderHistoryModal()" },
             ];
@@ -1894,8 +2009,7 @@
         
         showBrandSwitcherModal(){
              // This is no longer used, as the toggle is directly on other pages.
-             // Kept here in case it's needed later.
-             app.logoutAndClearBrand();
+             app.switchBrand();
         },
 
         showPaymentModal(){
@@ -2006,6 +2120,73 @@
                 <div class="space-y-3 max-h-60 overflow-y-auto">${historyHTML}</div>
                 <button onclick="ui.closeModal('history-modal')" class="w-full mt-6 bg-secondary font-semibold py-3 rounded-lg">Close</button>
             `);
+        },
+
+        // NEW: Slideshow logic
+        initSlideshow(containerId) {
+            const container = $(`#${containerId}`);
+            if (!container) return;
+
+            const track = container.querySelector('.slideshow-track');
+            const slides = Array.from(container.querySelectorAll('.slide'));
+            const nextBtn = container.querySelector('.slideshow-btn.next');
+            const prevBtn = container.querySelector('.slideshow-btn.prev');
+            const dotsContainer = container.querySelector('.slideshow-dots');
+            
+            if (!track || slides.length === 0) return;
+
+            let currentIndex = 0;
+            const slideCount = slides.length;
+
+            // Create dots
+            if (dotsContainer) {
+                dotsContainer.innerHTML = ''; // Clear existing dots
+                for (let i = 0; i < slideCount; i++) {
+                    const dot = document.createElement('div');
+                    dot.classList.add('dot');
+                    if (i === 0) dot.classList.add('active');
+                    dot.dataset.index = i;
+                    dotsContainer.appendChild(dot);
+                }
+            }
+            const dots = dotsContainer ? Array.from(dotsContainer.querySelectorAll('.dot')) : [];
+
+            const updateSlide = (index) => {
+                // Pause all videos
+                slides.forEach(slide => {
+                    const video = slide.querySelector('video');
+                    if (video) video.pause();
+                });
+
+                // Set new index
+                currentIndex = (index + slideCount) % slideCount;
+                
+                // Play video if new slide is a video
+                const currentSlide = slides[currentIndex];
+                const currentVideo = currentSlide.querySelector('video');
+                if (currentVideo) {
+                    currentVideo.play().catch(e => console.warn("Autoplay was prevented:", e));
+                }
+
+                // Move track
+                track.style.transform = `translateX(-${currentIndex * 100}%)`;
+
+                // Update dots
+                dots.forEach((dot, i) => {
+                    dot.classList.toggle('active', i === currentIndex);
+                });
+            };
+
+            // Event Listeners
+            if (nextBtn) {
+                nextBtn.onclick = () => updateSlide(currentIndex + 1);
+            }
+            if (prevBtn) {
+                prevBtn.onclick = () => updateSlide(currentIndex - 1);
+            }
+            dots.forEach(dot => {
+                dot.onclick = () => updateSlide(parseInt(dot.dataset.index));
+            });
         }
     };
 
