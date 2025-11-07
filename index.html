@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <!-- 
       Ensuring mobile-first design with viewport settings.
-      user-scalable=no prevents accidental zooming on mobile.
+      user-scalable=no prevents accidental zooming on mobile, as requested.
     -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Bulb Cafe & Gulabi Thali</title>
     
     <!-- Tailwind CSS -->
@@ -26,13 +26,27 @@
             --bg-primary-light: #FFFFFF; --bg-secondary-light: #F3F4F6; --text-primary-light: #111827; --text-secondary-light: #6B7280; --border-light: #E5E7EB; --brand-primary-light: #111827;
             --bg-primary-dark: #111111; --bg-secondary-dark: #1F2023; --text-primary-dark: #F9FAFB; --text-secondary-dark: #9CA3AF; --border-dark: #374151; --brand-primary-dark: #FFFFFF;
             
-            /* Bulb Theme (Yellow Gradient) */
-            --bg-primary-yellow: #FFFBEB; --bg-secondary-yellow: #FEF3C7; --text-primary-yellow: #92400E; --text-secondary-yellow: #B45309; --border-yellow: #FDE68A; 
-            --brand-primary-yellow-start: #FBBF24; --brand-primary-yellow-end: #F59E0B;
+            /* --- REFINED UI/GRADIENTS --- */
 
-            /* Gulabi Theme (Pink Gradient) */
-            --bg-primary-pink: #FFF5F7; --bg-secondary-pink: #FCE7F6; --text-primary-pink: #9D174D; --text-secondary-pink: #E94C8F; --border-pink: #FBCFE8; 
-            --brand-primary-pink-start: #EC4899; --brand-primary-pink-end: #DB2777;
+            /* Bulb Theme (Warm Yellow/Amber Gradient) */
+            --bg-primary-yellow: #FFFDF5;     /* Lighter, creamier base */
+            --bg-secondary-yellow: #FEFBEB;   /* Very light yellow for cards */
+            --text-primary-yellow: #78350F;   /* Darker amber for text */
+            --text-secondary-yellow: #B45309; /* Richer amber */
+            --border-yellow: #FDE68A;       /* Soft yellow border */
+            --brand-primary-yellow-start: #F59E0B; /* Amber */
+            --brand-primary-yellow-end: #FBBF24;   /* Yellow */
+
+            /* Gulabi Theme (Softer Pink "Gulabi" Gradient) */
+            --bg-primary-pink: #FFF5F7;     /* Very light pink base */
+            --bg-secondary-pink: #FDF2F8;   /* Slightly richer pink for cards */
+            --text-primary-pink: #831843;   /* Deep magenta text */
+            --text-secondary-pink: #BE185D; /* Strong pink */
+            --border-pink: #FBCFE8;       /* Soft pink border */
+            --brand-primary-pink-start: #EC4899; /* Pink */
+            --brand-primary-pink-end: #DB2777;   /* Deeper pink */
+
+            /* --- END REFINEMENTS --- */
 
             --app-height: 100vh;
         }
@@ -55,7 +69,10 @@
         }
 
         /* Base & Utility Styles */
-        html, body { height: 100%; overflow: hidden; }
+        html, body { 
+            height: 100%; 
+            overflow: hidden; /* Prevents outer page scroll */
+        }
         body { 
             font-family: 'Poppins', sans-serif; 
             background-color: #000000; /* Outer background for desktop view */
@@ -63,18 +80,29 @@
             -webkit-tap-highlight-color: transparent; 
             transition: background-color 0.5s ease; 
         }
+        /* Main container for the mobile app view */
         .app-container { 
             background-color: var(--bg-primary); 
             transition: background-color 0.5s ease; 
             height: var(--app-height); /* Full viewport height */
+            display: flex;
+            flex-direction: column;
         }
+        /* Main content area, scrolls independently */
+        .app-container > main {
+            flex-grow: 1;
+            overflow-y: auto; /* Allows content to scroll */
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+        }
+
         .text-primary { color: var(--text-primary); } .text-secondary { color: var(--text-secondary); }
         .bg-primary { background-color: var(--bg-primary); } .bg-secondary { background-color: var(--bg-secondary); }
         .border-custom { border-color: var(--border-color); } 
         
-        /* NEW: Gradient Styles */
+        /* Gradient Styles */
         .brand-text {
-            background-image: linear-gradient(to right, var(--brand-gradient-start), var(--brand-gradient-end));
+            /* Applying gradient from end to start for a better visual */
+            background-image: linear-gradient(to right, var(--brand-gradient-end), var(--brand-gradient-start));
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -147,37 +175,60 @@
         }
         .tracker-step.active .tracker-label { color: var(--brand-primary); }
 
-        /* Menu/Cart Controls */
+        /* --- REFINED UI: Menu/Cart Controls --- */
         .add-to-cart-btn { 
-            width: 40px; height: 40px; border-radius: 50%; 
+            width: 38px; height: 38px; /* Slightly smaller */
+            border-radius: 50%; 
             background-color: var(--bg-primary); 
             color: var(--brand-primary); 
             border: 2px solid var(--border-color); 
-            font-size: 24px; font-weight: 600; line-height: 1; 
+            font-size: 22px; font-weight: 600; line-height: 1; 
             display: flex; align-items: center; justify-content: center; 
-            transition: all 0.2s ease; 
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
         .add-to-cart-btn:hover { 
             transform: scale(1.1); 
             background-image: linear-gradient(to right, var(--brand-gradient-start), var(--brand-gradient-end));
             color: white; 
-            border-color: var(--brand-primary); 
+            border-color: transparent; 
         }
         .quantity-control { 
             display: flex; align-items: center; justify-content: space-between; 
-            background-image: linear-gradient(to right, var(--brand-gradient-start), var(--brand-gradient-end));
-            color: white; 
+            background-color: var(--bg-primary);
+            border: 2px solid var(--border-color);
+            color: var(--text-primary); 
             border-radius: 9999px; font-weight: 600; 
-            overflow: hidden; width: 100px; height: 40px; user-select: none; 
+            overflow: hidden; width: 100px; height: 38px; user-select: none; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
-        .quantity-control button { width: 34px; height: 100%; font-size: 20px; line-height: 1; transition: background-color 0.2s ease; }
-        .quantity-control button:hover { background-color: rgba(0,0,0,0.1); }
+        .quantity-control button { 
+            width: 34px; height: 100%; font-size: 20px; line-height: 1; 
+            transition: background-color 0.2s ease;
+            color: var(--brand-primary);
+            font-weight: 700;
+        }
+        .quantity-control button:hover { background-color: var(--bg-secondary); }
         .quantity-control span { font-size: 16px; }
+        
+        /* Special style for cart page quantity control */
+        .cart-quantity-control {
+            background-image: linear-gradient(to right, var(--brand-gradient-start), var(--brand-gradient-end));
+            border: none;
+            color: white;
+        }
+        .cart-quantity-control button {
+            color: white;
+        }
+        .cart-quantity-control button:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+        /* --- END REFINEMENTS --- */
         
         /* View-only item style for Gulabi Thali */
         .menu-item-view-only {
             background-color: var(--bg-secondary);
-            border-radius: 0.5rem; /* 8px */
+            border-radius: 0.75rem; /* 12px */
             padding: 0.75rem; /* 12px */
             border: 1px solid var(--border-color);
         }
@@ -209,7 +260,7 @@
         .slideshow-container {
             position: relative;
             overflow: hidden;
-            border-radius: 0.5rem; /* 8px */
+            border-radius: 0.75rem; /* 12px */
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
         .slideshow-track { display: flex; transition: transform 0.5s ease-in-out; }
@@ -232,11 +283,11 @@
 
     <!-- 
       Brand Selection Screen 
-      This is now shown *after* auth/onboarding, or if a QR code is scanned.
+      This is shown *after* auth/onboarding, OR if a QR code is scanned.
     -->
     <div id="brand-selection-screen" class="fixed inset-0 bg-gray-900 flex flex-col items-center justify-center z-[200] p-4 hidden">
         <h1 class="text-3xl font-bold text-white mb-4">Welcome</h1>
-        <h2 class="text-xl text-gray-300 mb-10">Please select a location to continue</h2>
+        <h2 class="text-xl text-gray-300 mb-10 text-center">Please select a location to continue</h2>
         
         <div class="w-full max-w-lg mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
             <!-- Bulb Cafe Card -->
@@ -286,17 +337,20 @@
       Main App Container
       This is the mobile-sized container.
     -->
-    <div id="app" class="app-container max-w-lg mx-auto shadow-2xl flex flex-col hidden">
-        <main class="flex-grow overflow-y-auto">
-            <div id="main-interface" class="hidden">
+    <div id="app" class="app-container max-w-lg mx-auto shadow-2xl hidden">
+        <main>
+            <div id="main-interface" class="hidden h-full flex flex-col">
                 <!-- Page Header (Sticky) -->
-                <header id="page-header" class="sticky top-0 bg-primary/80 backdrop-blur-sm z-20 h-16 px-4 flex justify-between items-center border-b border-custom"></header>
-                <!-- Page Content Area -->
-                <div id="page-content"></div>
+                <header id="page-header" class="sticky top-0 bg-primary/80 backdrop-blur-sm z-20 h-16 px-4 flex-shrink-0 flex justify-between items-center border-b border-custom"></header>
+                
+                <!-- Page Content Area (Scrollable) -->
+                <div id="page-content" class="flex-grow overflow-y-auto"></div>
+
+                <!-- Footer Spacer for Bottom Nav -->
+                <div id="footer-spacer" class="h-16 flex-shrink-0"></div>
             </div>
-            <!-- Footer Spacer for Bottom Nav -->
-            <div id="footer-spacer" class="h-20 flex-shrink-0"></div>
         </main>
+        
         <!-- Bottom Navigation Bar -->
         <nav id="bottom-nav" class="fixed bottom-0 left-1/2 -translate-x-1/2 max-w-lg w-full bg-primary/80 backdrop-blur-sm border-t border-custom flex justify-around items-center h-16 z-30 hidden"></nav>
     </div>
@@ -348,7 +402,6 @@
     const PAGES = ['home', 'order', 'cart', 'social', 'cowork', 'more'];
 
     // --- STATIC DATA ---
-    // (This section is unchanged)
     const STATIC_DATA = {
         bestSellers: [1, 2, 3, 4], 
         captionIdeas: {
@@ -359,7 +412,6 @@
     };
     
     // --- SOUND EFFECTS ---
-    // (This section is unchanged)
     const sound = {
         audioContext: null,
         init() {
@@ -409,7 +461,7 @@
         },
 
         /**
-         * NEW: earlyInit()
+         * earlyInit()
          * Runs on page load. Handles auth and profile fetching *before* brand selection.
          */
         async earlyInit() {
@@ -439,6 +491,7 @@
                     }
                     this.state.user = signInData.user;
                 }
+                console.log("User session established:", this.state.user.id);
 
                 // 3. FETCH OR CREATE PROFILE
                 await this.fetchCustomerProfile();
@@ -456,8 +509,9 @@
         },
         
         /**
-         * NEW: handleProfileLoaded()
+         * handleProfileLoaded()
          * Decides whether to show onboarding or brand selection.
+         * This fulfills the request: "first let me fill details and then ask brand"
          */
         handleProfileLoaded() {
             if (!this.state.customerProfile || this.state.customerProfile.name === 'Guest' || !this.state.customerProfile.whatsapp_number) {
@@ -473,8 +527,8 @@
         },
         
         /**
-         * MODIFIED: init()
-         * This function is now called *after* a brand is selected.
+         * init()
+         * This function is called *after* a brand is selected.
          * It handles fetching data and showing the main app.
          */
         async init() {
@@ -485,10 +539,10 @@
             const splashLogo = $('#splash-screen .brand-logo');
             const splashTitle = $('#splash-screen .text-3xl');
             if (this.state.theme === 'gulabi') {
-                splashLogo.innerHTML = '🌸'; // NEW: Gulabi Thali icon
+                splashLogo.innerHTML = '🌸';
                 splashTitle.innerHTML = 'GULABI THALI';
             } else {
-                splashLogo.innerHTML = '💡'; // Bulb Cafe icon
+                splashLogo.innerHTML = '💡';
                 splashTitle.innerHTML = 'BULB CAFE';
             }
             $('#splash-screen').classList.remove('hidden');
@@ -505,6 +559,7 @@
 
             // Fetch data and start the app flow
             try {
+                // Fetch menu and settings (which includes the Gulabi toggle)
                 await Promise.all([ this.fetchMenuData(), this.fetchAppSettings() ]);
                 this.startAppFlow();
             } catch (error) {
@@ -514,7 +569,7 @@
         },
 
         /**
-         * MODIFIED: startAppFlow()
+         * startAppFlow()
          * This is now just the final step to show the app after data is loaded.
          */
         startAppFlow() {
@@ -534,13 +589,14 @@
         },
         
         /**
-         * MODIFIED: continueAppFlowAfterOnboarding()
+         * continueAppFlowAfterOnboarding()
          * Logic is unchanged, but its position in the flow is different.
          * It now runs *after* brand is selected and data is loaded.
          */
         continueAppFlowAfterOnboarding() {
             if (this.state.theme === 'gulabi') {
                 // Cloud kitchen view: No table number needed.
+                // The page render logic will handle view-only vs. orderable.
                 this.showMainInterface();
             } else {
                 // Bulb Cafe view: Check for table number.
@@ -555,7 +611,7 @@
         },
 
         /**
-         * MODIFIED: getTableNumberFromURL()
+         * getTableNumberFromURL()
          * Unchanged logic, but now called during earlyInit.
          */
         getTableNumberFromURL() {
@@ -568,7 +624,7 @@
         },
 
         /**
-         * MODIFIED: fetchCustomerProfile()
+         * fetchCustomerProfile()
          * Unchanged logic, but now called during earlyInit.
          */
         async fetchCustomerProfile() {
@@ -606,7 +662,7 @@
         },
         
         /**
-         * MODIFIED: createUserProfile()
+         * createUserProfile()
          * Unchanged logic.
          */
         async createUserProfile(userId) {
@@ -636,7 +692,7 @@
         },
 
         /**
-         * MODIFIED: fetchMenuData()
+         * fetchMenuData()
          * Unchanged logic, but called from app.init().
          */
         async fetchMenuData() {
@@ -644,8 +700,10 @@
                 const { data, error } = await supabase.from('products').select('*').order('id');
                 if (error) throw error;
 
+                // Filter *all* available items for searching
                 this.state.allMenuItems = data.filter(i => i.is_available);
 
+                // Create grouped menu (legacy, still used by accordion)
                 const groupedMenu = data.reduce((acc, item) => {
                     if (!item.is_available) return acc;
                     const categoryName = item.category || 'Uncategorized';
@@ -667,23 +725,24 @@
         },
 
         /**
-         * MODIFIED: fetchAppSettings()
-         * Unchanged logic, but called from app.init().
-         * Sets the isGulabiOrderingEnabled state.
+         * fetchAppSettings()
+         * This is key for the "Gulabi Thali Toggle" request.
          */
         async fetchAppSettings() {
             try {
                 const { data, error } = await supabase.from('app_settings').select('key, value');
                 if (error) throw error;
                 this.state.appSettings = data.reduce((acc, { key, value }) => ({ ...acc, [key]: value }), {});
+                
                 // This is the toggle from your admin panel
                 this.state.isGulabiOrderingEnabled = this.state.appSettings?.gulabi_thali_ordering_enabled || false;
+                
                 console.log(`Gulabi Thali Ordering Enabled: ${this.state.isGulabiOrderingEnabled}`);
             } catch (error) { console.error('Error fetching app settings:', error); }
         },
 
         /**
-         * MODIFIED: showUniversalOnboardingModal()
+         * showUniversalOnboardingModal()
          * Unchanged logic.
          */
         showUniversalOnboardingModal(){
@@ -702,7 +761,7 @@
         },
 
         /**
-         * MODIFIED: completeUniversalOnboarding()
+         * completeUniversalOnboarding()
          * Now calls ui.showBrandSelection(true) on success.
          */
         async completeUniversalOnboarding(){
@@ -736,6 +795,7 @@
                 ui.closeModal('universal-onboarding-modal');
 
                 // MODIFIED: Now, force the brand selection screen to show
+                // This fulfills the "details FIRST, then brand" request.
                 ui.showBrandSelection(true); // 'true' forces it to show
 
             } catch (error) {
@@ -745,7 +805,7 @@
         },
 
         /**
-         * MODIFIED: showTableNumberModal()
+         * showTableNumberModal()
          * Unchanged logic.
          */
         showTableNumberModal() {
@@ -758,7 +818,7 @@
         },
 
         /**
-         * MODIFIED: completeTableNumberEntry()
+         * completeTableNumberEntry()
          * Unchanged logic.
          */
         completeTableNumberEntry() {
@@ -816,6 +876,7 @@
              const openModal = $('#modal-container').children[0];
 
              if (openModal) {
+                 // Don't allow backing out of onboarding
                  if (openModal.id === 'universal-onboarding-modal') {
                      event.preventDefault(); return;
                  }
@@ -844,6 +905,7 @@
 
         applyTheme(){ document.body.dataset.theme = this.state.theme; },
         
+        // This function is just for a demo button, the main logic is in switchBrand
         toggleTheme(t){ 
             ui.closeModal('brand-switcher-modal');
             if (this.state.theme === 'gulabi' && t === 'bulb') {
@@ -857,18 +919,20 @@
             }
         },
 
+        // This is the main function to switch brands
         async switchBrand() {
             localStorage.removeItem('brand-theme');
             location.reload(); // Reloads the page, triggering earlyInit()
         },
 
         /**
-         * MODIFIED: addOrUpdateCart()
-         * Logic unchanged. The check for `isGulabiOrderingEnabled` is already correct.
+         * addOrUpdateCart()
+         * This logic is correct. It checks the admin toggle for Gulabi Thali.
          */
         addOrUpdateCart(itemId, quantityChange) {
             const item = this.state.allMenuItems.find(i => i.id === itemId);
-            // This check is correct
+            
+            // This check handles the "Gulabi Thali orderable" request
             if (item && item.brand?.toLowerCase() === 'gulabi thali' && !this.state.isGulabiOrderingEnabled) {
                 return ui.showToast("Gulabi Thali is view-only at the moment.", 'error');
             }
@@ -894,8 +958,8 @@
         },
 
         /**
-         * MODIFIED: setCartItemQuantity()
-         * Logic unchanged. The check for `isGulabiOrderingEnabled` is already correct.
+         * setCartItemQuantity()
+         * This logic is also correct and checks the admin toggle.
          */
         setCartItemQuantity(itemId, quantity) {
             const item = this.state.allMenuItems.find(i => i.id === itemId);
@@ -938,7 +1002,9 @@
                 
                 this.state.searchResults = this.state.allMenuItems.filter(item => {
                     const itemBrand = item.brand?.toLowerCase();
+                    // Search only within the active brand
                     if (itemBrand !== activeBrand.toLowerCase()) return false;
+                    
                     const itemName = item.name?.toLowerCase() || '';
                     const itemDesc = item.description?.toLowerCase() || '';
                     return itemName.includes(this.state.searchQuery) || itemDesc.includes(this.state.searchQuery);
@@ -996,20 +1062,23 @@
         },
 
         /**
-         * MODIFIED: placeOrder()
-         * Logic unchanged. The checks for `isGulabiOrder` and `isGulabiOrderingEnabled`
-         * are already correct.
+         * placeOrder()
+         * This logic is correct. It handles Gulabi orders based on the admin toggle.
          */
         async placeOrder(paymentMethod, btnElement){
             if (!supabase) return ui.showToast("Order failed: Supabase not initialized.");
             
             const isGulabiOrder = app.state.theme === 'gulabi';
+            // Gulabi orders are assigned to table 0 (cloud kitchen)
             const tableLookupNumber = isGulabiOrder ? 0 : this.state.tableNumber; 
             
             if (this.state.cart.length === 0) return ui.showToast("Cart is empty.");
             if (!isGulabiOrder && !this.state.tableNumber) return ui.showToast("Table number is missing.");
-            // This check is correct
-            if (isGulabiOrder && !this.state.isGulabiOrderingEnabled) return ui.showToast("Ordering is currently disabled.");
+            
+            // This is the check based on the admin toggle
+            if (isGulabiOrder && !this.state.isGulabiOrderingEnabled) {
+                return ui.showToast("Ordering is currently disabled.");
+            }
 
             if (!this.state.customerProfile || !this.state.customerProfile.id) {
                 return ui.showToast("Error: Your profile is not loaded correctly. Please refresh.");
@@ -1027,6 +1096,7 @@
 
             try {
                 // 1. Verify Table
+                // This finds table '0' for Gulabi or the actual table for Bulb
                 const { data: tableData, error: tableError } = await supabase.from('tables').select('id').eq('table_number', tableLookupNumber).single();
                 if (tableError || !tableData) throw new Error(`Could not find table for order. (Ref: ${tableLookupNumber})`);
 
@@ -1065,10 +1135,13 @@
                     order_id: orderData.id,
                     product_id: i.id,
                     quantity: i.quantity,
-                    price_at_time_of_order: i.price
+                    price_at_time_of_order: i.price,
+                    // Add product_name for history convenience
+                    product_name: i.name 
                 }));
                 const { error: itemsError } = await supabase.from('order_items').insert(orderItems);
                 if (itemsError) {
+                    // Rollback order if items fail
                     await supabase.from('orders').delete().eq('id', orderData.id);
                     throw new Error(`Order items failed. ${itemsError.message}`);
                 }
@@ -1099,7 +1172,8 @@
                 this.state.pointsToRedeem = 0;
                 this.refreshPage();
                 sound.play('success');
-                this.navigateTo('cart');
+                // Navigate to cart/tracker page
+                this.navigateTo('cart'); 
 
             } catch (error) {
                 ui.showToast(`Order failed: ${error.message}`);
@@ -1116,7 +1190,9 @@
         },
 
         async fetchActiveOrder(){
-            if (!this.state.user || !this.state.customerProfile?.id) return;
+            // Only fetch active orders for Bulb cafe (in-person)
+            if (this.state.theme !== 'bulb' || !this.state.user || !this.state.customerProfile?.id) return;
+            
             const { data, error } = await supabase.from('orders')
                 .select(`*, order_items(*, products(name)), feedback_submitted`)
                 .eq('customer_id', this.state.customerProfile.id)
@@ -1139,8 +1215,10 @@
             this.state.orderSubscription = supabase.channel(`public:orders:id=eq.${orderId}`)
                 .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders', filter: `id=eq.${orderId}` }, payload => {
                     if (!this.state.activeOrder || this.state.activeOrder.id !== payload.new.id) return;
+                    
                     const updatedOrder = payload.new;
                     let uiNeedsRefresh = false;
+                    
                     if (updatedOrder.status !== this.state.activeOrder.status) {
                         ui.showToast(`Your order is now: ${updatedOrder.status}`);
                         this.state.activeOrder.status = updatedOrder.status;
@@ -1153,6 +1231,7 @@
                     if (['delivered', 'cancelled'].includes(updatedOrder.status)) {
                         supabase.removeChannel(this.state.orderSubscription);
                         this.state.orderSubscription = null;
+                        
                         if (updatedOrder.status === 'delivered' && !updatedOrder.feedback_submitted) {
                              ui.showModal('review-modal', `
                                 <div class="text-center">
@@ -1222,15 +1301,15 @@
     // --- UI RENDERING ---
     const ui = {
         /**
-         * MODIFIED: showBrandSelection()
-         * Now has logic to force-show or auto-select based on context.
+         * showBrandSelection()
+         * This fulfills the request: "when i scan ask me for brand selection everytime"
          */
         showBrandSelection(forceShow = false) {
             const storedTheme = localStorage.getItem('brand-theme');
             
             // Force selection if:
             // 1. It's forced (e.g., after onboarding)
-            // 2. A table number is present (QR scan)
+            // 2. A table number is present (from QR scan)
             if (forceShow || app.state.tableNumber) { 
                 console.log(`Forcing brand selection. Force: ${forceShow}, Table: ${app.state.tableNumber}`);
                 $('#brand-selection-screen').classList.remove('hidden');
@@ -1300,7 +1379,7 @@
             const pageConfigs = {
                 home: { title: currentBrandName},
                 order: { title: 'Menu'},
-                cart: { title: app.state.activeOrder ? 'Track Order' : 'My Cart'},
+                cart: { title: (app.state.activeOrder && app.state.theme === 'bulb') ? 'Track Order' : 'My Cart'},
                 social: { title: 'Social'},
                 cowork: { title: 'Kitchen'},
                 more: { title: 'More Options'}
@@ -1308,9 +1387,10 @@
             
             // Header for Gulabi Thali (both view-only and ordering)
             if (app.state.theme === 'gulabi') {
+                 const pageTitle = (page === 'cart') ? 'My Cart' : 'GULABI THALI';
                  header.innerHTML = `
                     <div class="flex items-center space-x-2">
-                        <h1 class="text-2xl font-bold brand-text">GULABI THALI</h1>
+                        <h1 class="text-2xl font-bold brand-text">${pageTitle}</h1>
                     </div>
                     <div class="text-right">
                         <p class="font-semibold text-primary text-sm">${app.state.customerProfile?.name || 'Guest'}</p>
@@ -1332,9 +1412,8 @@
         },
 
         /**
-         * MODIFIED: renderPageContent()
-         * Now correctly routes Gulabi Thali to either the view-only page
-         * or the orderable menu page based on the admin toggle.
+         * renderPageContent()
+         * This fulfills the request: "make gulabi thali items addable... by figuring out items which are toogled"
          */
         renderPageContent(page) {
             const content = $('#page-content');
@@ -1343,18 +1422,17 @@
             // --- NEW GULABI THALI ROUTING ---
             if (app.state.theme === 'gulabi') {
                 if (!app.state.isGulabiOrderingEnabled) {
-                    // Render the view-only page
+                    // Render the view-only page if toggle is OFF
                     this.renderGulabiThaliPage(content); 
                     this.initSlideshow('gulabi-slideshow');
                 } else {
-                    // Render the standard, orderable menu page
-                    // We can default to 'order' page or a specific home
+                    // Render the standard, orderable menu/cart page if toggle is ON
                     if (page === 'home' || page === 'order') {
                         this.renderMenuPage(content);
                     } else if (page === 'cart') {
                         this.renderCartPage(content);
                     } else {
-                        // Fallback for Gulabi (e.g. if 'social' is clicked)
+                        // Fallback for Gulabi (e.g. if 'social' is clicked) -> show menu
                         this.renderMenuPage(content);
                     }
                 }
@@ -1377,8 +1455,8 @@
         },
         
         /**
-         * MODIFIED: renderGulabiThaliPage()
-         * Unchanged logic. This is the VIEW-ONLY page.
+         * renderGulabiThaliPage()
+         * This is the VIEW-ONLY page, shown when the admin toggle is OFF.
          */
         renderGulabiThaliPage(container) {
             const switchTheme = 'bulb';
@@ -1403,7 +1481,7 @@
                         <h3 class="text-2xl font-bold brand-text mb-3 border-b-2 border-custom pb-1">${category}</h3>
                         <div class="space-y-2">
                             ${categoryMap[category].map(item => `
-                                <div class="menu-item-view-only">
+                                <div class="menu-item-view-only" onclick="ui.showItemDetailModal(${item.id})">
                                     <div class="flex justify-between items-center">
                                         <h4 class="font-semibold text-base text-primary">${item.name}</h4>
                                         <p class="font-bold text-sm text-secondary whitespace-nowrap ml-2">₹${item.price.toFixed(2)}</p>
@@ -1559,12 +1637,12 @@
             const cartItem = app.state.cart.find(ci => ci.id === item.id);
             const currentPrice = item.price || 0;
             
-            // This check is correct and covers Gulabi Thali in both states
+            // This check covers Gulabi Thali in both states
             const isViewOnly = app.state.theme === 'gulabi' && !app.state.isGulabiOrderingEnabled;
             
             let actionButtonHTML;
             if (isViewOnly) {
-                actionButtonHTML = ``;
+                actionButtonHTML = ``; // No button
             } else if (cartItem) {
                 actionButtonHTML = `<div class="quantity-control" onclick="event.stopPropagation();">
                    <button onclick="app.addOrUpdateCart(${item.id}, -1)">-</button>
@@ -1575,6 +1653,7 @@
                 actionButtonHTML = `<button class="add-to-cart-btn" onclick="event.stopPropagation(); app.addOrUpdateCart(${item.id}, 1)">+</button>`;
             }
 
+            // View-only card (for Gulabi disabled mode)
             if (isViewOnly) {
                 return `
                 <div class="menu-item-view-only" onclick="ui.showItemDetailModal(${item.id})">
@@ -1628,8 +1707,9 @@
                     const currentPrice = item.price || 0;
                     
                     let actionButtonHTML;
-                    if (isViewOnly) { // This check is redundant here but safe
-                        actionButtonHTML = ``;
+                    // This check is correct for an orderable menu
+                    if (isViewOnly) { 
+                        actionButtonHTML = ``; // Should not happen in this flow, but safe
                     } else if (cartItem) {
                         actionButtonHTML = `<div class="quantity-control" onclick="event.stopPropagation();">
                            <button onclick="app.addOrUpdateCart(${item.id}, -1)">-</button>
@@ -1640,11 +1720,6 @@
                         actionButtonHTML = `<button class="add-to-cart-btn" onclick="event.stopPropagation(); app.addOrUpdateCart(${item.id}, 1)">+</button>`;
                     }
 
-                    if (isViewOnly) { // This should not be hit if we're in this function
-                        return `
-                        <div class="menu-item-view-only !bg-primary" onclick="ui.showItemDetailModal(${item.id})">...</div>`;
-                    }
-                    
                     // Card style inside the accordion (bg-primary to stand out)
                     return `
                     <div class="bg-primary rounded-lg shadow-sm overflow-hidden cursor-pointer border border-custom" onclick="ui.showItemDetailModal(${item.id})">
@@ -1678,7 +1753,7 @@
         },
 
         /**
-         * MODIFIED: renderMenuPage()
+         * renderMenuPage()
          * This page now serves both Bulb and Gulabi (when ordering is on).
          */
         renderMenuPage(container){
@@ -1698,7 +1773,7 @@
                 </div>` : '';
             
             // Use different sticky top based on theme (Gulabi has no bottom nav)
-            const stickyTopClass = app.state.theme === 'bulb' ? 'sticky top-16' : 'sticky top-16'; // Same for now
+            const stickyTopClass = 'sticky top-16'; // Header is 4rem (h-16)
 
             container.innerHTML = `
                 ${activeOrderBannerHTML}
@@ -1732,14 +1807,16 @@
         renderCartPage(container) {
             // This page works for both Bulb and Gulabi
             if (app.state.activeOrder && app.state.theme === 'bulb') {
+                // Only Bulb shows order tracking
                 this.renderOrderTracking(container);
             }
             else if (app.state.cart.length > 0) {
                 this.renderCart(container);
             } else {
                 // Determine correct button text based on theme
-                const buttonText = app.state.theme === 'gulabi' ? 'View Menu' : 'View Menu';
-                const pageToNav = app.state.theme === 'gulabi' ? 'order' : 'order'; // Gulabi navs to 'order'
+                const buttonText = 'View Menu';
+                // For both themes, 'order' is the correct page
+                const pageToNav = 'order'; 
                 
                 container.innerHTML = `
                 <div class="text-center p-10">
@@ -1785,7 +1862,8 @@
 
             const isGulabiOrder = app.state.theme === 'gulabi';
             const instructionsPlaceholder = isGulabiOrder ? "Add Delivery Address & Contact..." : "Add special instructions...";
-            const bottomClass = isGulabiOrder ? 'sticky bottom-4' : 'sticky bottom-16'; // Gulabi has no nav bar
+            // Gulabi has no nav bar, so button is lower
+            const bottomClass = isGulabiOrder ? 'sticky bottom-4' : 'sticky bottom-16'; 
 
             container.innerHTML = `
                 <div class="p-4 space-y-3">
@@ -1795,7 +1873,7 @@
                                 <p class="font-bold text-primary">${i.name}</p>
                                 <p class="font-semibold text-secondary text-sm">₹${(i.price * i.quantity).toFixed(2)}</p>
                             </div>
-                            <div class="quantity-control" style="background-image: none; background-color: var(--bg-primary); color: var(--brand-primary); border: 1px solid var(--border-color);">
+                            <div class="quantity-control cart-quantity-control">
                                 <button onclick="app.addOrUpdateCart(${i.id}, -1)">-</button>
                                 <span>${i.quantity}</span>
                                 <button onclick="app.addOrUpdateCart(${i.id}, 1)">+</button>
@@ -1805,7 +1883,11 @@
                 </div>
                 ${loyaltySectionHTML}
                 <div class="p-4"><textarea id="special-instructions" class="w-full p-3 border-custom rounded-lg bg-secondary" placeholder="${instructionsPlaceholder}"></textarea></div>
-                <div class="p-4 bg-primary/80 backdrop-blur-sm border-t-custom ${bottomClass}">
+                
+                <!-- Spacer to push content above the sticky button -->
+                <div class="h-32"></div>
+
+                <div class="p-4 bg-primary/80 backdrop-blur-sm border-t border-custom ${bottomClass}">
                      <div id="cart-summary" class="mb-4 space-y-1 text-primary"></div>
                     <button id="place-order-btn" onclick="ui.showPaymentModal()" class="w-full brand-bg font-bold py-4 rounded-lg text-white">Proceed to Payment</button>
                 </div>`;
@@ -1825,15 +1907,15 @@
             if (summaryDiv) {
                 summaryDiv.innerHTML = `
                     <div class="flex justify-between items-center text-md">
-                        <span>Subtotal</span>
+                        <span class="text-secondary">Subtotal</span>
                         <span>₹${subtotal.toFixed(2)}</span>
                     </div>
                     <div class="flex justify-between items-center text-md text-green-600 ${currentDiscount > 0 ? '' : 'hidden'}">
-                        <span>Loyalty Discount</span>
+                        <span class="text-secondary">Loyalty Discount</span>
                         <span>- ₹${currentDiscount.toFixed(2)}</span>
                     </div>
                     <div class="flex justify-between items-center text-md ${gst > 0 ? '' : 'hidden'}">
-                        <span>GST (5%)</span>
+                        <span class="text-secondary">GST (5%)</span>
                         <span>₹${gst.toFixed(2)}</span>
                     </div>
                     <div class="flex justify-between items-center text-xl font-bold pt-1 border-t border-custom">
@@ -1848,19 +1930,26 @@
             if (!order) { container.innerHTML = ''; return; }
             const statuses = ['received', 'preparing', 'delivered'];
             const icons = { received: '📝', preparing: '🍳', delivered: '😊' };
+            const labels = { received: 'Received', preparing: 'Preparing', delivered: 'Delivered' };
             const currentIndex = statuses.indexOf(order.status);
             const progressPercentage = currentIndex >= 0 ? (currentIndex / (statuses.length - 1)) * 100 : 0;
             container.innerHTML = `
                 <div class="p-6 flex flex-col items-center justify-center h-full">
                     <h2 class="text-3xl font-bold text-center capitalize">Your Order is ${order.status}!</h2>
-                    <p class="text-secondary text-center mb-10">Order ID: #${order.id.slice(0,6)}</p>
-                    <div class="tracker-container my-12 w-full max-w-sm">
-                        <div class="tracker-line-container"><div class="tracker-progress" style="width: ${progressPercentage}%"></div></div>
-                        ${statuses.map((status, index) => `
-                            <div class="tracker-step ${index <= currentIndex ? 'active' : ''}">
-                                <div class="tracker-icon-container">${icons[status]}</div>
-                                <span class="tracker-label capitalize">${status}</span>
-                            </div>`).join('')}
+                    <p class="text-secondary text-center mb-10">Order ID: #${order.id.slice(0,6)}</img
+                    <div class="w-full max-w-sm my-12">
+                        <div class="relative w-full h-2 rounded-full tracker-line-container">
+                            <div class="absolute top-0 left-0 h-2 rounded-full tracker-progress transition-all duration-500" style="width: ${progressPercentage}%"></div>
+                        </div>
+                        <div class="flex justify-between mt-4">
+                            ${statuses.map((status, index) => `
+                                <div class="tracker-step text-center ${index <= currentIndex ? 'active' : ''}">
+                                    <div class="tracker-icon-container w-12 h-12 rounded-full flex items-center justify-center text-2xl transition-all duration-500">
+                                        ${icons[status]}
+                                    </div>
+                                    <span class="tracker-label capitalize text-sm font-semibold mt-2">${labels[status]}</span>
+                                </div>`).join('')}
+                        </div>
                     </div>
                     <div class="mt-auto pt-10 text-center">
                         <p class="text-secondary mb-4">You can play a quick game while you wait!</p>
@@ -1951,10 +2040,13 @@
         showBrandSwitcherModal(){ app.switchBrand(); },
 
         showPaymentModal(){
+             const isGulabi = app.state.theme === 'gulabi';
+             const paymentText = isGulabi ? "Confirm Order (Pay at Counter)" : "Pay at Counter";
+             
              ui.showModal('payment-modal', `
                 <h2 class="text-xl font-bold text-primary mb-4">Select Payment</h2>
                 <div class="space-y-3">
-                    <button onclick="app.placeOrder('Pay at Counter', this)" class="payment-btn w-full flex items-center justify-center bg-secondary p-4 rounded-xl border border-custom"><span class="text-2xl mr-4">💵</span><span class="font-semibold">Pay at Counter</span></button>
+                    <button onclick="app.placeOrder('Pay at Counter', this)" class="payment-btn w-full flex items-center justify-center bg-secondary p-4 rounded-xl border border-custom"><span class="text-2xl mr-4">💵</span><span class="font-semibold">${paymentText}</span></button>
                 </div>
                 <button onclick="ui.closeModal('payment-modal')" class="w-full mt-6 bg-secondary font-semibold py-3 rounded-lg">Cancel</button>
             `);
@@ -1964,6 +2056,7 @@
             const item = app.state.allMenuItems.find(i => i.id === itemId); if (!item) return;
             const cartItem = app.state.cart.find(ci => ci.id === itemId);
             const currentQuantity = cartItem ? cartItem.quantity : 0;
+            // This is the key check
             const isViewOnly = app.state.theme === 'gulabi' && !app.state.isGulabiOrderingEnabled;
 
             let optionsHTML = Array.from({ length: 10 }, (_, i) => `<option value="${i + 1}" ${i + 1 === currentQuantity ? 'selected' : ''}>${i + 1}</option>`).join('');
@@ -1990,7 +2083,7 @@
                     ${!isViewOnly ? `<button onclick="ui.closeModal('item-detail-modal')" class="w-full bg-secondary font-semibold py-3 rounded-lg">Back</button>` : ''}
                     <button
                             onclick="${isViewOnly ? `ui.closeModal('item-detail-modal')` : `app.setCartItemQuantity(${item.id}, parseInt($('#modal-quantity-select').value))`}" 
-                            class="w-full brand-bg font-semibold py-3 rounded-lg text-white">
+                            class="w-full brand-bg font-semibold py-3 rounded-lg text-white ${isViewOnly ? 'col-span-full' : ''}">
                         ${isViewOnly ? 'CLOSE' : (cartItem ? 'Update Quantity' : 'Add to Cart')}
                     </button>
                 </div>`);
@@ -2082,7 +2175,7 @@
                 dots.forEach((dot, i) => { dot.classList.toggle('active', i === currentIndex); });
             };
             if (nextBtn) { nextBtn.onclick = () => updateSlide(currentIndex + 1); }
-            if (prevBtn) { prevBtn.onclick = () => updateSlide(currentIndex - 1); } // FIX: Was currentIndex + 1
+            if (prevBtn) { prevBtn.onclick = () => updateSlide(currentIndex - 1); }
             dots.forEach(dot => { dot.onclick = () => updateSlide(parseInt(dot.dataset.index)); });
         }
     };
@@ -2172,7 +2265,7 @@
     // --- App Entry Point ---
     
     /**
-     * MODIFIED: selectBrand()
+     * selectBrand()
      * This is called by brand selection buttons OR by ui.showBrandSelection.
      * @param {string} brand - 'bulb' or 'gulabi'
      * @param {boolean} isManualClick - True if user clicked, false if auto-selected
